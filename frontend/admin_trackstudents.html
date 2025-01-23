@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin interface</title>
+    <link rel="icon" href="images/ag_icon.png">
+    <link 
+        rel="preconnect" 
+        href="https://fonts.googleapis.com">
+    <link 
+        rel="preconnect" 
+        href="https://fonts.gstatic.com" 
+        crossorigin>
+    <link 
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400..600&display=swap" 
+        rel="stylesheet">
+    <link 
+        rel="stylesheet" 
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=home,logout,person_add,person_edit,person_remove" />
+    <link rel="stylesheet" href="style/base.css">
+    <link rel="stylesheet" href="style/admin.css">
+    <link rel="stylesheet" href="style/admin_trackstudents.css">
+</head>
+
+<body>
+
+    <div class="page admin-page admin-studenttrack-page">
+
+        <header></header>     
+
+        <div class="page-content admin student-page">
+
+            <fieldset class="student label-list-outer">
+                <legend>Students</legend>
+                <ul class="stripped student label-list" >
+                </ul>    
+            </fieldset>
+
+            <fieldset class="course label-list-outer hidden">
+                <legend>Courses</legend>
+                <ul class="stripped course label-list">
+                </ul>    
+            </fieldset>
+
+            <div class="button-area">
+                <div class="toggle-button-container">
+                    <button class="toggle-button left all">
+                        All
+                    </button>
+                    <button class="toggle-button right by-course off">
+                        By course
+                    </button>
+                </div>
+                <button class="track-student-button check-progress">
+                    Check progress
+                </button>
+            </div>
+    
+            
+            <div class="overlay student-progress">
+                <div class="modal student-progress">
+                    <div class="student-progress student-name"></div>
+
+                    <div class="student-progress key projects">
+                        Projects:
+                    </div>
+                    <div class="student-progress value projects">0</div>
+
+                    <div class="student-progress skills-table">
+                    </div>    
+
+                    <div class="student-progress total key">
+                        Total progress:
+                    </div>
+                    <div class="student-progress total value"></div>
+
+                    <button id="export-progress">Export</button>
+                    <button class="close-progress">Close</button>
+                </div>
+            </div> <!-- overlay -->
+
+        </div> <!-- page-content -->
+    </div> <!-- page -->
+
+
+    <script src="scripts/config.js"></script>
+    <script src="scripts/utils.js"></script>
+    <script src="scripts/base.js"></script>
+    <script src="scripts/admin_trackstudents_modals.js"></script>
+    <script src="scripts/admin_trackstudents.js"></script>
+
+</body>
+</html>

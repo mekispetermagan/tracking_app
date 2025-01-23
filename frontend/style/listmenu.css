@@ -1,0 +1,49 @@
+
+/*  Listmenu pages:
+    admin_managementors
+    admin_managecourses
+ */
+ .listmenu-page {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.listmenu-page-content {
+    flex-grow: 1;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.listmenu-list-outer {
+    width: 70%;
+    flex-grow: 1;
+    padding: 0 18px;
+    overflow: scroll;
+}
+
+.listmenu-list-item {
+    padding: 6px;
+    background-color: var(--bg-color);
+    margin-bottom: 12px;
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    box-shadow: 6px 6px 6px 0 #00000020;
+    font-size: 15px;
+}
+
+.listmenu-buttons{
+    flex-shrink: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-around;
+}
+
+.listmenu-button {
+    background-color: var(--base-color);
+}
+

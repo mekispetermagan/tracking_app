@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage students</title>
+    <link rel="icon" href="images/ag_icon.png">
+    <link 
+        rel="preconnect" 
+        href="https://fonts.googleapis.com">
+    <link 
+        rel="preconnect" 
+        href="https://fonts.gstatic.com" 
+        crossorigin>
+    <link 
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400..600&display=swap" 
+        rel="stylesheet">
+    <!-- names have to be in alphabetical order -->
+    <link 
+        rel="stylesheet" 
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=home,logout,person_add,person_edit"/>
+    <link rel="stylesheet" href="style/base.css">
+    <link rel="stylesheet" href="style/listmenu.css">
+    <link rel="stylesheet" href="style/mentor.css">
+    <link rel="stylesheet" href="style/mentor_managestudents.css">
+</head>
+
+<body>
+
+<div class="page mentor-page listmenu-page">
+    
+    <header>
+    </header>     
+
+    <div class="page-content listmenu-page-content">
+        <div class="language-menu"></div>
+
+        <div class="listmenu-list-outer">
+            <ul class="stripped listmenu-list">
+            </ul>    
+        </div>
+
+        <div class="overlay manage-student">
+            <div class="modal manage-student">
+                <form class="manage-student-form">
+                    <label for="first-name" class="language-text">
+                        First name:
+                    </label>
+                    <input 
+                        type="text" 
+                        class="first-name-input" 
+                        name="first_name" 
+                        required>
+                    <label for="last-name" class="language-text">
+                        Last name:
+                    </label>
+                    <input 
+                        type="text" 
+                        class="last-name-input" 
+                        name="last_name" 
+                        required>
+                    <label for="country" class="language-text">
+                        Country:
+                    </label>
+                    <select name="country" id="country" required>
+                        <option value=""  class="language-text" disabled selected>
+                            --Select a country--
+                        </option>
+                        <option value="1" class="language-text">
+                            Hungary
+                        </option>
+                        <option value="2" class="language-text">
+                            Slovakia
+                        </option>
+                        <option value="3" class="language-text">
+                            Ukraine
+                        </option>
+                    </select>
+                    <label for="birth_year" class="language-text">
+                        Birthyear:
+                    </label>
+                    <input 
+                        type="text" 
+                        class="birth_year-input" 
+                        name="birth_year" 
+                        required>
+                    <label class="active-outer">
+                        <input 
+                            type="checkbox" 
+                            id="active" 
+                            name="active" 
+                            checked>
+                            <span class="language-text">
+                                Active
+                            </span>
+                    </label>
+                    <label class="language-text">Course(s):</label>
+                    <div class="course-list-outer">
+                        <ul class="stripped course-list">
+                        </ul>    
+                    </div>
+                    <div>
+                        <button class="submit language-text" type="submit">
+                            Submit
+                        </button>
+                        <button class="cancel language-text">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="listmenu-buttons">
+            <button class="listmenu-button add">
+                <span class="material-symbols-outlined">person_add</span>
+                <span>&nbsp;</span>
+                <span class="language-text">add</span>
+            </button>
+            <button class="listmenu-button edit">
+                <span class="material-symbols-outlined">person_edit</span>
+                <span>&nbsp;</span>
+                <span class="language-text">edit</span>
+            </button>
+        </div> <!-- mentor-menu -->
+
+    </div> <!-- page-content -->
+
+</div> <!-- page -->
+
+
+<script src="scripts/config.js"></script>
+<script src="scripts/utils.js"></script>
+<script src="scripts/base.js"></script>
+<script src="scripts/mentor_managestudents_language_data.js"></script>
+<script src="scripts/mentor_managestudents_modals.js"></script>
+<script src="scripts/mentor_managestudents.js"></script>
+
+</body>
+</html>

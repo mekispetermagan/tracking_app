@@ -1,0 +1,11 @@
+.invoice-pagecontent {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+#invoice-form {
+  width: 100%;
+  padding: 24px;
+  overflow: scroll;
+}

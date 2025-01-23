@@ -1,0 +1,22 @@
+.admin-menu-page {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
+}
+
+.admin-menu {
+    width: 100%;
+    /* display: flex; */
+    flex-grow: 1;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 30px;
+}
+
+.admin-menu-button {
+    width: 70%;
+    background-color: var(--base-color);
+}
+

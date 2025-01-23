@@ -1,0 +1,21 @@
+.modal {
+    max-height: 90%;
+    overflow: hidden;
+}
+
+.manage-student-form {
+    /* max-height: 90%; */
+    overflow: scroll;
+}
+
+.modal .course-list-outer {
+    max-height: 120px;
+}
+
+.modal .course-list {
+    height: 100%;
+    background-color: var(--bg-dark-color);
+    border-radius: 6px;
+    overflow: auto;
+}
+

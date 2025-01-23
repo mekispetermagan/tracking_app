@@ -1,0 +1,22 @@
+.student-page {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: center;
+}
+
+.student-gem-frame {
+    position: relative;
+}
+
+.student-gem {
+    width: 45px;
+}
+
+.student-sparkle {
+    position: absolute;
+    width: 15px;
+    left: 80%;
+    top: 70%;
+    transform: translate(-50%, -50%);
+}

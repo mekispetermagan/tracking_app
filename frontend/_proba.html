@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Próba</title>
+</head>
+<body>
+    <style>
+        .hidden {
+            display: none;
+        }
+    </style>
+    <form class="filter-container">
+        <fieldset>
+            <label for="active">active</label>
+            <input 
+                type="checkbox", 
+                id="active", 
+                name="active", 
+                value="true">
+        </fieldset>
+        <fieldset>
+            <legend>Country</legend>
+            <label for="svk">Slovakia</label>
+            <input 
+                type="radio", 
+                id="svk",
+                name="country",
+                value="svk">
+            <label for="hun">Hungary</label>
+            <input 
+                type="radio", 
+                id="hun",
+                name="country",
+                value="hun">
+            <label for="ukr">Ukraine</label>
+            <input 
+                type="radio", 
+                id="ukr",
+                name="country",
+                value="ukr">
+        </fieldset>
+    </form>
+    <div class="name-container"></div>
+
+
+
+    <script src="scripts/base.js"></script>
+    <script src="scripts/_proba.js"></script>
+</body>
+</html>

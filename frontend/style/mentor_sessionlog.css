@@ -1,0 +1,171 @@
+.sessionlog-pagecontent {
+    overflow: hidden;
+}
+
+#sessionlog-form {
+    width: 100%;
+    padding: 24px;
+    overflow: scroll;
+}
+
+.sessionlog-item {
+    padding: 3px 6px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background-color: var(--bg-dark-color);
+}
+
+.course-container {
+    width: fit-content;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: stretch;
+}
+
+.sessionlog-course {
+    display: flex;
+    gap: 12px;
+    align-items: baseline;
+}
+
+input {
+    background-color: var(input-bg-color);
+    color: var(-input-text-color);
+}
+
+/* toggle switch */
+
+.toggle-switch {
+    display: flex;
+    align-items: center;
+}
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 24px;
+    margin: 0 10px;
+    vertical-align: middle;
+}
+
+.switch input {
+    display: none;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--border-color); /* Default background color for the switch */
+    transition: 0.4s;
+    border-radius: 34px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 20px;
+    width: 20px;
+    left: 4px;
+    bottom: 2px;
+    background-color: white;
+    transition: 0.4s;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background-color: var(--button-color); /* Change color when checked */
+}
+
+input:checked + .slider:before {
+    transform: translateX(26px);
+}
+
+.toggle-label {
+    font-size: 15px;
+    color: var(--border-color);
+    transition: color 0.4s;
+}
+
+.toggle-label.active {
+    color: var(--light-text-color);
+    font-weight:500;
+}
+
+  /* Toggle ends */
+
+.curriculum-project-container {
+    display: flex;
+    width: fit-content;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+}
+
+.sessionlog.custom-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.student-container {
+    width: fit-content;
+    max-height: 360px;
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+}
+
+.studentlist-item {
+    font-size: 15px;
+}
+
+.custom-project-levels {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+}
+
+.level-icon {
+    height: 36px;    
+}
+
+.level-label {
+    display: flex;
+    align-items: center;
+}
+
+.custom-project-skills {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+}
+
+.skill-label {
+    display: flex;
+    align-items: center;
+}
+
+.skill-icon {
+    height: 36px;
+}
+
+.sessionlog-issues {
+    width: 100%;
+    height: 120px;
+}
+
+.sessionlog-buttons {
+    display: flex;
+    justify-content: space-evenly;
+    padding: 12px;
+}
+  
+  

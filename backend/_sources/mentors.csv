@@ -1,0 +1,32 @@
+id,first_name,last_name,country_id,email,preferred_language_id,active,courses
+1,Klára,Varga Tóth,2,tothovaklara@gmail.com,1,TRUE,1
+2,Péter,Varga,2,vargapepe7@gmail.com,1,TRUE,2
+3,Vojtech,Szajkó,2,farebneluce@centrum.sk,1,FALSE,2
+4,Ádám,Csonka,2,adamcsonka77@gmail.com,1,TRUE,3
+5,Gejza,Váradi,2,gezuvaradi345@gmail.com,1,TRUE,"4, 5, 6, 7, 8"
+6,Cynthia,Ferkóova,2,szinti.ferko@gmail.com,1,TRUE,"9, 10"
+7,Alex,Agócs,2,alex.agocs.22@gmail.com,1,TRUE,"9, 10"
+8,Patrik,Ferkó,2,patrikferko333@gmail.com,1,TRUE,"11, 12"
+9,Banjámin,Gál,1,galbeno02@gmail.com,1,FALSE,13
+10,Katalin,Kövesdy,1,kovesdykata70@gmail.com,1,TRUE,"14, 15"
+11,Tamás,Jocha,1,jochatamas19@gmail.com,1,TRUE,16
+12,Ferenc,Havlicsek,1,kidcatman1992@gmail.com,1,TRUE,17
+13,Attila,Oláh,1,olaha3716@gmail.com,1,TRUE,18
+14,Bence,Zagyi,1,z.bence26@gmail.com,1,TRUE,19
+15,Eszter,Greskovics,1,esztergreskovics@gmail.com,1,FALSE,"20, 21"
+16,Ágnes,Dominik-Suhajda,1,agi.ikigai@gmail.com,1,FALSE,"20, 21"
+17,Szelina,Virág,1,szelinavirag@gmail.com,1,TRUE,22
+18,Levente,Siroki,1,sirokilevi123@gmail.com,1,TRUE,23
+19,Toder,Bohdan,3,bohdantoder7454@gmail.com,3,TRUE,24
+20,Ishtvan,Dendeshi,3,ishtvan.dendeshi@gmail.com,3,TRUE,25
+21,Nadia,Fontosh,3,nadiafontos44@gmail.com,3,TRUE,"26, 27"
+22,Oksana,Kuzmanich,3,kuzmanichoksana15d@gmail.com,3,TRUE,26
+23,Lyubov,Gushtan,3,lubahustan@gmail.com,3,TRUE,26
+24,Svitlana,Chyryban,3,shvidkas@ukr.net,3,TRUE,28
+25,Marianna,Logojda,3,logojda69@gmail.com,3,TRUE,28
+26,Yevheny,Bortek,3,jenikck@gmail.com,3,TRUE,29
+27,Volodymyr,Bambula,3,romanirota@ukr.net,3,TRUE,29
+28,Anzhelika,Panchen,3,romanirota@ukr.net,3,TRUE,29
+29,Maksym,Dzhum,3,maximdzhum@gmail.com,3,FALSE,30
+30,Bea,Szöllősi,1,bea@beltanoda.hu,3,FALSE,31
+31,Kata,Gerhard,1,kata@beltanoda.hu,3,FALSE,31

@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin interface</title>
+    <link rel="icon" href="images/ag_icon.png">
+    <link 
+        rel="preconnect" 
+        href="https://fonts.googleapis.com">
+    <link 
+        rel="preconnect" 
+        href="https://fonts.gstatic.com" 
+        crossorigin>
+    <link 
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400..600&display=swap" 
+        rel="stylesheet">
+    <link 
+        rel="stylesheet" 
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=home,logout,person_add,person_edit"/>
+    <link rel="stylesheet" href="style/base.css">
+    <link rel="stylesheet" href="style/listmenu.css">
+    <link rel="stylesheet" href="style/admin.css">
+    <link rel="stylesheet" href="style/admin_managementors.css">
+</head>
+
+<body>
+
+<div class="page admin-page listmenu-page">
+    
+    <header>
+        <!-- <div class="active-filter-container">
+            <label for="active-filter">
+                active <br> only
+            </label>
+            <input 
+                type="checkbox"
+                id="active-filter" 
+                name="active-filter"
+                checked>
+        </div> -->
+        <form class="filter-container">
+            <fieldset class="filter-section">
+                <label for="active">active</label>
+                <input 
+                    type="checkbox", 
+                    id="active", 
+                    name="active", 
+                    value="true">
+            </fieldset>
+            <fieldset class="filter-section">
+                <label for="hun">HUN</label>
+                <input 
+                    type="radio", 
+                    id="hun",
+                    name="country_id",
+                    value="1">
+                <label for="svk">SVK</label>
+                <input 
+                    type="radio", 
+                    id="svk",
+                    name="country_id",
+                    value="2">
+                <label for="ukr">UKR</label>
+                <input 
+                    type="radio", 
+                    id="ukr",
+                    name="country_id",
+                    value="3">
+            </fieldset>
+        </form>
+
+    </header>     
+
+    <div class="page-content listmenu-page-content">
+
+        <div class="listmenu-list-outer">
+            <ul class="stripped listmenu-list">
+            </ul>    
+        </div>
+
+        <div class="overlay add-mentor">
+            <div class="modal add-mentor">
+                <form class="mentor-form" id="add-mentor-form">
+                    <label 
+                        for="first-name"
+                        class="first-name">
+                        First name:
+                    </label>
+                    <input 
+                        type="text"
+                        class="first-name-input"
+                        id="first-name" 
+                        name="first-name" 
+                        required>
+                    <label
+                        class="last-name" 
+                        for="last-name">
+                        Last name:
+                    </label>
+                    <input 
+                        type="text" 
+                        class="last-name-input"
+                        id="last-name" 
+                        name="last-name" 
+                        required>
+                    <label 
+                        class="preferred-language"
+                        for="preferred-language">
+                        Preferred language:
+                    </label>
+                    <select 
+                        class="preferred-language-input"
+                        name="preferred-language"
+                        id="preferred-language"
+                        required>
+                        <option value="" disabled selected>
+                            --Select a language--
+                        </option>
+                        <option value="en">English</option>
+                        <option value="hu">Hungarian</option>
+                        <option value="ua">Ukrainian</option>
+                    </select>
+                    <label 
+                        for="country" 
+                        class="country">
+                        Country:
+                    </label>
+                    <select 
+                        class="country-input" 
+                        name="country" 
+                        id="country" 
+                        required>
+                        <option value="" disabled selected>
+                            --Select a country--
+                        </option>
+                        <option value="1" class="language-text">
+                            Hungary
+                        </option>
+                        <option value="2" class="language-text">
+                            Slovakia
+                        </option>
+                        <option value="3" class="language-text">
+                            Ukraine
+                        </option>
+                    </select>
+                    <label
+                        class="email" 
+                        for="email">
+                        Email:
+                    </label>
+                    <input 
+                        type="email"
+                        class="email-input" 
+                        id="email" 
+                        name="email" 
+                        required>
+                    <div class="password-unchanged-outer">
+                        <label 
+                            class="password-unchanged"
+                            id="password-unchanged">
+                            <input 
+                                type="checkbox" 
+                                class="password-unchanged-input" 
+                                id="password-unchanged-input">
+                            Password unchanged
+                        </label>
+                    </div>
+                    <label
+                        class="password" 
+                        for="password">
+                        Password:
+                    </label>
+                    <input 
+                        type="text"
+                        class="password-input" 
+                        id="password" 
+                        name="password" 
+                        required>
+                    <label class="active-outer">
+                        <input type="checkbox" id="active" name="active" checked>
+                        Active
+                    </label>
+                    <div class="form-buttons">
+                        <button 
+                            class="submit" 
+                            type="submit">Submit</button>
+                        <button class="cancel">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="listmenu-buttons">
+            <button class="listmenu-button add">
+                <span class="material-symbols-outlined">person_add</span>
+                <span>&nbsp;add</span>
+            </button>
+            <button class="listmenu-button edit">
+                <span class="material-symbols-outlined">person_edit</span>
+                <span>&nbsp;edit</span>
+            </button>
+        </div> <!-- mentor-menu -->
+
+    </div> <!-- page-content -->
+
+</div> <!-- page -->
+
+<script src="scripts/config.js"></script>
+<script src="scripts/utils.js"></script>
+<script src="scripts/base.js"></script>
+<script src="scripts/admin_managementors_modals.js"></script>
+<script src="scripts/admin_managementors.js"></script>
+
+</body>
+</html>

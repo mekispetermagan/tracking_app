@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin interface</title>
+    <link rel="icon" href="images/ag_icon.png">
+    <link 
+        rel="preconnect" 
+        href="https://fonts.googleapis.com">
+    <link 
+        rel="preconnect" 
+        href="https://fonts.gstatic.com" 
+        crossorigin>
+    <link 
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400..600&display=swap" 
+        rel="stylesheet">
+    <!-- names have to be in alphabetical order -->
+    <link 
+        rel="stylesheet" 
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=add_2,edit,home,logout"/>
+    <link rel="stylesheet" href="style/base.css">
+    <link rel="stylesheet" href="style/listmenu.css">
+    <link rel="stylesheet" href="style/admin.css">
+    <link rel="stylesheet" href="style/admin_managecourses.css">
+</head>
+
+<body>
+
+<div class="page admin-page listmenu-page">
+    
+    <header>
+        <form class="filter-container">
+            <fieldset class="filter-section">
+                <label for="active">active</label>
+                <input 
+                    type="checkbox", 
+                    id="active", 
+                    name="active", 
+                    value="true">
+            </fieldset>
+            <fieldset class="filter-section">
+                <label for="hun">HUN</label>
+                <input 
+                    type="radio", 
+                    id="hun",
+                    name="country_id",
+                    value="1">
+                <label for="svk">SVK</label>
+                <input 
+                    type="radio", 
+                    id="svk",
+                    name="country_id",
+                    value="2">
+                <label for="ukr">UKR</label>
+                <input 
+                    type="radio", 
+                    id="ukr",
+                    name="country_id",
+                    value="3">
+            </fieldset>
+        </form>
+    </header>     
+
+    <div class="page-content listmenu-page-content">
+
+        <div class="listmenu-list-outer">
+            <ul class="stripped listmenu-list">
+            </ul>    
+        </div>
+
+        <div class="overlay manage-course">
+            <div class="modal manage-course">
+                <form class="manage-course-form">
+                    <label for="name">Name:</label>
+                    <input type="text" class="name-input" name="name" required>
+                    <label for="description">Description:</label>
+                    <input type="text" class="description-input" name="description" required>
+                    <label for="country" class="language-text">
+                        Country:
+                    </label>
+                    <select name="country_id" class="country_id" id="country" required>
+                        <option value=""  class="language-text" disabled selected>
+                            --Select a country--
+                        </option>
+                        <option value="1" class="language-text">
+                            Hungary
+                        </option>
+                        <option value="2" class="language-text">
+                            Slovakia
+                        </option>
+                        <option value="3" class="language-text">
+                            Ukraine
+                        </option>
+                    </select>
+                    <label>Assigned mentors:</label>
+                    <div class="mentor-list-outer">
+                        <ul class="stripped mentor-list">
+                        </ul>    
+                    </div>
+                    <label class="active-outer">
+                        <input 
+                            type="checkbox" 
+                            id="active" 
+                            name="active" 
+                            checked>
+                        Active
+                    </label>
+                    <div>
+                        <button class="submit" type="submit">Submit</button>
+                        <button class="cancel">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="listmenu-buttons">
+            <button class="listmenu-button add">
+                <span class="material-symbols-outlined">add_2</span>
+                <span>&nbsp;add</span>
+            </button>
+            <button class="listmenu-button edit">
+                <span class="material-symbols-outlined">edit</span>
+                <span>&nbsp;edit</span>
+            </button>
+        </div> <!-- mentor-menu -->
+
+    </div> <!-- page-content -->
+
+</div> <!-- page -->
+
+
+<script src="scripts/config.js"></script>
+<script src="scripts/utils.js"></script>
+<script src="scripts/base.js"></script>
+<script src="scripts/admin_managecourses_modals.js"></script>
+<script src="scripts/admin_managecourses.js"></script>
+
+</body>
+</html>

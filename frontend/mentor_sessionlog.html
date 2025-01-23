@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mentor Session Log</title>
+    <link rel="icon" href="images/ag_icon.png">
+    <link 
+        rel="preconnect" 
+        href="https://fonts.googleapis.com">
+    <link 
+        rel="preconnect" 
+        href="https://fonts.gstatic.com" 
+        crossorigin>
+    <link 
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400..600&display=swap" 
+        rel="stylesheet">
+        <link rel="stylesheet" href="style/base.css">
+        <link rel="stylesheet" href="style/mentor.css">
+        <link rel="stylesheet" href="style/mentor_sessionlog.css">
+</head>
+<body>
+
+    <div class="page mentor-page">
+        <header>
+        </header>
+
+        <div class="language-menu"></div>
+    
+        <div class="page-content sessionlog-pagecontent">
+
+            <form id="sessionlog-form">
+
+                <fieldset class="sessionlog-section mentor">
+                    <legend class="sessionlog-text">
+                        Mentor
+                    </legend>
+                    <div class="sessionlog mentor-container"></div>
+                </fieldset>
+
+                <fieldset class="sessionlog-section courses">
+                    <legend class="sessionlog-text">
+                       Courses
+                    </legend>
+                    <div class="sessionlog course-container">
+                    </div>
+                </fieldset>
+                
+                <fieldset class="sessionlog-section date">
+                    <legend class="sessionlog-text">Date</legend>
+                    <input type="date" id="session-date" name="session-date" value="">
+                </fieldset>
+                
+                <fieldset class="sessionlog-section project-type">
+                    <legend class="sessionlog-text">Project type</legend>
+                    <div class="toggle-switch">
+                        <span class="sessionlog-text toggle-label active" id="toggle-label-curriculum">
+                            Curriculum
+                        </span>
+                        <label class="switch">
+                            <input type="checkbox" id="project-type-toggle">
+                            <span class="slider"></span>
+                        </label>
+                        <span class="sessionlog-text toggle-label" id="toggle-label-custom">
+                            Custom
+                        </span>
+                    </div>
+                </fieldset>
+                
+                <fieldset class="sessionlog-section curriculum">
+                    <legend class="sessionlog-text">
+                        Curriculum projects
+                    </legend>
+                    <div class="sessionlog curriculum-project-container">
+    
+                    </div>
+                </fieldset>
+
+                <fieldset class="sessionlog-section custom">
+                    <legend class="sessionlog-text">
+                        Custom project
+                    </legend>
+                    <div class="sessionlog custom-inner">
+                        <div>
+                            <label class="sessionlog-text" for="custom-project-title">Custom Project Title</label>
+                            <input 
+                                type="text" 
+                                id="custom-project-title"
+                                class="custom-required-field"
+                                name="custom-project-title">
+                        </div>
+
+                        <div>
+                            <label class="sessionlog-text"></label>
+                            <div>
+                                <input 
+                                    type="radio"
+                                    class="sessionlog-size custom-required-field"
+                                    name="project-size" 
+                                    id="mini-project"
+                                    value="mini_project">
+                                <label class="sessionlog-text" for="mini-project"></label>
+                            </div>
+                            <div>
+                                <input 
+                                    type="radio" 
+                                    class="sessionlog-size custom-required-field"
+                                    name="project-size" 
+                                    id="full-project"
+                                    value="full_project">
+                                <label class="sessionlog-text" for="full-project"></label>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label 
+                                class="sessionlog-text" 
+                                for="custom-project-level">
+                                Level
+                            </label>
+                            <div class="sessionlog custom-project-levels">
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label 
+                                class="sessionlog-text">
+                                Skills
+                            </label>
+                            <div class="sessionlog custom-project-skills"> 
+    
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+ 
+                
+                <fieldset class="sessionlog-section students">
+                    <legend class="sessionlog-text">Students</legend>
+                    <div class="sessionlog student-container"></div>
+                </fieldset>
+
+                <fieldset class="sessionlog-section issues">
+                    <legend class="sessionlog-text">Issues</legend>
+                    <textarea 
+                        class="sessionlog-issues" 
+                        id="issues" 
+                        required></textarea>
+                </fieldset>
+              
+            </form>
+
+        </div> <!-- page-content -->
+
+        <div class="sessionlog-buttons">
+            <button class="sessionlog-text cancel">
+                Cancel
+            </button>
+            <button class="sessionlog-text submit" type="submit" form="sessionlog-form">
+                Submit
+            </button>
+            
+        </div>
+
+    </div> <!-- page -->
+
+    <script src="scripts/config.js"></script>
+    <script src="scripts/utils.js"></script>
+    <script src="scripts/base.js"></script>
+    <script src="scripts/mentor_sessionlog_language_data.js"></script>
+    <script src="scripts/mentor_sessionlog.js" defer></script>
+</body>
+</html>
+
+

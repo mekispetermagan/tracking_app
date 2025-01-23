@@ -1,0 +1,5 @@
+TO DO:
+
+- refactor with managepage
+- dynamic countries/languages
+- proper translation files

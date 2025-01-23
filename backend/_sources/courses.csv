@@ -1,0 +1,31 @@
+id,name,description,country,active,mentors
+1,Tornaľa,Základná škola Ferenca Kazinczyho s vyučovacím jazykom maďarským Tornaľa (hu:Kazinczy Ferenc Magyar Tanítási Nyelvű Alapiskola Tornalja),2,TRUE,1
+2,Gemer,Základná škola s vyučovacím jazykom maďarským - Alapiskola (hu: Sajógömöri Magyar Tannyelvű Alapiskola),2,TRUE,"2, 3"
+3,Gemerská Ves,Základná škola - Alapiskola Gemerská Ves,2,TRUE,4
+4,Lenartovce 1,Základná škola s materskou školou s vyučovacím jazykom maďarským Lenartovce (hu: Magyar Tanítási nyelvű Alapiskola és Óvoda Sajólénártfalva,2,TRUE,5
+5,Lenartovce 2,Základná škola s materskou školou s vyučovacím jazykom maďarským Lenartovce (hu: Magyar Tanítási nyelvű Alapiskola és Óvoda Sajólénártfalva,2,TRUE,5
+6,Lenartovce 3,Základná škola s materskou školou s vyučovacím jazykom maďarským Lenartovce (hu: Magyar Tanítási nyelvű Alapiskola és Óvoda Sajólénártfalva,2,TRUE,5
+7,Lenartovce 4,Základná škola s materskou školou s vyučovacím jazykom maďarským Lenartovce (hu: Magyar Tanítási nyelvű Alapiskola és Óvoda Sajólénártfalva,2,TRUE,5
+8,Lenartovce 5,Základná škola s materskou školou s vyučovacím jazykom maďarským Lenartovce (hu: Magyar Tanítási nyelvű Alapiskola és Óvoda Sajólénártfalva,2,TRUE,5
+9,Barca 1,"Základná škola s vyučovacím jazykom maďarským Barca (hu: Magyar Tanítási Nyelvű Alapiskola, Baraca)",2,TRUE,"6, 7"
+10,Barca 2,"Základná škola s vyučovacím jazykom maďarským Barca (hu: Magyar Tanítási Nyelvű Alapiskola, Baraca)",2,TRUE,"6, 7"
+11,Uzovská Panica 1,Základná škola s vyučovacím jazykom maďarským Uzovská Panica (hu: Magyar Tanítási Nyelvű Alapiskola Uzapanyit,2,TRUE,8
+12,Uzovská Panica 2,Základná škola s vyučovacím jazykom maďarským Uzovská Panica (hu: Magyar Tanítási Nyelvű Alapiskola Uzapanyit,2,TRUE,8
+13,Bátonyterenye Tanoda,Bátonyterenyei Tanoda,1,TRUE,9
+14,Erdőkövesd,Boglyas Kuckó,1,TRUE,10
+15,Bátonyterenye Óvoda,Bátonyterenyei Városi Óvoda,1,FALSE,10
+16,Hegymeg,Hegymegért Egyesület,1,TRUE,11
+17,Homrogd,Homrogd közösségi és esély ház,1,TRUE,12
+18,Lucfalva,Nógrád Megyei Cigány Kisebbségi Képviselők és Szószólók Szövetsége (NMCKKSZSZ),1,TRUE,13
+19,Mátraverebély,Nógrád Megyei Cigány Kisebbségi Képviselők és Szószólók Szövetsége (NMCKKSZSZ),1,TRUE,14
+20,UMTK 1,Ökumenikus Segélyszervezet - Ukrajnai Menekülteket Támogató Központ,1,FALSE,"15, 16"
+21,UMTK 2,Ökumenikus Segélyszervezet - Ukrajnai Menekülteket Támogató Központ,1,FALSE,"15, 16"
+22,Zugliget,Fővárosi Önkormányzat Kútvölgyi úti Idősek Otthona Zugligeti úti telephely,1,TRUE,17
+23,Tomor,Romama,1,TRUE,18
+24,Uzhhorod Lyceum,Uzhhorod Lyceum Intellect,3,TRUE,19
+25,Uzhhorod Gymn 14,Uzhhorod Gymnasium No. 14,3,TRUE,20
+26,Tur'ya Pasika School,Tur'ya Pasitske Secondary School of the Turya Remeta Council,3,TRUE,"21, 22, 23"
+27,Tur'ya Pasika Center,Tur'ya Pasika Roma Community Center,3,TRUE,21
+28,Berehove,Berehove Gymnasium No. 7 ‘Opre Roma’,3,TRUE,"24, 25"
+29,Zolotonosha,NGO ‘Romani Rota’,3,TRUE,"26, 27, 28"
+30,Odesa,CF ‘Planet of Good People’,3,FALSE,29

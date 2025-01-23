@@ -1,0 +1,19 @@
+.mentor-page {
+  display: flex;
+  flex-direction: column;
+}
+
+.mentor-pagecontent {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 30px;
+}
+
+.mentormenu-button {
+  width: 75%;
+  background-color: var(--base-color);
+}
+

@@ -1,0 +1,36 @@
+.mentor-profile-page {
+    display: flex;
+    flex-direction: column;
+}
+
+
+.mentor-profile-pagecontent {
+    width: 100%;
+    flex-grow: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.profile-form {
+    width: 80%;
+    /* width: 100%;
+    padding: 24px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    align-items: end; */
+}
+
+.two-column {
+    /* grid-column: span 2; */
+}
+
+.form-buttons {
+    display: grid;
+    row-gap: 0;
+    column-gap: 12px;
+    grid-template-columns: 1fr 1fr;
+    align-items: stretch;
+    justify-items: stretch;
+}

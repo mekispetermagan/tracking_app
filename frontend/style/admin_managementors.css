@@ -1,0 +1,48 @@
+.active-filter-container {
+    position: absolute;
+    left: 12px;
+    top: calc(100% + 12px);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    font-size: 15px;
+    z-index: 2;
+}
+
+#active-filter {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+}
+
+.mentor-form {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 6px;
+    grid-template-areas: 
+    "first-name             first-name-input"
+    "last-name              last-name-input"
+    "preferred-language     preferred-language-input"
+    "country                country-input"
+    "email                  email-input"
+    "password-unchanged     password-unchanged"
+    "password               password-input"
+    "active                 ."
+    "form-buttons           form-buttons";
+}
+
+.mentor-form .first-name {grid-area: first-name;}
+.mentor-form .first-name-input {grid-area: first-name-input;}
+.mentor-form .last-name {grid-area: last-name;}
+.mentor-form .last-name-input {grid-area: last-name-input;}
+.mentor-form .preferred-language {grid-area: preferred-language;}
+.mentor-form .preferred-language-input {grid-area: preferred-language-input;}
+.mentor-form .country {grid-area: country;}
+.mentor-form .country-input {grid-area: country-input;}
+.mentor-form .email {grid-area: email;}
+.mentor-form .email-input {grid-area: email-input;}
+.mentor-form .password-unchanged-outer {grid-area: password-unchanged;}
+.mentor-form .password {grid-area: password;}
+.mentor-form .password-input {grid-area: password-input;}
+.mentor-form .active-outer {grid-area: active;}
+.mentor-form .form-buttons {grid-area: form-buttons;}
