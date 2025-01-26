@@ -77,6 +77,7 @@ class Mentor(db.Model):
     last_name = db.Column(db.String(50), nullable=False)
     country_id = db.Column(db.Integer, db.ForeignKey('countries.id'), nullable=True)
     # languages are handled by frontend; hence no foreignkey
+    # languages given by two-letter code: "en", "hu", "ua"
     preferred_language = db.Column(db.String(2))
     active = db.Column(db.Boolean, default=True, nullable=False)
     courses = db.relationship(
@@ -90,6 +91,7 @@ class Mentor(db.Model):
 ###################
 
 # three-letter codes for countries: "hun", "svk", "ukr"
+# (vs two-letter codes for languages)
 class Country(db.Model):
     __tablename__ = 'countries'
     id = db.Column(db.Integer, primary_key=True)
@@ -219,7 +221,6 @@ class SessionLog(db.Model):
 # Invoice models #
 ##################
 
-
 class InvoiceData(db.Model):
     __tablename__ = "invoice_data"
     id = db.Column(db.Integer, primary_key=True)
@@ -237,9 +238,35 @@ class InvoiceData(db.Model):
     swift = db.Column(db.String(15), nullable=False)
 
 class Invoice(db.Model):
-    __tablename__ = "invoice"
+    __tablename__ = "invoices"
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     number = db.Column(db.Integer, nullable=False)
     date = db.Column(db.Date, default=lambda:datetime.now(timezone.utc), nullable=False)
     file_path = db.Column(db.String(60), nullable=False)
+
+
+######################
+# Story of the month #
+######################
+
+class Story (db.Model):
+    __tablename__ = "stories"
+    id = db.Column(db.Integer, primary_key=True)
+    mentor_id = db.Column(db.Integer, db.ForeignKey('mentors.id'), nullable=False)
+    course_id = db.Column(db.Integer, db.ForeignKey('courses.id'), nullable=False)
+    year = db.Column(db.Integer, nullable=False)
+    month = db.Column(db.Integer, nullable=False)
+    story = db.Column(db.String, nullable=False)
+
+#################
+# Photo uploads #
+#################
+
+class Photo (db.Model):
+    __tablename__ = "photos"
+    id = db.Column(db.Integer, primary_key=True)
+    mentor_id = db.Column(db.Integer, db.ForeignKey('mentors.id'), nullable=False)
+    date = db.Column(db.Date, default=lambda:datetime.now(timezone.utc), nullable=False)
+    filename = db.Column(db.String(255), nullable=False, unique=True)
+    archived = db.Column(db.Boolean, default=False, nullable=False)

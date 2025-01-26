@@ -1,5 +1,9 @@
+# TODO: 
+# refactor all functions with internal_utils.py, just like submit_story
+
 # This module handles requests accessible with Mentor role 
 
+import os
 import json
 from flask import Blueprint, request, jsonify
 from db import db
@@ -14,12 +18,16 @@ from models import (
     project_size_enum,
     Course,
     Country,
-    InvoiceData
+    InvoiceData,
+    Story,
+    Photo
     )
 from flask_jwt_extended import jwt_required, get_jwt_identity
+from sqlalchemy.exc import IntegrityError
 from datetime import datetime
 from invoice.invoice import create_invoice
 from send_email import send_invoice
+from . import internal_utils as u
 
 def record_to_dict(record):
     return {column.name: getattr(record, column.name) for column in record.__table__.columns}
@@ -230,7 +238,7 @@ def session_log():
     db.session.commit()
     return jsonify({
         "msg": "Submission successful."
-    })
+    }), 200
     
 # Get mentor's student data
 @mentor_bp.route('/studentlist', methods=['POST'])
@@ -363,8 +371,71 @@ def submit_invoice():
 
     # step 3: email invoice
     send_invoice(
-        {"name": invoice_data.name, "number": data["number"], "period": data["period"]}, 
+        {
+            "name": invoice_data.name, 
+            "number": data["number"], 
+            "period": data["period"]}, 
         invoice_file
         )
 
     return jsonify({"msg": "Submission successful!"}), 200
+
+# submits story
+@mentor_bp.route('/submit_story', methods=['POST'])
+@jwt_required()
+@u.handle_exceptions
+def submit_story():
+    data = request.get_json()
+    print(data)
+    course_id = u.extract("course_id", data)
+    year = u.validate_year(u.extract("year", data))
+    month = u.validate_month(u.extract("month", data))
+    story = u.extract("story", data)
+    identity = json.loads(get_jwt_identity())
+    user_id = identity["id"]
+    mentor_id = Mentor.query.filter(Mentor.user_id == user_id).first().id
+    story_record = Story(
+        mentor_id=mentor_id,
+        course_id=course_id,
+        year=year,
+        month=month,
+        story=story
+    )
+    db.session.add(story_record)
+    db.session.commit()
+    return jsonify({
+        "msg": "Submission successful."
+    }), 200
+
+# submits photos
+@mentor_bp.route('/submit_photos', methods=['POST'])
+@jwt_required()
+@u.handle_exceptions
+def submit_photos():
+    date_str = request.form.get("date")
+    date = datetime.strptime(date_str, "%Y-%m-%d") if date_str else None    
+    image_files = request.files.getlist("image-file")
+    print(image_files)
+    photo_dir = u.get_subdir("mentor_photos")
+    user_id = json.loads(get_jwt_identity())["id"]
+    mentor_id = Mentor.query.filter(Mentor.user_id == user_id).first().id
+    for file in image_files:
+        if file and file.filename:
+            new_filename = f"{mentor_id}_{file.filename}"
+            file_path = os.path.join(photo_dir, new_filename)
+            file.save(file_path)
+            record = Photo(
+                date=date,
+                mentor_id=mentor_id,
+                filename=new_filename,
+                archived=False
+            )
+            db.session.add(record)
+    try:
+        db.session.commit()
+    except IntegrityError as e:
+        db.session.rollback()
+        raise ValueError("A photo with this filename already exists.")
+    return jsonify({
+        "msg": "Submission successful."
+    }), 200

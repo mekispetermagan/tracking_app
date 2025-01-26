@@ -1,0 +1,17 @@
+.story-pagecontent {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  #story-form {
+    width: 90%;
+    padding: 24px;
+  }
+
+  textarea.story-input {
+    width: 90%;
+    height: 120px;
+  }
+  

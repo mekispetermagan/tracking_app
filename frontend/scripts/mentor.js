@@ -20,8 +20,9 @@ class MentorMenu extends MentorPage {
             [ "mentor_profile"
             , "mentor_sessionlog"
             , "mentor_managestudents"
-            // , "mentor_trackstudents"
             , "mentor_invoice"
+            , "mentor_photos"
+            , "mentor_story"
             ];
         this.menuButtons.forEach((button, i) => {
             button.addEventListener("click", () => {

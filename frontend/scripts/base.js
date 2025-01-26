@@ -266,16 +266,16 @@ class MentorPage extends AuthPage {
     }
 
     start() {
-        getDomElements();
+        this.getDomElements();
         this.setLanguage(this.preferredLanguage);
     }
 
     getDomElements() {
-        this.languageContent = document.querySelectorAll(".language-content");
+        this.languageTexts = document.querySelectorAll(".language-content");
     }
 
     setLanguage(lang) {
-        this.languageTexts.forEach(item => item.innerHTML = languageData[lang][item.dataset.key])
+        this.languageTexts.forEach(item => item.innerHTML = languageData[lang][item.dataset.key]);
     }
 } // MentorPage
 
@@ -358,6 +358,7 @@ class LanguageMenu {
 class Form {
     formName = "Form";
     exit = () => {};
+    hasFiles = false;
 
     constructor(container, submitEndpoint) {
         if (!container) {
@@ -375,8 +376,7 @@ class Form {
         this.inputs = [...this.form.querySelectorAll("input, select")];
         this.form.addEventListener("submit", (e) => {
             e.preventDefault();
-            const formData = new FormData(this.form);
-            this.submitData(formData)
+            this.submitData(this.collectFormData());
         });
     }
 
@@ -427,9 +427,12 @@ class Form {
             } else if (["text", "email"].includes(input.type)) {
                 input.value = data[name];
                 console.log(name, "set to", data[name])            
-            } else if (input.tagName.toLowerCase() == "select") {
+            } else if (input.type == "date") {
+                input.valueAsDate = data[name];
+                console.log("Date set to", data[name]);            
+            }else if (input.tagName.toLowerCase() == "select") {
                 input.value = data[name];
-                console.log(name, "set to", data[name])            
+                console.log(name, "set to", data[name]);         
             } else {
                 console.log(name, "not handled");
             }
@@ -472,17 +475,43 @@ class Form {
         }
     }
 
+    collectFormData() {
+        this.hasFiles = false;
+        const formData = new FormData(this.form);
+        this.inputs.forEach((item) => {
+            if (item.type == "file") {
+                [...item.files].forEach((file) => {
+                    formData.append(`${item.name}-file`, file);
+                    this.hasFiles = true;
+                })                
+            }
+        });
+        return formData;
+    }
+
     async submitData(formData) {
+        console.log(formData)
         const token = localStorage.getItem("token");
+        let headers, body;
+        if (this.hasFiles) {
+            headers = {
+                'Authorization': `Bearer ${token}`
+            }
+            body = formData;
+        } else {
+            headers = {
+                'Content-Type': "application/json",
+                'Authorization': `Bearer ${token}`
+            }
+            const formDataObj = Object.fromEntries(formData.entries());
+            body = JSON.stringify(formDataObj)
+        }
         if (token) {
             const formDataObj = Object.fromEntries(formData.entries());
             const response = await fetch(`${window.API_BASE_URL}/api${this.submitEndpoint}`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify(formDataObj)
+                headers: headers,
+                body: body
             });
 
             const data = await response.json();
