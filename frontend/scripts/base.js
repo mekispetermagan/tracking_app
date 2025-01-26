@@ -424,7 +424,7 @@ class Form {
             } else if (["radio", "checkbox"].includes(input.type)) {
                 input.checked = true;
                 console.log(name, "set to", data[name]);
-            } else if (["text", "email"].includes(input.type)) {
+            } else if (["text", "email", "number"].includes(input.type)) {
                 input.value = data[name];
                 console.log(name, "set to", data[name])            
             } else if (input.type == "date") {

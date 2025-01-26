@@ -8,6 +8,10 @@ class MentorStory extends MentorPage {
         super.start();
         this.form = new Form(this.pageContent, "/mentor/submit_story");
         this.form.setNotification(this.notification);
+        const now = new Date();
+        const month = now.getMonth() + 1;
+        const year = now.getFullYear();
+        this.form.fillWith({year: year, month: month})
         this.fetchMentorData(); // async
         this.fetchCourses(); // async
 
