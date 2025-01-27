@@ -167,5 +167,16 @@ input:checked + .slider:before {
     justify-content: space-evenly;
     padding: 12px;
 }
-  
+
+
+.form-row {
+    margin-top: 6px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+input[type="number"] {
+    width: 60px;
+}
   

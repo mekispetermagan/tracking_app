@@ -21,6 +21,7 @@ class MentorSessionLog extends MentorPage{
     }
 
     getDomElements() {
+        super.getDomElements();
         this.sessionLogForm = document
             .querySelector("#sessionlog-form");
         this.toggle = document
@@ -60,6 +61,7 @@ class MentorSessionLog extends MentorPage{
         this.dateInput = document
             .querySelector("#session-date");
         this.dateInput.valueAsDate = new Date(); // set date to today
+        this.romaInput = document.querySelector("input[name='roma']");
         return this;
     }
 
@@ -131,6 +133,7 @@ class MentorSessionLog extends MentorPage{
     }
     
     setLanguage(language) {
+        super.setLanguage(language);
         this.language = language
         this.languageMenu.adjustMenu(language)
         this.header.setTitle(sessionLogText[language].title);
@@ -385,9 +388,16 @@ class MentorSessionLog extends MentorPage{
     }
 
     filterStudents(course_id) {
-        for (let student of this.students) {
-            student.dom.style.display = (student.course_id == course_id) ? "inline" : "none";
-        }
+        let counter = 0;
+        this.students.forEach( (student) => {
+            if (student.course_id == course_id) {
+                student.dom.style.display = "inline";
+                counter++;
+            } else {
+                student.dom.style.display = "none";
+            }
+        });
+        this.romaInput.max = counter;
     }
 
     submitLog() {
@@ -399,6 +409,7 @@ class MentorSessionLog extends MentorPage{
             .filter(x => x.checkBox.checked && x.course_id == course_id)
             .map(x => x.id);
         const issues = this.issuesInput.value;
+        const roma = this.romaInput.value;
         let project_id,
             project_title,
             size,
@@ -428,6 +439,7 @@ class MentorSessionLog extends MentorPage{
             date,
             course_id,
             students, 
+            roma,
             project_id,
             project_title,
             size,

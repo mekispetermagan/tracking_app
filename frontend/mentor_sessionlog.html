@@ -32,14 +32,18 @@
             <form id="sessionlog-form">
 
                 <fieldset class="sessionlog-section mentor">
-                    <legend class="sessionlog-text">
+                    <legend                                         
+                        class="language-content"
+                        data-key="mentor">
                         Mentor
                     </legend>
                     <div class="sessionlog mentor-container"></div>
                 </fieldset>
 
                 <fieldset class="sessionlog-section courses">
-                    <legend class="sessionlog-text">
+                    <legend 
+                        class="language-content"
+                        data-key="courses">
                        Courses
                     </legend>
                     <div class="sessionlog course-container">
@@ -47,28 +51,43 @@
                 </fieldset>
                 
                 <fieldset class="sessionlog-section date">
-                    <legend class="sessionlog-text">Date</legend>
+                    <legend                                 class="language-content"
+                    data-key="date">
+                        Date
+                    </legend>
                     <input type="date" id="session-date" name="session-date" value="">
                 </fieldset>
                 
                 <fieldset class="sessionlog-section project-type">
-                    <legend class="sessionlog-text">Project type</legend>
+                    <legend 
+                        class="language-content"
+                        data-key="project_type">
+                        Project type
+                    </legend>
                     <div class="toggle-switch">
-                        <span class="sessionlog-text toggle-label active" id="toggle-label-curriculum">
+                        <span 
+                            class="language-content toggle-label active"
+                            data-key="curriculum" 
+                            id="toggle-label-curriculum">
                             Curriculum
                         </span>
                         <label class="switch">
                             <input type="checkbox" id="project-type-toggle">
                             <span class="slider"></span>
                         </label>
-                        <span class="sessionlog-text toggle-label" id="toggle-label-custom">
+                        <span 
+                            class="language-content toggle-label" 
+                            data-key="custom" 
+                            id="toggle-label-custom">
                             Custom
                         </span>
                     </div>
                 </fieldset>
                 
                 <fieldset class="sessionlog-section curriculum">
-                    <legend class="sessionlog-text">
+                    <legend 
+                        class="language-content" 
+                        data-key="curriculum_projects">
                         Curriculum projects
                     </legend>
                     <div class="sessionlog curriculum-project-container">
@@ -77,12 +96,17 @@
                 </fieldset>
 
                 <fieldset class="sessionlog-section custom">
-                    <legend class="sessionlog-text">
+                    <legend class="language-content"
+                    data-key="custom_project">
                         Custom project
                     </legend>
                     <div class="sessionlog custom-inner">
                         <div>
-                            <label class="sessionlog-text" for="custom-project-title">Custom Project Title</label>
+                            <label class="language-content"
+                                data-key="title"
+                                for="custom-project-title">
+                                Custom Project Title
+                            </label>
                             <input 
                                 type="text" 
                                 id="custom-project-title"
@@ -91,7 +115,11 @@
                         </div>
 
                         <div>
-                            <label class="sessionlog-text"></label>
+                            <label 
+                                class="language-content"
+                                data-key="size">
+                                Size
+                            </label>
                             <div>
                                 <input 
                                     type="radio"
@@ -99,7 +127,11 @@
                                     name="project-size" 
                                     id="mini-project"
                                     value="mini_project">
-                                <label class="sessionlog-text" for="mini-project"></label>
+                                <label 
+                                    class="language-content"
+                                    data-key="miniproject" 
+                                    for="mini-project">
+                                </label>
                             </div>
                             <div>
                                 <input 
@@ -108,14 +140,19 @@
                                     name="project-size" 
                                     id="full-project"
                                     value="full_project">
-                                <label class="sessionlog-text" for="full-project"></label>
+                                <label 
+                                    class="language-content"
+                                    data-key="full_project" 
+                                    for="full-project">
+                                </label>
                             </div>
                         </div>
                         
                         <div>
                             <label 
-                                class="sessionlog-text" 
-                                for="custom-project-level">
+                                class="language-content"
+                                data-key="level" 
+                                for="level">
                                 Level
                             </label>
                             <div class="sessionlog custom-project-levels">
@@ -123,8 +160,8 @@
                         </div>
                         
                         <div>
-                            <label 
-                                class="sessionlog-text">
+                            <label                                class="language-content"
+                            data-key="skills">
                                 Skills
                             </label>
                             <div class="sessionlog custom-project-skills"> 
@@ -136,12 +173,34 @@
  
                 
                 <fieldset class="sessionlog-section students">
-                    <legend class="sessionlog-text">Students</legend>
+                    <legend 
+                        class="language-content"
+                        data-key="students">
+                        Students
+                    </legend>
                     <div class="sessionlog student-container"></div>
+                    <div class="form-row">
+                        <label 
+                            class="language-content"
+                            data-key="roma" 
+                            for="roma">
+                            of which Roma:
+                        </label>
+                        <input 
+                            type="number"
+                            id="roma"
+                            name="roma"
+                            min="0"
+                            required>
+                    </div>
                 </fieldset>
 
                 <fieldset class="sessionlog-section issues">
-                    <legend class="sessionlog-text">Issues</legend>
+                    <legend 
+                        class="language-content"
+                        data-key="issues">
+                        Issues
+                    </legend>
                     <textarea 
                         class="sessionlog-issues" 
                         id="issues" 
@@ -153,10 +212,16 @@
         </div> <!-- page-content -->
 
         <div class="sessionlog-buttons">
-            <button class="sessionlog-text cancel">
+            <button 
+                class="language-content cancel" 
+                data-key="cancel">
                 Cancel
             </button>
-            <button class="sessionlog-text submit" type="submit" form="sessionlog-form">
+            <button 
+                class="language-content submit"  
+                data-key="submit" 
+                type="submit" 
+                form="sessionlog-form">
                 Submit
             </button>
             

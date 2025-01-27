@@ -167,9 +167,10 @@ def session_log():
     date = data.get("date")
     course_id = data.get("course_id")
     student_ids = data.get("students")
+    roma = data.get("roma")
     issues = data.get("issues")
     if not all([
-        mentor_id, date, course_id, student_ids, issues
+        mentor_id, date, course_id, student_ids, roma, issues
         ]):
         return jsonify({"msg": "Missing data."}), 400
     try:
@@ -231,6 +232,7 @@ def session_log():
         size=size,
         level=level,
         students=students,
+        roma=roma,
         skills=skills,
         issues=data["issues"]
     )

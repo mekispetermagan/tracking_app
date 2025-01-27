@@ -219,6 +219,7 @@ class SessionLog(db.Model):
     level = db.Column(level_enum, nullable=False)
     skills = db.relationship('Skill', secondary='session_log_skills')
     students = db.relationship('Student', secondary='session_log_students')
+    roma = db.Column(db.Integer, nullable=False)
     issues = db.Column(db.String(300), nullable=False)
 
 ##################

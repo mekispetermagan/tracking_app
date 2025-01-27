@@ -1264,7 +1264,7 @@ def populate_database():
     db.session.flush()
 
     # Create session logs with curriculum projects
-    def create_session_log(mentor, course, project, date, students):
+    def create_session_log(mentor, course, project, date, students, roma):
         return SessionLog(
             mentor_id=mentor.id,
             course_id=course.id,
@@ -1275,6 +1275,7 @@ def populate_database():
             level=project.level,
             students=students,
             skills=project.skills,
+            roma=roma,
             issues="no issues"
             )
 
@@ -1285,7 +1286,8 @@ def populate_database():
             course=courses[0],
             project=curriculum_projects[1],
             date=datetime(2024, 9, 25),
-            students=students[42:45]
+            students=students[42:45],
+            roma=2
             ),
         # Bohdan 2
         create_session_log(
@@ -1293,7 +1295,8 @@ def populate_database():
             course=courses[0],
             project=curriculum_projects[3],
             date=datetime(2024, 10, 1),
-            students=students[43:46]
+            students=students[43:46],
+            roma=3
             ),
         # Ishtvan 1
         create_session_log(
@@ -1301,7 +1304,8 @@ def populate_database():
             course=courses[1],
             project=curriculum_projects[4],
             date=datetime(2024, 9, 16),
-            students=students[46:49]
+            students=students[46:49],
+            roma=3
             ),
         # Ishtvan 2
         create_session_log(
@@ -1309,7 +1313,8 @@ def populate_database():
             course=courses[1],
             project=curriculum_projects[1],
             date=datetime(2024, 9, 23),
-            students=students[47:49]
+            students=students[47:49],
+            roma=3
             ),
         # Eszter 1
         create_session_log(
@@ -1317,7 +1322,8 @@ def populate_database():
             course=courses[2],
             project=curriculum_projects[3],
             date=datetime(2024, 9, 20),
-            students=students[49:52]
+            students=students[49:52],
+            roma=3
             ),
         # Eszter 2
         create_session_log(
@@ -1325,7 +1331,8 @@ def populate_database():
             course=courses[2],
             project=curriculum_projects[1],
             date=datetime(2024, 9, 27),
-            students=students[49:51]
+            students=students[49:51],
+            roma=3
             )
         ]
     db.session.add_all(session_logs)
