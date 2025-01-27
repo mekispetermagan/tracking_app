@@ -22,30 +22,30 @@ const mentorPageTitle = {
     ua: "Інтерфейс наставника"
 }
 
-const mentorPageTexts = {
-    en: [
-        "My data",
-        "Session log",
-        "Manage students",
-        "Submit invoice",
-        "Upluad photos",
-        "Story of the month"
-    ],
-    hu: [
-        "Adataim",
-        "Foglalkozás riport",
-        "Diákok menedzselése",
-        "Számla küldése",
-        "Fényképek feltöltése",
-        "A hónap története"
-    ],
-    ua: [
-        "Мої дані",
-        "Журнал сеансів",
-        "Керування студентами",
-        "Рахунок-фактура",
-        "Надіслати фото",
-        "Історія місяця"
-    ]
+const languageData = {
+    en: {
+        my_data: "My data",
+        session_log: "Session log",
+        manage_students: "Manage students",
+        submit_invoice: "Submit invoice",
+        upload_photos: "Upload photos",
+        story_of_the_month: "Story of the month"
+    },
+    hu: {
+        my_data: "Adataim",
+        session_log: "Foglalkozás riport",
+        manage_students: "Diákok menedzselése",
+        submit_invoice: "Számla küldése",
+        upload_photos: "Fényképek feltöltése",
+        story_of_the_month: "A hónap története"
+    },
+    ua: {
+        my_data: "Мої дані",
+        session_log: "Журнал сеансів",
+        manage_students: "Керування студентами",
+        submit_invoice: "Рахунок-фактура",
+        upload_photos: "Надіслати фото",
+        story_of_the_month: "Історія місяця"
+    }
 }
 

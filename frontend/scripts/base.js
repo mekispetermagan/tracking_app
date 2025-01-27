@@ -275,7 +275,9 @@ class MentorPage extends AuthPage {
     }
 
     setLanguage(lang) {
+        this.language = lang;
         this.languageTexts.forEach(item => item.innerHTML = languageData[lang][item.dataset.key]);
+        this.languageMenu.adjustMenu(lang);
     }
 } // MentorPage
 

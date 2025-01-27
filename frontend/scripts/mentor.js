@@ -11,7 +11,9 @@ class MentorMenu extends MentorPage {
     }
 
     getDomElements() {
+        super.getDomElements();
         this.menuButtons = [...document.querySelectorAll(".mentormenu-button")];
+
         return this;
     }
 
@@ -33,12 +35,8 @@ class MentorMenu extends MentorPage {
     }
 
     setLanguage(language) {
-        this.language = language
-        this.languageMenu.adjustMenu(language)
+        super.setLanguage(language);
         this.header.setTitle(mentorPageTitle[language]);
-        this.menuButtons.forEach((button, i) => {
-            button.innerHTML = mentorPageTexts[language][i];
-        });
         return this;
     }
 }
