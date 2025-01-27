@@ -17,18 +17,15 @@ class MentorProfilePage extends MentorPage {
     }
 
     getDomElements() {
+        super.getDomElements();
         this.languageTextFields = [...
             document.querySelectorAll(".language-text")
         ];
     }
 
     setLanguage(language) {
-        this.language = language
-        this.languageMenu.adjustMenu(language)
+        super.setLanguage(language);
         this.header.setTitle(mentorProfileTitle[language]);
-        this.languageTextFields.forEach((item, i) => {
-            item.innerHTML = mentorProfileTexts[language][i];
-        });
     }
 }
 

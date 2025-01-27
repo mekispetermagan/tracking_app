@@ -20,17 +20,14 @@ class MentorInvoice extends MentorPage {
     }
 
     getDomElements() {
+        super.getDomElements();
         this.page = document.querySelector(".page");
         this.textFields = this.page.querySelectorAll(".invoice-text")
     }
 
     setLanguage(language) {
-        this.language = language
-        this.languageMenu.adjustMenu(language)
+        super.setLanguage(language);
         this.header.setTitle(invoiceTitle[language]);
-        this.textFields.forEach((field, i) => {
-            field.innerHTML = invoiceTexts[language][i];
-        });
     }
 
 } // MentorInvoice

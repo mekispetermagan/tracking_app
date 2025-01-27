@@ -34,3 +34,8 @@
     align-items: stretch;
     justify-items: stretch;
 }
+
+.form-buttons button {
+    padding-left: 12px;
+    padding-right: 12px;
+}

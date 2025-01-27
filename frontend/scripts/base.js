@@ -226,12 +226,12 @@ class AuthPage extends Page {
             } else {
                 console.error("Authorization failed:", data.msg);
                 this.notification.bad("Authorization failed.");
-                // this.backToLogin();
+                this.backToLogin();
             }
         } else {
             console.error("No token found.");
             this.notification.bad("Logged out.");
-            // this.backToLogin();            
+            this.backToLogin();        
         }
     }
 

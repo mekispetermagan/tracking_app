@@ -113,7 +113,8 @@ class PostLogin extends AuthPage {
             this.config.redirect("mentor");
         } else {
             console.error("Mentor choice rejected by server!");
-            this.notification.bad("Mentor choice rejected!");
+            this.notification.bad("Token expired, log in again!");
+            this.backToLogin();
         }
     }
 

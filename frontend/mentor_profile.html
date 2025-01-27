@@ -37,7 +37,11 @@
         <form class="profile-form" id="profile-form">
 
             <fieldset class="form-section">
-                <legend class="language-text">First name</legend>
+                <legend 
+                    class="language-content" 
+                    data-key="first_name">
+                    First name
+                </legend>
                 <input 
                     type="text" 
                     class="form-input" 
@@ -47,7 +51,11 @@
             </fieldset>
 
             <fieldset class="form-section">
-                <legend class="language-text">Last name</legend>
+                <legend 
+                    class="language-content" 
+                    data-key="last_name">
+                    Last name
+                </legend>
                 <input 
                     type="text" 
                     class="form-input" 
@@ -57,42 +65,78 @@
             </fieldset>
 
             <fieldset class="form-section">
-                <legend class="language-text">Country</legend>
+                <legend 
+                    class="language-content" 
+                    data-key="country">
+                    Country
+                </legend>
                 <select 
                     name="country_id" 
                     id="country" 
                     required>
-                    <option value=""  class="language-text" disabled selected>
+                    <option 
+                        value=""  
+                        class="language-content" 
+                        data-key="select_a_country" 
+                        disabled 
+                        selected>
                         --Select a country--
                     </option>
-                    <option value="1" class="language-text">
+                    <option 
+                        value="1" 
+                        class="language-content" 
+                        data-key="hungary">
                         Hungary
                     </option>
-                    <option value="2" class="language-text">
+                    <option 
+                        value="2" 
+                        class="language-content" 
+                        data-key="slovakia">
                         Slovakia
                     </option>
-                    <option value="3" class="language-text">
+                    <option 
+                        value="3" 
+                        class="language-content" 
+                        data-key="ukraine">
                         Ukraine
                     </option>
                 </select>
             </fieldset>
 
             <fieldset class="form-section">
-                <legend class="language-text">Language</legend>
+                <legend 
+                    class="language-content" 
+                    data-key="language">
+                    Language
+                </legend>
                 <select 
                 name="preferred_language" 
                 id="language" 
                 required>
-                <option value=""  class="language-text" disabled selected>
+                <option 
+                    value=""  
+                    class="language-content" 
+                    data-key="select_a_language" 
+                    disabled 
+                    selected>
                     --Select a language--
                 </option>
-                <option value="en" class="language-text">
+                <option 
+                    value="en" 
+                    class="language-content" 
+                    data-key="english">
                     English
                 </option>
-                <option value="hu" class="language-text">
+                <option 
+                    value="hu" 
+                    class="language-content" 
+                    data-key="hungarian">
                     Hungarian
                 </option>
-                <option value="ua" class="language-text">
+                <option 
+                    value="ua" 
+                    class="language-content" 
+                    data-key="ukrainian">
                     Ukrainian
                 </option>
             </select>
@@ -100,16 +144,23 @@
 
             <label class="active-outer">
                 <input type="checkbox" id="active" name="active" checked>
-                <span class="language-text">
+                <span 
+                    class="language-content" 
+                    data-key="active">
                     Active
                 </span>
             </label>
 
             <div class="form-buttons">
-                <button class="submit language-text" type="submit">
+                <button 
+                    class="submit language-content"
+                    data-key="submit" 
+                    type="submit">
                     Submit
                 </button>
-                <button class="cancel language-text">
+                <button 
+                    class="cancel language-content"
+                    data-key="cancel">
                     Cancel
                 </button>
             </div>
