@@ -19,3 +19,13 @@
     overflow: auto;
 }
 
+.form-buttons {
+    display: flex;
+}
+
+.form-buttons button {
+    padding-left: 12px;
+    padding-right: 12px;
+    font-size: 21px;
+}
+

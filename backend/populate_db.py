@@ -556,6 +556,7 @@ def populate_database():
             "last_name": "Antal",
             "country_id": country_hun.id,
             "birth_year": r.randint(2009, 2016),
+            "gender": "F",
             "mascot_id": 2,
             "color_id": 2,
             "active": True
@@ -565,6 +566,7 @@ def populate_database():
             "last_name": "Barta",
             "country_id": country_hun.id,
             "birth_year": r.randint(2009, 2016),
+            "gender": "M",
             "mascot_id": 2,
             "color_id": 2,
             "active": True
@@ -574,6 +576,7 @@ def populate_database():
             "last_name": "Csáki",
             "country_id": country_hun.id,
             "birth_year": r.randint(2009, 2016),
+            "gender": "F",
             "mascot_id": 2,
             "color_id": 2,
             "active": True
@@ -583,6 +586,7 @@ def populate_database():
             "last_name": "Dombai",
             "country_id": country_hun.id,
             "birth_year": r.randint(2009, 2016),
+            "gender": "M",
             "mascot_id": 2,
             "color_id": 2,
             "active": True
@@ -592,6 +596,7 @@ def populate_database():
             "last_name": "Erős",
             "country_id": country_hun.id,
             "birth_year": r.randint(2009, 2016),
+            "gender": "F",
             "mascot_id": 2,
             "color_id": 2,
             "active": True
@@ -601,6 +606,7 @@ def populate_database():
             "last_name": "Farkas",
             "country_id": country_hun.id,
             "birth_year": r.randint(2009, 2016),
+            "gender": "M",
             "mascot_id": 2,
             "color_id": 2,
             "active": True
@@ -611,6 +617,7 @@ def populate_database():
             "last_name": "Gulyás",
             "country_id": country_hun.id,
             "birth_year": r.randint(2009, 2016),
+            "gender": "M",
             "mascot_id": 2,
             "color_id": 2,
             "active": True
@@ -620,6 +627,7 @@ def populate_database():
             "last_name": "Harsányi",
             "country_id": country_hun.id,
             "birth_year": r.randint(2009, 2016),
+            "gender": "F",
             "mascot_id": 2,
             "color_id": 2,
             "active": True
@@ -629,6 +637,7 @@ def populate_database():
             "last_name": "Iván",
             "country_id": country_hun.id,
             "birth_year": r.randint(2009, 2016),
+            "gender": "M",
             "mascot_id": 2,
             "color_id": 2,
             "active": True
@@ -638,6 +647,7 @@ def populate_database():
             "last_name": "Juhász",
             "country_id": country_hun.id,
             "birth_year": r.randint(2009, 2016),
+            "gender": "F",
             "mascot_id": 2,
             "color_id": 2,
             "active": True
@@ -647,6 +657,7 @@ def populate_database():
             "last_name": "Kiss",
             "country_id": country_hun.id,
             "birth_year": r.randint(2009, 2016),
+            "gender": "F",
             "mascot_id": 2,
             "color_id": 2,
             "active": True
@@ -657,6 +668,7 @@ def populate_database():
             "last_name": "Lévai",
             "country_id": country_hun.id,
             "birth_year": r.randint(2009, 2016),
+            "gender": "M",
             "mascot_id": 2,
             "color_id": 2,
             "active": True
@@ -666,6 +678,7 @@ def populate_database():
             "last_name": "Módos",
             "country_id": country_hun.id,
             "birth_year": r.randint(2009, 2016),
+            "gender": "F",
             "mascot_id": 2,
             "color_id": 2,
             "active": True
@@ -675,6 +688,7 @@ def populate_database():
             "last_name": "Nagy",
             "country_id": country_hun.id,
             "birth_year": r.randint(2009, 2016),
+            "gender": "M",
             "mascot_id": 2,
             "color_id": 2,
             "active": True
@@ -684,6 +698,7 @@ def populate_database():
             "last_name": "Oláh",
             "country_id": country_hun.id,
             "birth_year": r.randint(2009, 2016),
+            "gender": "F",
             "mascot_id": 2,
             "color_id": 2,
             "active": True
@@ -693,6 +708,7 @@ def populate_database():
             "last_name": "Papp",
             "country_id": country_hun.id,
             "birth_year": r.randint(2009, 2016),
+            "gender": "M",
             "mascot_id": 2,
             "color_id": 2,
             "active": True
@@ -702,6 +718,7 @@ def populate_database():
             "last_name": "Rácz",
             "country_id": country_hun.id,
             "birth_year": r.randint(2009, 2016),
+            "gender": "F",
             "mascot_id": 2,
             "color_id": 2,
             "active": True
@@ -712,6 +729,7 @@ def populate_database():
             "last_name": "Szalai",
             "country_id": country_hun.id,
             "birth_year": r.randint(2009, 2016),
+            "gender": "M",
             "mascot_id": 2,
             "color_id": 2,
             "active": True
@@ -721,6 +739,7 @@ def populate_database():
             "last_name": "Takács",
             "country_id": country_hun.id,
             "birth_year": r.randint(2009, 2016),
+            "gender": "F",
             "mascot_id": 2,
             "color_id": 2,
             "active": True
@@ -730,6 +749,7 @@ def populate_database():
             "last_name": "Varga",
             "country_id": country_hun.id,
             "birth_year": r.randint(2009, 2016),
+            "gender": "M",
             "mascot_id": 2,
             "color_id": 2,
             "active": True
@@ -739,6 +759,7 @@ def populate_database():
             "last_name": "Zsigmond",
             "country_id": country_hun.id,
             "birth_year": r.randint(2009, 2016),
+            "gender": "M",
             "mascot_id": 2,
             "color_id": 2,
             "active": True
@@ -752,6 +773,7 @@ def populate_database():
             "last_name": "Adamčíková",
             "country_id": country_svk.id,
             "birth_year": r.randint(2009, 2016),
+            "gender": "F",
             "mascot_id": 2,
             "color_id": 2,
             "active": True
@@ -761,6 +783,7 @@ def populate_database():
             "last_name": "Bartoš",
             "country_id": country_svk.id,
             "birth_year": r.randint(2009, 2016),
+            "gender": "M",
             "mascot_id": 2,
             "color_id": 2,
             "active": True
@@ -770,6 +793,7 @@ def populate_database():
             "last_name": "Cibulová",
             "country_id": country_svk.id,
             "birth_year": r.randint(2009, 2016),
+            "gender": "F",
             "mascot_id": 2,
             "color_id": 2,
             "active": True
@@ -779,6 +803,7 @@ def populate_database():
             "last_name": "Doležal",
             "country_id": country_svk.id,
             "birth_year": r.randint(2009, 2016),
+            "gender": "M",
             "mascot_id": 2,
             "color_id": 2,
             "active": True
@@ -788,6 +813,7 @@ def populate_database():
             "last_name": "Endresová",
             "country_id": country_svk.id,
             "birth_year": r.randint(2009, 2016),
+            "gender": "F",
             "mascot_id": 2,
             "color_id": 2,
             "active": True
@@ -797,6 +823,7 @@ def populate_database():
             "last_name": "Fedor",
             "country_id": country_svk.id,
             "birth_year": r.randint(2009, 2016),
+            "gender": "M",
             "mascot_id": 2,
             "color_id": 2,
             "active": True
@@ -807,6 +834,7 @@ def populate_database():
             "last_name": "Gašparíková",
             "country_id": country_svk.id,
             "birth_year": r.randint(2009, 2016),
+            "gender": "F",
             "mascot_id": 2,
             "color_id": 2,
             "active": True
@@ -816,6 +844,7 @@ def populate_database():
             "last_name": "Horváth",
             "country_id": country_svk.id,
             "birth_year": r.randint(2009, 2016),
+            "gender": "M",
             "mascot_id": 2,
             "color_id": 2,
             "active": True
@@ -825,6 +854,7 @@ def populate_database():
             "last_name": "Iváneková",
             "country_id": country_svk.id,
             "birth_year": r.randint(2009, 2016),
+            "gender": "F",
             "mascot_id": 2,
             "color_id": 2,
             "active": True
@@ -834,6 +864,7 @@ def populate_database():
             "last_name": "Jurčák",
             "country_id": country_svk.id,
             "birth_year": r.randint(2009, 2016),
+            "gender": "M",
             "mascot_id": 2,
             "color_id": 2,
             "active": True
@@ -843,6 +874,7 @@ def populate_database():
             "last_name": "Kováčová",
             "country_id": country_svk.id,
             "birth_year": r.randint(2009, 2016),
+            "gender": "F",
             "mascot_id": 2,
             "color_id": 2,
             "active": True
@@ -852,6 +884,7 @@ def populate_database():
             "last_name": "Lužina",
             "country_id": country_svk.id,
             "birth_year": r.randint(2009, 2016),
+            "gender": "F",
             "mascot_id": 2,
             "color_id": 2,
             "active": True
@@ -861,6 +894,7 @@ def populate_database():
             "last_name": "Michalíková",
             "country_id": country_svk.id,
             "birth_year": r.randint(2009, 2016),
+            "gender": "F",
             "mascot_id": 2,
             "color_id": 2,
             "active": True
@@ -871,6 +905,7 @@ def populate_database():
             "last_name": "Nováková",
             "country_id": country_svk.id,
             "birth_year": r.randint(2009, 2016),
+            "gender": "F",
             "mascot_id": 2,
             "color_id": 2,
             "active": True
@@ -880,6 +915,7 @@ def populate_database():
             "last_name": "Oravec",
             "country_id": country_svk.id,
             "birth_year": r.randint(2009, 2016),
+            "gender": "M",
             "mascot_id": 2,
             "color_id": 2,
             "active": True
@@ -889,6 +925,7 @@ def populate_database():
             "last_name": "Pavlíková",
             "country_id": country_svk.id,
             "birth_year": r.randint(2009, 2016),
+            "gender": "F",
             "mascot_id": 2,
             "color_id": 2,
             "active": True
@@ -898,6 +935,7 @@ def populate_database():
             "last_name": "Rybárová",
             "country_id": country_svk.id,
             "birth_year": r.randint(2009, 2016),
+            "gender": "F",
             "mascot_id": 2,
             "color_id": 2,
             "active": True
@@ -907,6 +945,7 @@ def populate_database():
             "last_name": "Sabol",
             "country_id": country_svk.id,
             "birth_year": r.randint(2009, 2016),
+            "gender": "M",
             "mascot_id": 2,
             "color_id": 2,
             "active": True
@@ -916,6 +955,7 @@ def populate_database():
             "last_name": "Tóth",
             "country_id": country_svk.id,
             "birth_year": r.randint(2009, 2016),
+            "gender": "M",
             "mascot_id": 2,
             "color_id": 2,
             "active": True
@@ -925,6 +965,7 @@ def populate_database():
             "last_name": "Veselý",
             "country_id": country_svk.id,
             "birth_year": r.randint(2009, 2016),
+            "gender": "M",
             "mascot_id": 2,
             "color_id": 2,
             "active": True
@@ -934,6 +975,7 @@ def populate_database():
             "last_name": "Zemanová",
             "country_id": country_svk.id,
             "birth_year": r.randint(2009, 2016),
+            "gender": "F",
             "mascot_id": 2,
             "color_id": 2,
             "active": True
@@ -947,6 +989,7 @@ def populate_database():
             "last_name": "Antonovych",
             "country_id": country_ukr.id,
             "birth_year": r.randint(2009, 2016),
+            "gender": "F",
             "mascot_id": 2,
             "color_id": 2,
             "active": True
@@ -956,6 +999,7 @@ def populate_database():
             "last_name": "Babiak",
             "country_id": country_ukr.id,
             "birth_year": r.randint(2009, 2016),
+            "gender": "M",
             "mascot_id": 2,
             "color_id": 2,
             "active": True
@@ -965,6 +1009,7 @@ def populate_database():
             "last_name": "Vasylchenko",
             "country_id": country_ukr.id,
             "birth_year": r.randint(2009, 2016),
+            "gender": "F",
             "mascot_id": 2,
             "color_id": 2,
             "active": True
@@ -974,6 +1019,7 @@ def populate_database():
             "last_name": "Dudnyk",
             "country_id": country_ukr.id,
             "birth_year": r.randint(2009, 2016),
+            "gender": "M",
             "mascot_id": 2,
             "color_id": 2,
             "active": True
@@ -984,6 +1030,7 @@ def populate_database():
             "last_name": "Yevtushenko",
             "country_id": country_ukr.id,
             "birth_year": r.randint(2009, 2016),
+            "gender": "F",
             "mascot_id": 2,
             "color_id": 2,
             "active": True
@@ -993,6 +1040,7 @@ def populate_database():
             "last_name": "Filatov",
             "country_id": country_ukr.id,
             "birth_year": r.randint(2009, 2016),
+            "gender": "M",
             "mascot_id": 2,
             "color_id": 2,
             "active": True
@@ -1002,6 +1050,7 @@ def populate_database():
             "last_name": "Holub",
             "country_id": country_ukr.id,
             "birth_year": r.randint(2009, 2016),
+            "gender": "F",
             "mascot_id": 2,
             "color_id": 2,
             "active": True
@@ -1012,6 +1061,7 @@ def populate_database():
             "last_name": "Hrytsenko",
             "country_id": country_ukr.id,
             "birth_year": r.randint(2009, 2016),
+            "gender": "M",
             "mascot_id": 2,
             "color_id": 2,
             "active": True
@@ -1021,6 +1071,7 @@ def populate_database():
             "last_name": "Ivanyuk",
             "country_id": country_ukr.id,
             "birth_year": r.randint(2009, 2016),
+            "gender": "F",
             "mascot_id": 2,
             "color_id": 2,
             "active": True
@@ -1030,6 +1081,7 @@ def populate_database():
             "last_name": "Jaremchuk",
             "country_id": country_ukr.id,
             "birth_year": r.randint(2009, 2016),
+            "gender": "M",
             "mascot_id": 2,
             "color_id": 2,
             "active": True
@@ -1040,6 +1092,7 @@ def populate_database():
             "last_name": "Kovalchuk",
             "country_id": country_ukr.id,
             "birth_year": r.randint(2009, 2016),
+            "gender": "F",
             "mascot_id": 2,
             "color_id": 2,
             "active": True
@@ -1049,6 +1102,7 @@ def populate_database():
             "last_name": "Lytvynenko",
             "country_id": country_ukr.id,
             "birth_year": r.randint(2009, 2016),
+            "gender": "F",
             "mascot_id": 2,
             "color_id": 2,
             "active": True
@@ -1058,6 +1112,7 @@ def populate_database():
             "last_name": "Melnyk",
             "country_id": country_ukr.id,
             "birth_year": r.randint(2009, 2016),
+            "gender": "F",
             "mascot_id": 2,
             "color_id": 2,
             "active": True
@@ -1067,6 +1122,7 @@ def populate_database():
             "last_name": "Nazaruk",
             "country_id": country_ukr.id,
             "birth_year": r.randint(2009, 2016),
+            "gender": "F",
             "mascot_id": 2,
             "color_id": 2,
             "active": True
@@ -1077,6 +1133,7 @@ def populate_database():
             "last_name": "Onyshchenko",
             "country_id": country_ukr.id,
             "birth_year": r.randint(2009, 2016),
+            "gender": "M",
             "mascot_id": 2,
             "color_id": 2,
             "active": True
@@ -1086,6 +1143,7 @@ def populate_database():
             "last_name": "Pavlenko",
             "country_id": country_ukr.id,
             "birth_year": r.randint(2009, 2016),
+            "gender": "F",
             "mascot_id": 2,
             "color_id": 2,
             "active": True
@@ -1095,6 +1153,7 @@ def populate_database():
             "last_name": "Rudenko",
             "country_id": country_ukr.id,
             "birth_year": r.randint(2009, 2016),
+            "gender": "M",
             "mascot_id": 2,
             "color_id": 2,
             "active": True
@@ -1104,6 +1163,7 @@ def populate_database():
             "last_name": "Shevchenko",
             "country_id": country_ukr.id,
             "birth_year": r.randint(2009, 2016),
+            "gender": "M",
             "mascot_id": 2,
             "color_id": 2,
             "active": True
@@ -1114,6 +1174,7 @@ def populate_database():
             "last_name": "Tymoshchuk",
             "country_id": country_ukr.id,
             "birth_year": r.randint(2009, 2016),
+            "gender": "F",
             "mascot_id": 2,
             "color_id": 2,
             "active": True
@@ -1123,6 +1184,7 @@ def populate_database():
             "last_name": "Vasylchenko",
             "country_id": country_ukr.id,
             "birth_year": r.randint(2009, 2016),
+            "gender": "M",
             "mascot_id": 2,
             "color_id": 2,
             "active": True
@@ -1132,6 +1194,7 @@ def populate_database():
             "last_name": "Yurchenko",
             "country_id": country_ukr.id,
             "birth_year": r.randint(2009, 2016),
+            "gender": "F",
             "mascot_id": 2,
             "color_id": 2,
             "active": True
@@ -1141,6 +1204,7 @@ def populate_database():
             "last_name": "Zvarych",
             "country_id": country_ukr.id,
             "birth_year": r.randint(2009, 2016),
+            "gender": "F",
             "mascot_id": 2,
             "color_id": 2,
             "active": True
@@ -1161,6 +1225,7 @@ def populate_database():
             last_name=record["last_name"],
             country_id=record["country_id"],
             birth_year=record["birth_year"],
+            gender=record["gender"],
             active=record["active"]
             )
         students.append(student)

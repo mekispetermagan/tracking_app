@@ -12,6 +12,7 @@ class MentorStory extends MentorPage {
         const month = now.getMonth() + 1;
         const year = now.getFullYear();
         this.form.fillWith({year: year, month: month})
+        this.form.setExitFunction(() => this.config.redirect("mentor"));
         this.fetchMentorData(); // async
         this.fetchCourses(); // async
 

@@ -39,10 +39,14 @@ class AddEditStudent extends Modal {
             countryId: formArea
                 .querySelector("select[name='country']"),
             birthYear: formArea
-            .querySelector("input[name='birth_year']"),
+                .querySelector("input[name='birth_year']"),
+            gender: formArea
+                .querySelector("select[name='gender']"),
             active: formArea
-            .querySelector("input[name='active']"),
+                .querySelector("input[name='active']"),
         };
+        // participants must be at least 5
+        this.form.birthYear.max = new Date().getFullYear()-5;
         formArea.addEventListener("submit", (event) => {
             event.preventDefault();
             this.handleSubmission(event);
@@ -151,6 +155,7 @@ class AddEditStudent extends Modal {
         this.form.lastName.value = "";
         this.form.countryId.value = "";
         this.form.birthYear.value = "";
+        this.form.gender.value = "";
         this.form.active.checked = true
         this.courseListItems.forEach((item) => {
             item.checkBox.checked = false;
@@ -163,6 +168,7 @@ class AddEditStudent extends Modal {
         this.form.lastName.value = this.student.last_name;
         this.form.countryId.value = this.student.country_id;
         this.form.birthYear.value = this.student.birth_year;
+        this.form.gender.value = this.student.gender;
         this.form.active.checked = this.student.active;
         this.courseListItems.forEach((item) => {
             if (this.student.courses.includes(item.course.id)) {
@@ -179,6 +185,7 @@ class AddEditStudent extends Modal {
         const last_name = this.form.lastName.value;
         const country_id = this.form.countryId.value;
         const birth_year = this.form.birthYear.value;
+        const gender = this.form.gender.value;
         const active = this.form.active.checked;
         const course_ids = this.getSelectedCourseIds();
         let student_id;
@@ -208,6 +215,7 @@ class AddEditStudent extends Modal {
                         last_name,
                         country_id,
                         birth_year,
+                        gender,
                         active,
                         course_ids
                     })

@@ -394,7 +394,9 @@ class Form {
     setExitFunction(exit) {
         this.exit = exit;
         this.cancelButton = this.form.querySelector("button.cancel");
-        this.cancelButton.addEventListener("click", exit)
+        if (this.cancelButton) {
+            this.cancelButton.addEventListener("click", exit);
+        }
     }
 
     setNotification(notification) {

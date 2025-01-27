@@ -21,6 +21,7 @@ class MentorManageStudents extends MentorPage {
     }
 
     getDomElements() {
+        super.getDomElements();
         this.studentListArea = document.querySelector(".listmenu-list");
         this.addStudentButton = document.querySelector(".listmenu-button.add");
         this.editStudentButton = document.querySelector(".listmenu-button.edit");
@@ -137,6 +138,7 @@ class MentorManageStudents extends MentorPage {
     }
 
     setLanguage(language) {
+        super.setLanguage(language);
         this.language = language
         this.languageMenu.adjustMenu(language)
         this.header.setTitle(mentorStudentTitle[language]);

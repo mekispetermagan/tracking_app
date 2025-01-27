@@ -44,67 +44,160 @@
         <div class="overlay manage-student">
             <div class="modal manage-student">
                 <form class="manage-student-form">
-                    <label for="first-name" class="language-text">
-                        First name:
+                    <!-- First name -->
+                    <label 
+                        for="first-name">
+                        <span
+                            class="language-content"
+                            data-key="first_name">
+                            First name
+                        </span>:
                     </label>
                     <input 
                         type="text" 
                         class="first-name-input" 
                         name="first_name" 
                         required>
-                    <label for="last-name" class="language-text">
-                        Last name:
+                    <!-- Last name -->
+                    <label for="last-name">
+                        <span
+                            class="language-content"
+                            data-key="last_name">
+                            Last name
+                        </span>:
                     </label>
                     <input 
-                        type="text" 
+                        type="text"
+                        id="last-name"
                         class="last-name-input" 
                         name="last_name" 
                         required>
-                    <label for="country" class="language-text">
-                        Country:
+                    <!-- Country -->
+                    <label for="country">
+                        <span
+                            class="language-content"
+                            data-key="country">
+                            Country
+                        </span>:
                     </label>
-                    <select name="country" id="country" required>
-                        <option value=""  class="language-text" disabled selected>
+                    <select 
+                        name="country" 
+                        id="country" 
+                        required>
+                        <option 
+                            value=""  
+                            class="language-content"
+                            data-key="select_a_country"
+                            disabled 
+                            selected>
                             --Select a country--
                         </option>
-                        <option value="1" class="language-text">
+                        <option 
+                            value="1" 
+                            class="language-content"
+                            data-key="hungary">
                             Hungary
                         </option>
-                        <option value="2" class="language-text">
+                        <option value="2" 
+                            class="language-content"
+                            data-key="slovakia">
                             Slovakia
                         </option>
-                        <option value="3" class="language-text">
+                        <option 
+                            value="3" 
+                            class="language-content"
+                            data-key="ukraine">
                             Ukraine
                         </option>
                     </select>
-                    <label for="birth_year" class="language-text">
-                        Birthyear:
+                    <!-- Birthyear -->
+                    <label for="birth_year">
+                        <span
+                            class="language-content"
+                            data-key="birthyear">
+                            Birthyear
+                        </span>:
                     </label>
                     <input 
                         type="text" 
                         class="birth_year-input" 
                         name="birth_year" 
                         required>
+                    <!-- Gender -->
+                    <label for="gender">
+                        <span
+                            class="language-content"
+                            data-key="gender">
+                            Gender
+                        </span>:
+                    </label>
+                    <select 
+                        class="gender-input" 
+                        name="gender" 
+                        required>
+                        <option 
+                            value=""  
+                            class="language-content"
+                            data-key="select_a_gender"
+                            disabled 
+                            selected>
+                            --Select a gender--
+                        </option>
+                        <option 
+                            value="F" 
+                            class="language-content"
+                            data-key="female">
+                            Female
+                        </option>
+                        <option 
+                            value="M" 
+                            class="language-content"
+                            data-key="male">
+                            Male
+                        </option>
+                        <option 
+                            value="N" 
+                            class="language-content"
+                            data-key="non_binary">
+                            Non-binary
+                        </option>
+                    </select>
+                    <!-- Active -->
                     <label class="active-outer">
                         <input 
                             type="checkbox" 
                             id="active" 
                             name="active" 
                             checked>
-                            <span class="language-text">
+                            <span 
+                                class="language-content"
+                                data-key="active">
                                 Active
                             </span>
                     </label>
-                    <label class="language-text">Course(s):</label>
+                    <!-- Courses -->
+                    <label>
+                        <span
+                            class="language-content"
+                            data-key="courses">
+                            Courses
+                        </span>:
+                    </label>
                     <div class="course-list-outer">
                         <ul class="stripped course-list">
                         </ul>    
                     </div>
-                    <div>
-                        <button class="submit language-text" type="submit">
+                    <!-- Buttons -->
+                    <div class="form-buttons">
+                        <button 
+                            type="submit"
+                            class="submit language-content"
+                            data-key="submit">
                             Submit
                         </button>
-                        <button class="cancel language-text">
+                        <button 
+                            class="cancel language-content"
+                            data-key="cancel">
                             Cancel
                         </button>
                     </div>
@@ -116,12 +209,20 @@
             <button class="listmenu-button add">
                 <span class="material-symbols-outlined">person_add</span>
                 <span>&nbsp;</span>
-                <span class="language-text">add</span>
+                <span 
+                    class="language-content"
+                    data-key="add">
+                    Add
+                </span>
             </button>
             <button class="listmenu-button edit">
                 <span class="material-symbols-outlined">person_edit</span>
                 <span>&nbsp;</span>
-                <span class="language-text">edit</span>
+                <span 
+                    class="language-content"
+                    data-key="edit">
+                    Edit
+                </span>
             </button>
         </div> <!-- mentor-menu -->
 

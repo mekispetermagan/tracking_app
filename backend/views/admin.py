@@ -99,6 +99,7 @@ def get_student_list():
             "last_name": student.last_name,
             "country_id": student.country_id,
             "birth_year": student.birth_year,
+            "gender": student.gender,
             "active": student.active,
             "courses": [course.id for course in student.courses] 
         }

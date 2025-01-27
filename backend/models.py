@@ -54,6 +54,9 @@ class StudentUser(db.Model):
 # User roles #
 ##############
 
+# M: male, F: female, N: non-binary 
+gender_enum = db.Enum('M', 'F', 'N', name='genders')
+
 class Student(db.Model):
     __tablename__ = 'students'
     id = db.Column(db.Integer, primary_key=True)
@@ -62,6 +65,7 @@ class Student(db.Model):
     last_name = db.Column(db.String(50), nullable=False)
     country_id = db.Column(db.Integer, db.ForeignKey('countries.id'), nullable=True)
     birth_year = db.Column(db.Integer, nullable=True)
+    gender = db.Column(gender_enum, nullable=False)
     active = db.Column(db.Boolean, default=True, nullable=False)
     courses = db.relationship(
         'Course', 

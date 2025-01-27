@@ -41,6 +41,8 @@ class MentorAddEditStudent extends Modal {
                 .querySelector("select[name='country']"),
             birth_yearInput: formArea
                 .querySelector("input[name='birth_year']"),
+            genderInput: formArea
+                .querySelector("select[name='gender']"),
             activeInput: formArea
                 .querySelector("input[name='active']"),
         };
@@ -109,6 +111,7 @@ class MentorAddEditStudent extends Modal {
         this.form.lastNameInput.value = "";
         this.form.countryInput.value = "";
         this.form.birth_yearInput.value = "";
+        this.form.genderInput.value = "";
         this.courseListItems.forEach((item) => {
             item.checkBox.checked = false;
         });
@@ -120,6 +123,7 @@ class MentorAddEditStudent extends Modal {
         this.form.lastNameInput.value = this.student.last_name;
         this.form.countryInput.value = this.student.country_id;
         this.form.birth_yearInput.value = this.student.birth_year;
+        this.form.genderInput.value = this.student.gender;
         this.courseListItems.forEach((item) => {
             if (this.student.courses.includes(item.course.id)) {
                 item.checkBox.checked = true;
@@ -135,6 +139,7 @@ class MentorAddEditStudent extends Modal {
         const last_name = this.form.lastNameInput.value;
         const country_id = this.form.countryInput.value;
         const birth_year = this.form.birth_yearInput.value;
+        const gender = this.form.genderInput.value;
         const active = this.form.activeInput.checked;
         console.log(active);
         const course_ids = this.getSelectedCourseIds();
@@ -165,6 +170,7 @@ class MentorAddEditStudent extends Modal {
                         last_name,
                         country_id,
                         birth_year,
+                        gender,
                         active,
                         course_ids
                     })

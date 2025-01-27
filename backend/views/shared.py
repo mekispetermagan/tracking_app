@@ -52,6 +52,7 @@ def manage_student():
         "last_name",
         "country_id",
         "birth_year", 
+        "gender",
         "course_ids",
         "active"
         ]):
@@ -73,6 +74,7 @@ def manage_student():
         student.last_name = data["last_name"]
         student.country_id = data["country_id"]
         student.birth_year = data["birth_year"]
+        student.gender = data["gender"]
         student.active = data["active"]
         student.courses = courses
         db.session.commit()
@@ -92,6 +94,7 @@ def manage_student():
             last_name = data["last_name"],
             country_id = data["country_id"],
             birth_year = data["birth_year"],
+            gender = data["gender"],
             active = data["active"],
             courses = courses
             )

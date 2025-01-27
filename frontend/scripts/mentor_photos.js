@@ -6,6 +6,7 @@ class MentorPhotos extends MentorPage {
         this.form.setNotification(this.notification);
         const now = new Date;
         this.form.fillWith({date: now});
+        this.form.setExitFunction(() => this.config.redirect("mentor"));
         this.setImageValidation();
         this.fetchMentorData(); // async
     }

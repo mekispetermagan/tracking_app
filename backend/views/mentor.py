@@ -259,6 +259,7 @@ def get_student_list():
                 "last_name": student.last_name,
                 "country_id": student.country_id,
                 "birth_year": student.birth_year,
+                "gender": student.gender,
                 "courses": [course.id for course in student.courses] 
             }
             for student in students
@@ -433,9 +434,9 @@ def submit_photos():
             db.session.add(record)
     try:
         db.session.commit()
+        return jsonify({
+            "msg": "Submission successful."
+        }), 200
     except IntegrityError as e:
         db.session.rollback()
         raise ValueError("A photo with this filename already exists.")
-    return jsonify({
-        "msg": "Submission successful."
-    }), 200

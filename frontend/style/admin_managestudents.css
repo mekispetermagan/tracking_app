@@ -19,3 +19,12 @@
     overflow: auto;
 }
 
+.form-row {
+    display: flex;
+    justify-content: space-between;
+}
+
+input[type="text"] {
+    width: 144px;
+}
+

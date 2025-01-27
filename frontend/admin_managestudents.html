@@ -73,39 +73,91 @@
         <div class="overlay manage-student">
             <div class="modal manage-student">
                 <form class="manage-student-form">
-                    <label for="first-name">First name:</label>
-                    <input type="text" class="first-name-input" name="first_name" required>
-                    <label for="last-name">Last name::</label>
-                    <input type="text" class="last-name-input" name="last_name" required>
-                    <label 
-                        for="country" 
-                        class="country">
-                        Country:
-                    </label>
-                    <select 
-                        class="country-input" 
-                        name="country" 
-                        id="country" 
-                        required>
-                        <option value="" disabled selected>
-                            --Select a country--
-                        </option>
-                        <option value="1" class="language-text">
-                            Hungary
-                        </option>
-                        <option value="2" class="language-text">
-                            Slovakia
-                        </option>
-                        <option value="3" class="language-text">
-                            Ukraine
-                        </option>
-                    </select>
-                    <label for="birth_year">Birthyear:</label>
-                    <input type="text" class="birth_year-input" name="birth_year" required>
+
+                    <div class="form-row">
+                        <label for="first-name">First name:</label>
+                        <input type="text" class="first-name-input" name="first_name" required>
+                    </div>
+
+                    <div class="form-row">
+                        <label for="last-name">Last name:</label>
+                        <input type="text" class="last-name-input" name="last_name" required>
+                    </div>
+
+                    <div class="form-row">
+                        <label 
+                            for="country" 
+                            class="country">
+                            Country:
+                        </label>
+                        <select 
+                            class="country-input" 
+                            name="country" 
+                            id="country" 
+                            required>
+                            <option value="" disabled selected>
+                                --Select a country--
+                            </option>
+                            <option value="1" class="language-text">
+                                Hungary
+                            </option>
+                            <option value="2" class="language-text">
+                                Slovakia
+                            </option>
+                            <option value="3" class="language-text">
+                                Ukraine
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="form-row">
+                        <label for="birth_year">Birthyear:</label>
+                        <input 
+                            type="number" 
+                            max="2030"
+                            min="2000"
+                            value=""                                 class="birth_year-input" name="birth_year" 
+                            required>
+                    </div>
+
+                    <div class="form-row">
+                        <label for="gender">
+                            <span
+                                class="language-content"
+                                data-key="gender">
+                                Gender
+                            </span>:
+                        </label>
+                        <select 
+                            class="gender-input" 
+                            name="gender" 
+                            required>
+                            <option 
+                                value=""  
+                                disabled 
+                                selected>
+                                --Select a gender--
+                            </option>
+                            <option 
+                                value="F">
+                                Female
+                            </option>
+                            <option 
+                                value="M">
+                                Male
+                            </option>
+                            <option 
+                                value="N">
+                                Non-binary
+                            </option>
+                        </select>
+                    </div>
+
                     <label class="active-outer">
                         <input type="checkbox" id="active" name="active" checked>
                         Active
                     </label>
+
                     <label>Course(s):</label>
                     <div class="course-list-outer">
                         <ul class="stripped course-list">
@@ -115,6 +167,7 @@
                         <button class="submit" type="submit">Submit</button>
                         <button class="cancel">Cancel</button>
                     </div>
+
                 </form>
             </div>
         </div>
