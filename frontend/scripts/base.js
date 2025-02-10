@@ -10,11 +10,11 @@
       Parameters:
         - title (string): title of the header
         - home (string): file name without the ".html" extension
-      Public methods: 
+      Public methods:
         - setTitle(title: string): updates the header title
         - setHome(home: string): updates the home link for redirection
 
-    Notification: creates a notification div for pages. It is fixed to the 
+    Notification: creates a notification div for pages. It is fixed to the
       top right and hidden by default.
       Methods:
       - show(message: string, timeout: number, quality: "good" | "bad" | "other"): shows notification.
@@ -26,8 +26,8 @@
         - timeout: duration in seconds; optional, defaults to infinite (no hiding)
       - hide(): use to manually hide the notification if no timeout is given
 
-    Page: A parent class for pages. Page content is hidden until successful 
-      validation. Upon success, content is shown, and page starts with 
+    Page: A parent class for pages. Page content is hidden until successful
+      validation. Upon success, content is shown, and page starts with
       a specified callback function.
 
     AdminPage: Page with admin authentication.
@@ -36,20 +36,20 @@
 
     Modal: Popup interface on a page.
 
-    LanguageMenu: Lets the user choose between languages; 
+    LanguageMenu: Lets the user choose between languages;
       connected to the page's language setting mechanism.
 
-    Form: 
+    Form:
 
     Filter:
 */
 
 
-// A header bar over pages. It contains 
+// A header bar over pages. It contains
 // - a home button that redirects to the page provided as a parameter
-// - a title provided as a parameter (and possibly modified by the 
+// - a title provided as a parameter (and possibly modified by the
 //   language menu or a modal)
-// - a logout button that redirects to the login page (which logs the 
+// - a logout button that redirects to the login page (which logs the
 //   user out)
 class Header {
     constructor(title, home) {
@@ -69,7 +69,7 @@ class Header {
         document.body.insertAdjacentElement("afterbegin", header);
         return header;
     }
-    
+
     // adds the material symbols link needed to display icons
     setLink() {
         if (!document.querySelector('link[href*="Material+Symbols+Outlined"]')) {
@@ -79,7 +79,7 @@ class Header {
         }
         return this;
     }
-    
+
     // creates the content of the header, and inserts it in the page
     setHTML() {
         this.container.insertAdjacentHTML(
@@ -91,7 +91,7 @@ class Header {
             <button class="navigation-button" id="nav-logout">
                 <div class="material-symbols-outlined">logout</div>
             </button>`.trim()
-            ); 
+            );
         return this;
     }
 
@@ -114,16 +114,16 @@ class Header {
     setHome(home) {
         this.homeButton.addEventListener("click", () => {
             this.config.redirect(home);
-        }) 
+        })
         return this;
     }
 
     setLogout() {
         this.logoutButton.addEventListener("click", () => {
             this.config.redirect("index");
-        }) 
+        })
         return this;
-    }   
+    }
 } // Header
 
 class Notification {
@@ -162,7 +162,7 @@ class Notification {
 
 } // Notification
 
-// A general Page class. Individual pages should be subclasses 
+// A general Page class. Individual pages should be subclasses
 // of this one. It provides:
 // - config         (see config.js)
 // - timer          (see utils.js)
@@ -189,7 +189,7 @@ class Page {
 } // Page
 
 // Page with role-based user validation.
-// Page content is not visible until successful validation. If 
+// Page content is not visible until successful validation. If
 // validation is unsuccessful, user is logged out.
 // Preferred language provides an option for localizing the content.
 class AuthPage extends Page {
@@ -212,7 +212,7 @@ class AuthPage extends Page {
                 },
                 body: JSON.stringify({})
             });
-            
+
             const data = await response.json();
             if (response.ok) {
                 if (data.preferred_language) {
@@ -231,7 +231,7 @@ class AuthPage extends Page {
         } else {
             console.error("No token found.");
             this.notification.bad("Logged out.");
-            this.backToLogin();        
+            this.backToLogin();
         }
     }
 
@@ -242,7 +242,7 @@ class AuthPage extends Page {
     backToLogin() {
         this.timer.delay(() => {
             this.config.redirect("index");
-        }, 3000);            
+        }, 3000);
     }
 } // AuthPage
 
@@ -319,7 +319,7 @@ class LanguageMenu {
     }
 
     createHTML() {
-        this.container.innerHTML = 
+        this.container.innerHTML =
             `<div class="language-menu">
             <div class="language-option">
                 <input type="radio" id="lang-en" name="language" value="en" checked>
@@ -342,7 +342,7 @@ class LanguageMenu {
             this[lang] = this.container.querySelector(`#lang-${lang}`);
             this[lang].addEventListener("change", () => {
                 this.setLanguage(lang);
-            });            
+            });
         }
     }
 
@@ -355,12 +355,18 @@ class LanguageMenu {
 // Collects input fields
 // Prefills them with data (from server or from frontend)
 // Submits form data to server
-// Uses the first form element in its container. If container is 
+// Uses the first form element in its container. If container is
 // not provided, it defaults to document.
+// container:
+// - if the page contains a single form, it can be this.content
+// - otherwise a more specific dom element
+// submitEndpoint:
+// - full route, eg. "/mentor/submit_photos"
 class Form {
     formName = "Form";
-    exit = () => {};
+    exit = null;
     hasFiles = false;
+    forwardData = null;
 
     constructor(container, submitEndpoint) {
         if (!container) {
@@ -401,12 +407,24 @@ class Form {
         }
     }
 
+    // forwards the received data to the specified function
+    setForwardData(callBack) {
+        this.forwardData = callBack;
+    }
+
+    // the page's notification object (displays messages to the user)
     setNotification(notification) {
         this.notification = notification;
     }
 
+    // logs out the user. normally the default should work,
+    // but it can be overwritten here
     setBackToLogin(backToLogin) {
         this.backToLogin = backToLogin;
+    }
+
+    setSubmitEndpoint(endpoint) {
+        this.submitEndpoint = endpoint;
     }
 
     clear() {
@@ -429,14 +447,14 @@ class Form {
                 input.checked = true;
                 console.log(name, "set to", data[name]);
             } else if (["text", "email", "number"].includes(input.type)) {
-                input.value = data[name];
-                console.log(name, "set to", data[name])            
+                input.value = value;
+                console.log(name, "set to", data[name])
             } else if (input.type == "date") {
                 input.valueAsDate = data[name];
-                console.log("Date set to", data[name]);            
+                console.log("Date set to", data[name]);
             }else if (input.tagName.toLowerCase() == "select") {
                 input.value = data[name];
-                console.log(name, "set to", data[name]);         
+                console.log(name, "set to", data[name]);
             } else {
                 console.log(name, "not handled");
             }
@@ -487,7 +505,7 @@ class Form {
                 [...item.files].forEach((file) => {
                     formData.append(`${item.name}-file`, file);
                     this.hasFiles = true;
-                })                
+                })
             }
         });
         return formData;
@@ -521,23 +539,25 @@ class Form {
             const data = await response.json();
             if (response.ok) {
                 console.log(`${this.formName} submitted successfully.`);
-                if (this.notification) {                
+                if (this.notification) {
                     this.notification.good(
                         `${this.formName} submitted successfully.`
                     );
                 }
                 if (this.exit) {
                     this.timer.delay(() => {this.exit();}, 1000);
-                }    
+                } else if (this.forwardData) {
+                    this.forwardData(data);
+                }
             } else {
                 console.error(`${this.formName} couldn't be submitted:`, data.msg);
-                if (this.notification) {                
+                if (this.notification) {
                     this.notification.bad("Submission failed.");
                 }
             }
         } else {
             console.error("No token found.");
-            if (this.notification) {                
+            if (this.notification) {
                 this.notification.bad("Logged out.");
             }
             this.backToLogin();
@@ -550,7 +570,7 @@ class Form {
 // The filtering is instant when any change happens in these inputs.
 // The owner (say, Page or Modal) provides a callback function,
 // and provides the list to be filtered; which is then returned.
-// (The objectlist cannot be provided at construction, 
+// (The objectlist cannot be provided at construction,
 // because it may change dynamically.)
 // Template for the owner:
 // class FilterOwner {

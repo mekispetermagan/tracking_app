@@ -3,15 +3,15 @@
 from flask import Blueprint, request, jsonify
 from db import db
 from models import (
-    User, 
-    RoleType, 
-    UserRole, 
-    Mentor, 
-    Country, 
-    Student, 
-    Course, 
+    User,
+    RoleType,
+    UserRole,
+    Mentor,
+    Country,
+    Student,
+    Course,
     MentorCourse,
-    SessionLog, 
+    SessionLog,
     SessionLogStudent
     )
 from flask_jwt_extended import jwt_required, get_jwt_identity
@@ -60,7 +60,7 @@ def get_mentor_list():
         for mentor in mentors
         ]
     return jsonify([
-        {   
+        {
             "id": mentor.id,
             "user_id": mentor.user_id,
             "first_name": mentor.first_name,
@@ -79,7 +79,7 @@ def get_mentor_list():
 @jwt_required()
 def get_country_list():
     countries = [
-        { 
+        {
             "id": country.id,
             "code": country.code,
             "name": country.name,
@@ -93,7 +93,7 @@ def get_country_list():
 @jwt_required()
 def get_student_list():
     students = [
-        { 
+        {
             "id": student.id,
             "first_name": student.first_name,
             "last_name": student.last_name,
@@ -101,7 +101,7 @@ def get_student_list():
             "birth_year": student.birth_year,
             "gender": student.gender,
             "active": student.active,
-            "courses": [course.id for course in student.courses] 
+            "courses": [course.id for course in student.courses]
         }
          for student in Student.query.all()]
     return jsonify(students), 200
@@ -112,7 +112,7 @@ def get_student_list():
 @jwt_required()
 def get_course_list():
     courses = [
-        { 
+        {
             "id": course.id,
             "name": course.name,
             "description": course.description,
@@ -142,7 +142,7 @@ def manage_mentor():
     pwd_unchanged = data.get("pwdUnchanged")
     password = data.get("password")
     active = data.get("active")
-     
+
     # Input validation
     if not all([
         first_name, last_name, preferred_language, country_id, email, password
@@ -163,7 +163,7 @@ def manage_mentor():
             #create new mentor record
             db.session.add(Mentor(
                 user_id=new_user.id,
-                first_name=first_name, 
+                first_name=first_name,
                 last_name=last_name,
                 preferred_language=preferred_language,
                 country_id=country_id,
@@ -189,11 +189,11 @@ def manage_mentor():
             mentor.active = active
             db.session.commit()
             return jsonify({
-                "msg": "Mentor edited successfully.", 
+                "msg": "Mentor edited successfully.",
                 "user_id": user_id
                 })
         except Exception as err:
-            return jsonify({"msg": "Mentor couldn't be edited: "+str(err), "error": str(err)}), 500    
+            return jsonify({"msg": "Mentor couldn't be edited: "+str(err), "error": str(err)}), 500
 
 # Add or edit course
 
@@ -203,7 +203,7 @@ def manage_course():
     data = request.get_json()
     print(data)
     if data["mode"] == "add":
-        try: 
+        try:
             course = Course(
                 name=data["name"],
                 description=data["description"],
@@ -223,13 +223,13 @@ def manage_course():
             db.session.add_all(mentor_links)
             db.session.commit()
             return jsonify({
-                "msg": "New course added.", 
+                "msg": "New course added.",
                 "id": course.id
                 })
         except Exception as err:
             print(str(err))
             return jsonify({
-                "msg": "Course couldn't be added: "+str(err), 
+                "msg": "Course couldn't be added: "+str(err),
                 "error": str(err)
                 }), 500
     elif data["mode"] == "edit":
@@ -241,12 +241,12 @@ def manage_course():
             course.mentors = Mentor.query.filter(Mentor.id.in_(data["mentorIds"])).all()
             db.session.commit()
             return jsonify({
-                "msg": "Course edited.", 
+                "msg": "Course edited.",
                 "id": course.id
                 })
         except Exception as err:
             return jsonify({
-                "msg": "Course couldn't be edited: "+str(err), 
+                "msg": "Course couldn't be edited: "+str(err),
                 "error": str(err)
                 }), 500
     else:
@@ -275,3 +275,28 @@ def get_student_progress():
         }
         for record in progress_records
     ])
+
+
+# Get mentor photos
+@admin_bp.route('/get_photos', methods=['POST'])
+@jwt_required()
+def get_photos():
+    data = request.get_json()
+
+    return jsonify({"msg": "coming soon..."}), 200
+
+# Get mentor story
+@admin_bp.route('/get_story', methods=['POST'])
+@jwt_required()
+def get_story():
+    data = request.get_json()
+
+    return jsonify({"msg": "coming soon..."}), 200
+
+# Get mentor invoice
+@admin_bp.route('/get_invoice', methods=['POST'])
+@jwt_required()
+def get_invoice():
+    data = request.get_json()
+
+    return jsonify({"msg": "coming soon..."}), 200

@@ -1,0 +1,57 @@
+.access-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.access-pagecontent {
+    width: 100%;
+    margin-top: 12px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content:space-around;
+    gap: 12px;
+    align-items: center;
+}
+
+.access-form {
+    width: 70%;
+}
+
+.form-row {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+}
+
+.mentor-list-outer {
+    height: 150px;
+    overflow: auto;
+}
+
+.mentor-list {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    background-color: var(--bg-dark-color);
+}
+
+.access-form-submit-row {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+}
+
+button.get {
+    background-color: var(--bg-color);
+}
+
+.photo-display {
+    width: min(90%, 480px);
+    height: 240px;
+    background-color: var(--bg-darkest-color);
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+}

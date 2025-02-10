@@ -22,9 +22,9 @@
     align-items: end; */
 }
 
-.two-column {
-    /* grid-column: span 2; */
-}
+/* .two-column {
+    grid-column: span 2;
+} */
 
 .form-buttons {
     display: grid;

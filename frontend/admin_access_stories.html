@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin interface</title>
+    <link rel="icon" href="images/ag_icon.png">
+    <link
+        rel="preconnect"
+        href="https://fonts.googleapis.com">
+    <link
+        rel="preconnect"
+        href="https://fonts.gstatic.com"
+        crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400..600&display=swap"
+        rel="stylesheet">
+    <!-- names have to be in alphabetical order -->
+    <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=home,logout,person_add,person_edit"/>
+    <link rel="stylesheet" href="style/base.css">
+    <link rel="stylesheet" href="style/admin.css">
+    <link rel="stylesheet" href="style/admin_access.css">
+</head>
+
+<body>
+
+<div class="page admin-page access-page">
+
+    <header>
+        <form class="filter-container">
+            <fieldset class="filter-section">
+                <label for="active">active</label>
+                <input
+                    type="checkbox",
+                    id="active",
+                    name="active",
+                    value="true">
+            </fieldset>
+            <fieldset class="filter-section">
+                <label for="hun">HUN</label>
+                <input
+                    type="radio",
+                    id="hun",
+                    name="country_id",
+                    value="1">
+                <label for="svk">SVK</label>
+                <input
+                    type="radio",
+                    id="svk",
+                    name="country_id",
+                    value="2">
+                <label for="ukr">UKR</label>
+                <input
+                    type="radio",
+                    id="ukr",
+                    name="country_id",
+                    value="3">
+            </fieldset>
+        </form>
+    </header>
+
+    <div class="page-content access-pagecontent">
+        <form class="access-form">
+            <fieldset class="form-row">
+                <legend>Date</legend>
+                <div>
+                    <!-- <label for="year">Year</label> -->
+                    <input
+                        id="year"
+                        name="year"
+                        class="access-input"
+                        type="number"
+                        min="2024"
+                        max="2100">
+                </div>
+                <div>
+                    <!-- <label for="month">Month</label> -->
+                    <select
+                        id="month"
+                        name="month"
+                        class="access-input"
+                        required>
+                        <option value="1">
+                            January
+                        </option>
+                        <option value="2">
+                            February
+                        </option>
+                        <option value="3">
+                            March
+                        </option>
+                        <option value="4">
+                            April
+                        </option>
+                        <option value="5">
+                            May
+                        </option>
+                        <option value="6">
+                            June
+                        </option>
+                        <option value="7">
+                            July
+                        </option>
+                        <option value="8">
+                            August
+                        </option>
+                        <option value="9">
+                            September
+                        </option>
+                        <option value="10">
+                            October
+                        </option>
+                        <option value="11">
+                            November
+                        </option>
+                        <option value="12">
+                            December
+                        </option>
+                    </select>
+                </div>
+            </fieldset>display photos
+            <fieldset class="mentor-list-outer">
+                <legend>Mentor</legend>
+                <ul class="stripped mentor-list">
+                </ul>
+            </fieldset>
+            <div class="access-form-submit-row">
+                <button  class="get" type="submit"> Get</button>
+            </div>
+        </form>
+
+        <div class="story-display">
+
+        </div>
+    </div> <!-- page-content -->
+
+</div> <!-- page -->
+
+
+<script src="scripts/config.js"></script>
+<script src="scripts/utils.js"></script>
+<script src="scripts/base.js"></script>
+<script src="scripts/admin_access.js"></script>
+<script src="scripts/admin_access_stories.js"></script>
+
+</body>
+</html>

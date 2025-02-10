@@ -1,7 +1,7 @@
-# TODO: 
+# TODO:
 # refactor all functions with internal_utils.py, just like submit_story
 
-# This module handles requests accessible with Mentor role 
+# This module handles requests accessible with Mentor role
 
 import os
 import json
@@ -9,10 +9,10 @@ from flask import Blueprint, request, jsonify
 from db import db
 from models import (
     User,
-    Mentor, 
-    CurriculumProject, 
-    SessionLog, 
-    Student, 
+    Mentor,
+    CurriculumProject,
+    SessionLog,
+    Student,
     Skill,
     level_enum,
     project_size_enum,
@@ -34,14 +34,14 @@ def record_to_dict(record):
 
 mentor_bp = Blueprint('mentor', __name__)
 
-# returns profile data based on the current token 
+# returns profile data based on the current token
 @mentor_bp.route('/get_profile_data', methods=['POST'])
 @jwt_required()
 def get_profile_data():
-    identity = json.loads(get_jwt_identity()) 
+    identity = json.loads(get_jwt_identity())
     id = identity.get("id", [])
     user = db.session.get(User, id)
-    if not user: 
+    if not user:
         return jsonify({"msg": "User not found!"}), 404
     mentor = Mentor.query.filter(Mentor.user_id == id).first()
     if not mentor:
@@ -57,16 +57,16 @@ def get_profile_data():
         "active": mentor.active
     }), 200
 
-# updates user and mentor data based on 
+# updates user and mentor data based on
 # - the current token
-# - the data received 
+# - the data received
 @mentor_bp.route('/submit_profile', methods=['POST'])
 @jwt_required()
 def submit_profile():
-    identity = json.loads(get_jwt_identity()) 
+    identity = json.loads(get_jwt_identity())
     id = identity.get("id", [])
     user = db.session.get(User, id)
-    if not user: 
+    if not user:
         return jsonify({"msg": "User not found!"}), 404
     mentor = Mentor.query.filter(Mentor.user_id == id).first()
     if not mentor:
@@ -88,12 +88,12 @@ def submit_profile():
     return jsonify({"msg": "under construction...",}), 200
 
 
-# returns course and student data based on the current token 
+# returns course and student data based on the current token
 @mentor_bp.route('/get_courses', methods=['POST'])
 @jwt_required()
 def get_courses():
-    try: 
-        identity = json.loads(get_jwt_identity()) 
+    try:
+        identity = json.loads(get_jwt_identity())
         id = identity.get("id", [])
         mentor = Mentor.query.filter(Mentor.user_id == id).first()
         courses = mentor.courses
@@ -121,8 +121,8 @@ def get_courses():
 @mentor_bp.route('/get_mentor_data', methods=['POST'])
 @jwt_required()
 def get_mentor_data():
-    try: 
-        identity = json.loads(get_jwt_identity()) 
+    try:
+        identity = json.loads(get_jwt_identity())
         id = identity.get("id", [])
         mentor = Mentor.query.filter(Mentor.user_id == id).first()
         language = mentor.preferred_language
@@ -140,10 +140,10 @@ def get_mentor_data():
 @mentor_bp.route('/get_curriculum', methods=['POST'])
 @jwt_required()
 def get_curriculum():
-    try: 
+    try:
         curriculum = CurriculumProject.query.all()
         # list of project records:
-        # { "id"   : 1, 
+        # { "id"   : 1,
         #   "title": "dino" }
         return jsonify([
             {
@@ -189,7 +189,7 @@ def session_log():
         if not student:
             return jsonify({"msg": f"Student with ID {id} not found."}), 404
         students.append(student)
-    
+
     # validate project-specific data
     project_id = data.get("project_id")
     # curriculum project
@@ -241,7 +241,7 @@ def session_log():
     return jsonify({
         "msg": "Submission successful."
     }), 200
-    
+
 # Get mentor's student data
 @mentor_bp.route('/studentlist', methods=['POST'])
 @jwt_required()
@@ -255,14 +255,14 @@ def get_student_list():
             Student.courses.any(Course.id.in_(course_ids))
         ).all()
         return jsonify([
-            { 
+            {
                 "id": student.id,
                 "first_name": student.first_name,
                 "last_name": student.last_name,
                 "country_id": student.country_id,
                 "birth_year": student.birth_year,
                 "gender": student.gender,
-                "courses": [course.id for course in student.courses] 
+                "courses": [course.id for course in student.courses]
             }
             for student in students
             ])
@@ -279,7 +279,7 @@ def get_course_list():
         user_id = identity["id"]
         mentor = Mentor.query.filter(Mentor.user_id == user_id).first()
         return jsonify([
-            { 
+            {
                 "id": course.id,
                 "name": course.name,
                 "description": course.description,
@@ -294,7 +294,7 @@ def get_course_list():
 @jwt_required()
 def get_country_list():
     countries = [
-        { 
+        {
             "id": country.id,
             "code": country.code,
             "en": country.en,
@@ -312,7 +312,7 @@ def get_invoice_data():
     data = request.get_json()
     id = json.loads(get_jwt_identity())["id"]
     mentor = Mentor.query.filter(Mentor.user_id == id).first()
-    if not mentor: 
+    if not mentor:
         return jsonify({"msg": "Mentor not found!"}), 404
     invoice_data = InvoiceData.query.filter(InvoiceData.user_id == id).first()
     if not invoice_data:
@@ -343,9 +343,9 @@ def submit_invoice():
     print(data)
     user_id = json.loads(get_jwt_identity())["id"]
     mentor = Mentor.query.filter(Mentor.user_id == user_id).first()
-    if not mentor: 
+    if not mentor:
         return jsonify({"msg": "Mentor not found!"}), 404
-    
+
     # step 1: update invoice data in the database
     valid_keys = {col.name for col in InvoiceData.__table__.columns if col.name not in ["id", "user_id"]}
     update_data = {k: v for k, v in data.items() if k in valid_keys}
@@ -357,17 +357,17 @@ def submit_invoice():
         "period" not in data.keys()
         ):
         return jsonify({"msg": "Missing data!"}), 400
-    update_data["number"] = int(update_data["number"]) + 1 
+    update_data["number"] = int(update_data["number"]) + 1
     update_data["user_id"] = user_id
     invoice_data = InvoiceData.query.filter(InvoiceData.user_id == user_id).first()
     if not invoice_data:
         invoice_data = InvoiceData(**update_data)
         db.session.add(invoice_data)
-    else: 
+    else:
         for key, value in update_data.items():
             setattr(invoice_data, key, value)
     db.session.commit()
-    
+
     # step 2: create invoice
     template_data = {f"{{{{{k}}}}}": v for k, v in data.items()}
     invoice_file = create_invoice(template_data, user_id)
@@ -375,9 +375,9 @@ def submit_invoice():
     # step 3: email invoice
     send_invoice(
         {
-            "name": invoice_data.name, 
-            "number": data["number"], 
-            "period": data["period"]}, 
+            "name": invoice_data.name,
+            "number": data["number"],
+            "period": data["period"]},
         invoice_file
         )
 
@@ -416,12 +416,14 @@ def submit_story():
 @u.handle_exceptions
 def submit_photos():
     date_str = request.form.get("date")
-    date = datetime.strptime(date_str, "%Y-%m-%d") if date_str else None    
+    date = datetime.strptime(date_str, "%Y-%m-%d") if date_str else None
     image_files = request.files.getlist("image-file")
     print(image_files)
     photo_dir = u.get_subdir("mentor_photos")
     user_id = json.loads(get_jwt_identity())["id"]
-    mentor_id = Mentor.query.filter(Mentor.user_id == user_id).first().id
+    mentor = u.fetch_record("user_id", user_id, Mentor)
+    mentor_id = mentor.id
+    country_id = mentor.country_id
     for file in image_files:
         if file and file.filename:
             new_filename = f"{mentor_id}_{file.filename}"
@@ -430,8 +432,8 @@ def submit_photos():
             record = Photo(
                 date=date,
                 mentor_id=mentor_id,
+                country_id=country_id,
                 filename=new_filename,
-                archived=False
             )
             db.session.add(record)
     try:

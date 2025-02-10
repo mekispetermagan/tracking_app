@@ -2,6 +2,8 @@
 /*  Listmenu pages:
     admin_managementors
     admin_managecourses
+    admin_managestudents
+    mentor_managestudents
  */
  .listmenu-page {
     display: flex;

@@ -271,7 +271,24 @@ class Story (db.Model):
 class Photo (db.Model):
     __tablename__ = "photos"
     id = db.Column(db.Integer, primary_key=True)
-    mentor_id = db.Column(db.Integer, db.ForeignKey('mentors.id'), nullable=False)
-    date = db.Column(db.Date, default=lambda:datetime.now(timezone.utc), nullable=False)
-    filename = db.Column(db.String(255), nullable=False, unique=True)
-    archived = db.Column(db.Boolean, default=False, nullable=False)
+    mentor_id = db.Column(
+        db.Integer, 
+        db.ForeignKey('mentors.id'), 
+        nullable=False
+        )
+    country_id = db.Column(
+        db.Integer, 
+        db.ForeignKey('countries.id'), 
+        nullable=False
+        )
+    date = db.Column(
+        db.Date, 
+        default=lambda:datetime.now(timezone.utc), 
+        nullable=False
+        )
+    filename = db.Column(
+        db.String(255), 
+        nullable=False, 
+        unique=True
+        )
+    url = db.Column(db.String(127))

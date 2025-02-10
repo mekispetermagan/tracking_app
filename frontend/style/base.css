@@ -49,6 +49,7 @@
 .admin-page {
     --base-color: var(--admin-color);
     --bg-dark-color: hsl(var(--admin-hue),var(--admin-sat), 10%);
+    --bg-darkest-color: hsl(var(--admin-hue),var(--admin-sat), 5%);
     --bg-color: hsl(var(--admin-hue), var(--admin-sat), 15%);
     --text-color: hsl(var(--admin-hue), var(--admin-sat), 95%);
     --input-bg-color: var(--text-color);

@@ -2,7 +2,6 @@
 class AdminMenu extends AdminPage {
     constructor() {
         super("Admin menu");
-        this.config = new Config();
     }
 
     start() {
