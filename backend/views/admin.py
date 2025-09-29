@@ -1,5 +1,6 @@
 # This module handles requests with admin privileges
 
+import os
 from flask import Blueprint, request, jsonify
 from db import db
 from models import (
@@ -12,11 +13,12 @@ from models import (
     Course,
     MentorCourse,
     SessionLog,
-    SessionLogStudent
+    SessionLogStudent,
+    Photo
     )
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from werkzeug.security import generate_password_hash
-from sqlalchemy import or_, func
+from sqlalchemy import or_, func, extract
 from datetime import date
 
 admin_bp = Blueprint('admin', __name__)
@@ -346,8 +348,27 @@ def get_statistics():
 @jwt_required()
 def get_photos():
     data = request.get_json()
+    year = int(data["year"])
+    month = int(data["month"])
+    mentor_id = data["mentor"]
+    start = date(year, month, 1)
+    end = date(year + (month == 12), (month % 12) + 1, 1)
 
-    return jsonify({"msg": "coming soon..."}), 200
+    paths = (
+    db.session.query(Photo.filename)
+        .filter(
+            Photo.mentor_id == mentor_id,
+            extract("year", Photo.date) == year,
+            extract("month", Photo.date) == month
+        )
+        .all()
+    )
+
+    return jsonify({
+        "msg": "coming soon...",
+        "paths": [r.filename for r in paths],
+        "dir": "mentor_photos"
+    }), 200
 
 # Get mentor story
 @admin_bp.route('/get_story', methods=['POST'])

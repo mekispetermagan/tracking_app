@@ -20,7 +20,7 @@ app = Flask(__name__)
 # Tokens expire in 1 hour
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=1)
 
-# Needed for development in case two different instanced are needed from two different ports.
+# Needed for development in case two different instances are needed from two different ports.
 # CORS(app, origins=["http://localhost:10001", "http://localhost:10002"])
 
 print(os.environ.get('FLASK_ENV'))

@@ -28,6 +28,8 @@ from datetime import datetime
 from invoice.invoice import create_invoice
 from send_email import send_invoice
 from . import internal_utils as u
+from PIL import Image, ImageOps
+from pathlib import Path
 
 def record_to_dict(record):
     return {column.name: getattr(record, column.name) for column in record.__table__.columns}
@@ -415,20 +417,32 @@ def submit_story():
 @jwt_required()
 @u.handle_exceptions
 def submit_photos():
+    def downscale(path):
+        with Image.open(path) as im:
+            im = ImageOps.exif_transpose(im).convert("RGB")
+            w, h = im.size
+            if w > 1200:
+                im = im.resize((1200, round(1200*h/w)), Image.LANCZOS)
+            im.save(path, "JPEG", quality=80, optimize=True, progressive=True)
+    
     date_str = request.form.get("date")
     date = datetime.strptime(date_str, "%Y-%m-%d") if date_str else None
     image_files = request.files.getlist("image-file")
     print(image_files)
-    photo_dir = u.get_subdir("mentor_photos")
+    if os.environ.get("FLASK_ENV") == "production":
+        photo_dir = "/var/www/afterschoolgeekery.org/root/tracking/mentor_photos"
+    else:
+        photo_dir = "../frontend/mentor_photos"
     user_id = json.loads(get_jwt_identity())["id"]
     mentor = u.fetch_record("user_id", user_id, Mentor)
     mentor_id = mentor.id
     country_id = mentor.country_id
     for file in image_files:
         if file and file.filename:
-            new_filename = f"{mentor_id}_{file.filename}"
+            new_filename = str(Path(f"{mentor_id}_{file.filename}").with_suffix(".jpg"))
             file_path = os.path.join(photo_dir, new_filename)
             file.save(file_path)
+            downscale(file_path)
             record = Photo(
                 date=date,
                 mentor_id=mentor_id,

@@ -1,0 +1,8 @@
+.photo-display {
+  position: relative;
+}
+
+.mentor-photo {
+  width: 50%;
+  position: absolute;
+}
