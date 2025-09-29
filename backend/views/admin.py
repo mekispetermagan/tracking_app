@@ -16,7 +16,8 @@ from models import (
     )
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from werkzeug.security import generate_password_hash
-from sqlalchemy import or_
+from sqlalchemy import or_, func
+from datetime import date
 
 admin_bp = Blueprint('admin', __name__)
 
@@ -30,6 +31,7 @@ admin_bp = Blueprint('admin', __name__)
 # /manage_course    adds or edits course data
 # /manage_student   adds or edits student data
 # /studentprogress  progress data for student
+# /statistics       basic statistics
 
 # Get data of specific user
 
@@ -275,6 +277,68 @@ def get_student_progress():
         }
         for record in progress_records
     ])
+
+
+# Get basic statistics
+@admin_bp.route('/get_statistics', methods=['POST'])
+@jwt_required()
+def get_statistics():
+
+    def aggregate_counts(year="all", country="all"):
+
+        # resolve filters
+        filters = []
+        if year != "all":
+            y = int(year)
+            filters.append(SessionLog.date.between(date(y, 1, 1), date(y, 12, 31)))
+        if country != "all":
+            cid = Country.id_from_code(country)
+            if not cid:
+                return {"courses": 0, "mentors": 0, "students": 0, "session_logs": 0}
+            filters.append(Course.country_id == cid)
+
+        # filtered logs subquery (avoid repetition)
+        logs_sq = db.session.query(
+            SessionLog.id.label("id"),
+            SessionLog.mentor_id.label("mentor_id"),
+            SessionLog.course_id.label("course_id"),
+        ).join(Course, SessionLog.course_id == Course.id).filter(*filters).subquery()
+
+        # tables
+        sl_students = db.metadata.tables["session_log_students"]  # columns: session_log_id, student_id
+
+        # counts
+        session_logs = db.session.query(func.count()).select_from(logs_sq).scalar()
+        mentors = db.session.query(func.count(func.distinct(logs_sq.c.mentor_id))).scalar()
+        courses = db.session.query(func.count(func.distinct(logs_sq.c.course_id))).scalar()
+        students = (
+            db.session.query(func.count(func.distinct(sl_students.c.student_id)))
+            .join(logs_sq, sl_students.c.session_log_id == logs_sq.c.id)
+            .scalar()
+        )
+        return {
+            "courses": courses,
+            "mentors": mentors,
+            "students": students,
+            "sessions": session_logs,
+        }
+    data = request.get_json()
+    country = data["country"]
+    year = data["year"]
+    print("country:", country, "year:", year)
+    try:
+        statistics = aggregate_counts(year, country) 
+        print("courses:", statistics["courses"])
+        print("mentors:", statistics["mentors"])
+        print("students:", statistics["students"])
+        print("sessions:", statistics["sessions"])
+        return jsonify(statistics), 200
+    except Exception as err:
+        print(str(err))
+        return jsonify({
+            "msg": "Query failed: "+str(err),
+            "error": str(err)
+            }), 500
 
 
 # Get mentor photos

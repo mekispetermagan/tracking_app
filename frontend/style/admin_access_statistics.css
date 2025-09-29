@@ -1,0 +1,25 @@
+.statistics-section {
+  width: 90%;
+  background-color: var(--bg-color);
+  padding: 24px 12px;
+  border-radius: 12px;
+}
+
+.statistics-filter-section {
+  display: flex;
+  justify-content: space-around;
+  gap: 12px;
+}
+
+.statistics-radio-pair {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.statistics-display {
+  display: grid;
+  grid-template-columns: 4fr 1fr;
+  gap: 12px;
+  padding: 12px 0;
+}

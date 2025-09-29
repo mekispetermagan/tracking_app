@@ -449,7 +449,6 @@ class MentorSessionLog extends MentorPage{
         };
         console.log(sessionLog);
         this.sendSessionLog(sessionLog);
-
     }
 
     async sendSessionLog(sessionLog) {
@@ -470,6 +469,7 @@ class MentorSessionLog extends MentorPage{
                 this.notification.good(
                     "Session log submitted successfully."
                 );
+                this.backHome();
             } else {
                 console.error("Session couldn't be submitted:", data.msg);
                 this.notification.bad(
@@ -482,7 +482,6 @@ class MentorSessionLog extends MentorPage{
         }
         
     } 
-
 
 }
 

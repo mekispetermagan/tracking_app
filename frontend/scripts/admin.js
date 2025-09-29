@@ -13,7 +13,7 @@ class AdminMenu extends AdminPage {
         for (let button of pageButtons) {
             button.addEventListener("click", (e) => {
                 this.config.redirect(button.id);
-            })
+            });
         }
         return this;
     }

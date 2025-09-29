@@ -279,6 +279,13 @@ class MentorPage extends AuthPage {
         this.languageTexts.forEach(item => item.innerHTML = languageData[lang][item.dataset.key]);
         this.languageMenu.adjustMenu(lang);
     }
+
+    backHome() {
+        this.timer.delay(
+            () => {this.config.redirect("mentor");},
+            3000
+        );            
+    }
 } // MentorPage
 
 class Modal {

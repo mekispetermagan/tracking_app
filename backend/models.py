@@ -1,5 +1,5 @@
 from db import db
-from datetime import datetime, timezone
+from datetime import datetime, timezone, date
 from enum import Enum
 from sqlalchemy import or_
 
@@ -105,19 +105,21 @@ class Country(db.Model):
     # finds a country by any clue, looking in all columns:
     @classmethod
     def find_country(cls, clue):
-        return cls.query.filter(
-            cls.id  == clue | 
-            cls.code  == clue | 
+        return cls.query.filter(or_(
+            cls.id  == clue, 
+            cls.code  == clue, 
             cls.name  == clue
-            ).first()
+            )).first()
 
     @classmethod
     def id_from_code(cls, code):
-        return cls.query.filter(cls.code == code).first().id
+        country = cls.query.filter(cls.code == code).first()
+        return country.id if country else None
     
     @classmethod
     def code_from_id(cls, id):
-        return cls.query.filter(cls.id == id).first().code
+        country = cls.query.filter(cls.id == id).first()
+        return country.code if country else None
 
 class Course(db.Model):
     __tablename__ = 'courses'
@@ -208,7 +210,7 @@ class SessionLog(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     mentor_id = db.Column(db.Integer, db.ForeignKey('mentors.id'), nullable=False)
     course_id = db.Column(db.Integer, db.ForeignKey('courses.id'), nullable=False)
-    date = db.Column(db.Date, default=lambda:datetime.now(timezone.utc), nullable=False)
+    date = db.Column(db.Date, default=lambda:date.today(), nullable=False)
     project_id = db.Column(
         db.Integer, 
         db.ForeignKey('curriculum_projects.id'), 

@@ -70,7 +70,6 @@ class AdminAccess extends AdminPage {
         return this;
     }
 
-
     sortByName(data) {
         data.sort((a, b) => {
         // First, compare by last name

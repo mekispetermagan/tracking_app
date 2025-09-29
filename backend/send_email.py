@@ -60,7 +60,7 @@ def send_email(recipient, subject, body, attachment=None):
 
 def send_invoice(invoicemail_data, invoice_file):
     recipient = "mekis.peter@gmail.com"
-    subject = f"{invoicemail_data["name"]} invoice {invoicemail_data["number"]}"
+    subject = f"{invoicemail_data['name']} invoice {invoicemail_data['number']}"
     body = textwrap.dedent(
         f"""Dear Admin,
         Please find attached invoice no. {invoicemail_data["number"]} 
