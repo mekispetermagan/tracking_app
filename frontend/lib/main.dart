@@ -60,7 +60,7 @@ class _AppRootState extends State<AppRoot> {
         _mentorAreaController,
         _adminAreaController,
       ]),
-      builder: (_, __) => _buildCurrentScreen(),
+      builder: (_, _) => _buildCurrentScreen(),
     );
   }
 
