@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, UTC
 from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -25,8 +25,7 @@ class Account(Base):
     preferred_language: Mapped[str] = mapped_column(String(2), default="en", nullable=False)
 
     active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
-
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(UTC), nullable=False)
     mentor_profile: Mapped["MentorProfile | None"] = relationship(back_populates="account")
     admin_profile: Mapped["AdminProfile | None"] = relationship(back_populates="account")
 
@@ -39,10 +38,10 @@ class MentorProfile(Base):
 
     pin_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     must_change_pin: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
-    temporary_pin_expires_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    temporary_pin_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     failed_attempts: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
-    locked_until: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    locked_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
@@ -57,10 +56,10 @@ class AdminProfile(Base):
 
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     must_change_password: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
-    temporary_password_expires_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    temporary_password_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     failed_attempts: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
-    locked_until: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    locked_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
