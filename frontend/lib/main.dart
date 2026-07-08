@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'controllers/admin_area_controller.dart';
-import 'controllers/mentor_area_controller.dart';
-import 'controllers/session_controller.dart';
+import 'controllers/controllers.dart';
 import 'screens/screens.dart';
 
 void main() {
@@ -39,6 +37,8 @@ class AppRoot extends StatefulWidget {
 
 class _AppRootState extends State<AppRoot> {
   final _sessionController = SessionController();
+  final _mentorLoginController = MentorLoginController();
+  final _adminLoginController = AdminLoginController();
   final _mentorAreaController = MentorAreaController();
   final _adminAreaController = AdminAreaController();
 
@@ -46,6 +46,8 @@ class _AppRootState extends State<AppRoot> {
   void initState() {
     super.initState();
     _sessionController.restoreSession();
+    _mentorLoginController.loadLastPhone();
+    _adminLoginController.loadLastPhone();
   }
 
   @override
@@ -53,6 +55,8 @@ class _AppRootState extends State<AppRoot> {
     return ListenableBuilder(
       listenable: Listenable.merge([
         _sessionController,
+        _mentorLoginController,
+        _adminLoginController,
         _mentorAreaController,
         _adminAreaController,
       ]),
@@ -70,24 +74,29 @@ class _AppRootState extends State<AppRoot> {
         ),
 
       SessionStatus.adminLogin => AdminLoginScreen(
-          phone: '',
-          password: '',
-          canSubmit: true,
-          onPhoneChanged: (_) {},
-          onPasswordChanged: (_) {},
+          phone: _adminLoginController.phone,
+          password: _adminLoginController.password,
+          phoneFieldVersion: _adminLoginController.phoneFieldVersion,
+          phoneIsValid: _adminLoginController.phoneIsValid,
+          canSubmit: _adminLoginController.canSubmit,
+          onPhoneChanged: _adminLoginController.setPhone,
+          onPasswordChanged: _adminLoginController.setPassword,
+          onClearPhone: _adminLoginController.clearPhone,
           onSubmit: _enterAdminArea,
-          onCancel: _sessionController.cancelLogin,
+          onCancel: _cancelAdminLogin,
         ),
 
       SessionStatus.mentorLogin => MentorLoginScreen(
-          phone: '',
-          pin: '',
-          numberIsValid: true,
-          canSubmit: true,
-          onPhoneChanged: (_) {},
-          onPinChanged: (_) {},
+          phone: _mentorLoginController.phone,
+          pin: _mentorLoginController.pin,
+          phoneFieldVersion: _mentorLoginController.phoneFieldVersion,
+          canSubmit: _mentorLoginController.canSubmit,
+          phoneIsValid: _mentorLoginController.phoneIsValid,
+          onPhoneChanged: _mentorLoginController.setPhone,
+          onClearPhone: _mentorLoginController.clearPhone,
+          onPinChanged: _mentorLoginController.setPin,
           onSubmit: _enterMentorArea,
-          onCancel: _sessionController.cancelLogin,
+          onCancel: _cancelMentorLogin,
         ),
 
       SessionStatus.adminSetupPassword => AdminSetupPasswordScreen(
@@ -207,14 +216,28 @@ class _AppRootState extends State<AppRoot> {
     );
   }
 
-  void _enterAdminArea() {
+  Future<void> _enterAdminArea() async {
+    await _adminLoginController.saveLastPhone();
+    _adminLoginController.resetPassword();
     _adminAreaController.reset();
     _sessionController.fakeAdminLogin();
   }
 
-  void _enterMentorArea() {
+  Future<void> _enterMentorArea() async {
+    await _mentorLoginController.saveLastPhone();
+    _mentorLoginController.resetPin();
     _mentorAreaController.reset();
     _sessionController.fakeMentorLogin();
+  }
+
+  void _cancelMentorLogin() {
+    _mentorLoginController.resetPin();
+    _sessionController.cancelLogin();
+  }
+
+  void _cancelAdminLogin() {
+    _adminLoginController.resetPassword();
+    _sessionController.cancelLogin();
   }
 
   void _completeAdminSetup() {
@@ -230,6 +253,8 @@ class _AppRootState extends State<AppRoot> {
   void _logout() {
     _adminAreaController.reset();
     _mentorAreaController.reset();
+    _mentorLoginController.resetPin();
+    _adminLoginController.resetPassword();
     _sessionController.logout();
   }
 }

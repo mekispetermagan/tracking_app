@@ -1,23 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:pinput/pinput.dart';
 
 class MentorLoginScreen extends StatelessWidget {
   final String phone;
   final String pin;
-  final bool numberIsValid;
+  final bool phoneIsValid;
+  final int phoneFieldVersion;
   final bool canSubmit;
   final ValueChanged<String> onPhoneChanged;
   final ValueChanged<String> onPinChanged;
+  final VoidCallback onClearPhone;
   final VoidCallback onSubmit;
   final VoidCallback onCancel;
 
   const MentorLoginScreen({
     required this.phone,
     required this.pin,
-    required this.numberIsValid,
+    required this.phoneIsValid,
+    required this.phoneFieldVersion,
     required this.canSubmit,
     required this.onPhoneChanged,
     required this.onPinChanged,
+    required this.onClearPhone,
     required this.onSubmit,
     required this.onCancel,
     super.key,
@@ -38,8 +43,22 @@ class MentorLoginScreen extends StatelessWidget {
           children: [
             const Text('Phone number'),
             const SizedBox(height: 8),
-            TextField(
+            TextFormField(
+              key: ValueKey(phoneFieldVersion),
+              initialValue: phone,
               keyboardType: TextInputType.phone,
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+                LengthLimitingTextInputFormatter(10),
+              ],
+              decoration: InputDecoration(
+                suffixIcon: phone.isEmpty
+                    ? null
+                    : IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: onClearPhone,
+                      ),
+              ),
               onChanged: onPhoneChanged,
             ),
             const SizedBox(height: 32),
@@ -47,7 +66,11 @@ class MentorLoginScreen extends StatelessWidget {
             const SizedBox(height: 16),
             Pinput(
               length: 6,
-              enabled: numberIsValid,
+              enabled: phoneIsValid,
+              keyboardType: TextInputType.number,
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+              ],
               onChanged: onPinChanged,
               defaultPinTheme: PinTheme(
                 width: 56,
