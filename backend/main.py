@@ -1,11 +1,13 @@
 from fastapi import FastAPI
 
-from routers.auth import router as auth_router
+from routers import auth, admin, mentor, shared
 
 app = FastAPI(title="Progress Tracking API")
 
-app.include_router(auth_router, prefix="/api/auth", tags=["auth"])
-
+app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
+app.include_router(admin.router, prefix="/api/admin", tags=["admin"])
+app.include_router(mentor.router, prefix="/api/mentor", tags=["mentor"])
+app.include_router(shared.router, prefix="/api/shared", tags=["shared"])
 
 @app.get("/api/health")
 def health_check():
