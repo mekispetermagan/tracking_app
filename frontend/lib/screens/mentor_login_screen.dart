@@ -13,6 +13,9 @@ class MentorLoginScreen extends StatelessWidget {
   final VoidCallback onClearPhone;
   final VoidCallback onSubmit;
   final VoidCallback onCancel;
+  final bool isSubmitting;
+  final String? message;
+  final VoidCallback clearMessage;
 
   const MentorLoginScreen({
     required this.phone,
@@ -25,12 +28,26 @@ class MentorLoginScreen extends StatelessWidget {
     required this.onClearPhone,
     required this.onSubmit,
     required this.onCancel,
+    required this.isSubmitting,
+    required this.message,
+    required this.clearMessage,
     super.key,
   });
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+
+    if (message != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            SnackBar(content: Text(message!)),
+          );
+        clearMessage();
+      });
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -87,10 +104,9 @@ class MentorLoginScreen extends StatelessWidget {
             ),
             const SizedBox(height: 32),
             FilledButton(
-              onPressed: canSubmit ? onSubmit : null,
-              child: const Text('Login'),
-            ),
-          ],
+              onPressed: canSubmit && !isSubmitting ? onSubmit : null,
+              child: Text(isSubmitting ? 'Logging in...' : 'Login'),
+            ),          ],
         ),
       ),
     );

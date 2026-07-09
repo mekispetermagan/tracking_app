@@ -39,6 +39,7 @@ class _AppRootState extends State<AppRoot> {
   final _sessionController = SessionController();
   final _mentorLoginController = MentorLoginController();
   final _adminLoginController = AdminLoginController();
+  final _mentorSetupPinController = MentorSetupPinController();
   final _mentorAreaController = MentorAreaController();
   final _adminAreaController = AdminAreaController();
 
@@ -57,6 +58,7 @@ class _AppRootState extends State<AppRoot> {
         _sessionController,
         _mentorLoginController,
         _adminLoginController,
+        _mentorSetupPinController,
         _mentorAreaController,
         _adminAreaController,
       ]),
@@ -79,6 +81,9 @@ class _AppRootState extends State<AppRoot> {
           phoneFieldVersion: _adminLoginController.phoneFieldVersion,
           phoneIsValid: _adminLoginController.phoneIsValid,
           canSubmit: _adminLoginController.canSubmit,
+          isSubmitting: _sessionController.adminLoginIsSubmitting,
+          message: _sessionController.adminLoginMessage,
+          clearMessage: _sessionController.clearAdminLoginMessage,
           onPhoneChanged: _adminLoginController.setPhone,
           onPasswordChanged: _adminLoginController.setPassword,
           onClearPhone: _adminLoginController.clearPhone,
@@ -90,8 +95,11 @@ class _AppRootState extends State<AppRoot> {
           phone: _mentorLoginController.phone,
           pin: _mentorLoginController.pin,
           phoneFieldVersion: _mentorLoginController.phoneFieldVersion,
-          canSubmit: _mentorLoginController.canSubmit,
           phoneIsValid: _mentorLoginController.phoneIsValid,
+          canSubmit: _mentorLoginController.canSubmit,
+          isSubmitting: _sessionController.mentorLoginIsSubmitting,
+          message: _sessionController.mentorLoginMessage,
+          clearMessage: _sessionController.clearMentorLoginMessage,
           onPhoneChanged: _mentorLoginController.setPhone,
           onClearPhone: _mentorLoginController.clearPhone,
           onPinChanged: _mentorLoginController.setPin,
@@ -110,13 +118,16 @@ class _AppRootState extends State<AppRoot> {
         ),
 
       SessionStatus.mentorSetupPin => MentorSetupPinScreen(
-          pin: '',
-          confirmPin: '',
-          canSubmit: true,
-          onPinChanged: (_) {},
-          onConfirmPinChanged: (_) {},
+          pin: _mentorSetupPinController.pin,
+          confirmPin: _mentorSetupPinController.confirmPin,
+          canSubmit: _mentorSetupPinController.canSubmit,
+          isSubmitting: _sessionController.mentorSetupIsSubmitting,
+          message: _sessionController.mentorSetupMessage,
+          clearMessage: _sessionController.clearMentorSetupMessage,
+          onPinChanged: _mentorSetupPinController.setPin,
+          onConfirmPinChanged: _mentorSetupPinController.setConfirmPin,
           onSubmit: _completeMentorSetup,
-          onCancel: _sessionController.logout,
+          onCancel: _logout,
         ),
 
       SessionStatus.adminArea => _buildAdminArea(),
@@ -217,17 +228,31 @@ class _AppRootState extends State<AppRoot> {
   }
 
   Future<void> _enterAdminArea() async {
-    await _adminLoginController.saveLastPhone();
-    _adminLoginController.resetPassword();
-    _adminAreaController.reset();
-    _sessionController.fakeAdminLogin();
+    await _sessionController.submitAdminLogin(
+      phone: _adminLoginController.phone,
+      password: _adminLoginController.password,
+    );
+
+    if (_sessionController.status == SessionStatus.adminArea ||
+        _sessionController.status == SessionStatus.adminSetupPassword) {
+      await _adminLoginController.saveLastPhone();
+      _adminLoginController.resetPassword();
+      _adminAreaController.reset();
+    }
   }
 
   Future<void> _enterMentorArea() async {
-    await _mentorLoginController.saveLastPhone();
-    _mentorLoginController.resetPin();
-    _mentorAreaController.reset();
-    _sessionController.fakeMentorLogin();
+    await _sessionController.submitMentorLogin(
+      phone: _mentorLoginController.phone,
+      pin: _mentorLoginController.pin,
+    );
+
+    if (_sessionController.status == SessionStatus.mentorArea ||
+        _sessionController.status == SessionStatus.mentorSetupPin) {
+      await _mentorLoginController.saveLastPhone();
+      _mentorLoginController.resetPin();
+      _mentorAreaController.reset();
+    }
   }
 
   void _cancelMentorLogin() {
@@ -245,9 +270,15 @@ class _AppRootState extends State<AppRoot> {
     _sessionController.completeAdminSetup();
   }
 
-  void _completeMentorSetup() {
-    _mentorAreaController.reset();
-    _sessionController.completeMentorSetup();
+  Future<void> _completeMentorSetup() async {
+    await _sessionController.submitMentorPinChange(
+      newPin: _mentorSetupPinController.pin,
+    );
+
+    if (_sessionController.status == SessionStatus.mentorArea) {
+      _mentorSetupPinController.reset();
+      _mentorAreaController.reset();
+    }
   }
 
   void _logout() {
@@ -255,6 +286,7 @@ class _AppRootState extends State<AppRoot> {
     _mentorAreaController.reset();
     _mentorLoginController.resetPin();
     _adminLoginController.resetPassword();
+    _mentorSetupPinController.reset();
     _sessionController.logout();
   }
 }

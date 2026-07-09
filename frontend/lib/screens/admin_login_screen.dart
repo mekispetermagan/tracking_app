@@ -7,6 +7,9 @@ class AdminLoginScreen extends StatelessWidget {
   final int phoneFieldVersion;
   final bool phoneIsValid;
   final bool canSubmit;
+  final bool isSubmitting;
+  final String? message;
+  final VoidCallback clearMessage;
   final ValueChanged<String> onPhoneChanged;
   final ValueChanged<String> onPasswordChanged;
   final VoidCallback onClearPhone;
@@ -19,6 +22,9 @@ class AdminLoginScreen extends StatelessWidget {
     required this.phoneFieldVersion,
     required this.phoneIsValid,
     required this.canSubmit,
+    required this.isSubmitting,
+    required this.message,
+    required this.clearMessage,
     required this.onPhoneChanged,
     required this.onPasswordChanged,
     required this.onClearPhone,
@@ -29,6 +35,17 @@ class AdminLoginScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (message != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            SnackBar(content: Text(message!)),
+          );
+        clearMessage();
+      });
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Admin login'),
@@ -68,8 +85,8 @@ class AdminLoginScreen extends StatelessWidget {
             ),
             const SizedBox(height: 32),
             FilledButton(
-              onPressed: canSubmit ? onSubmit : null,
-              child: const Text('Login'),
+              onPressed: canSubmit && !isSubmitting ? onSubmit : null,
+              child: Text(isSubmitting ? 'Logging in...' : 'Login'),
             ),
           ],
         ),

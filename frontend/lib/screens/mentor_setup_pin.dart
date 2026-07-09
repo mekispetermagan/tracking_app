@@ -5,16 +5,20 @@ class MentorSetupPinScreen extends StatelessWidget {
   final String pin;
   final String confirmPin;
   final bool canSubmit;
+  final bool isSubmitting;
+  final String? message;
+  final VoidCallback clearMessage;
   final ValueChanged<String> onPinChanged;
   final ValueChanged<String> onConfirmPinChanged;
   final VoidCallback onSubmit;
   final VoidCallback onCancel;
-
   const MentorSetupPinScreen({
     required this.pin,
     required this.confirmPin,
     required this.canSubmit,
-    required this.onPinChanged,
+    required this.isSubmitting,
+    required this.message,
+    required this.clearMessage,    required this.onPinChanged,
     required this.onConfirmPinChanged,
     required this.onSubmit,
     required this.onCancel,
@@ -37,6 +41,17 @@ class MentorSetupPinScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
       ),
     );
+
+    if (message != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            SnackBar(content: Text(message!)),
+          );
+        clearMessage();
+      });
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -64,8 +79,8 @@ class MentorSetupPinScreen extends StatelessWidget {
             ),
             const SizedBox(height: 32),
             FilledButton(
-              onPressed: canSubmit ? onSubmit : null,
-              child: const Text('Save PIN'),
+              onPressed: canSubmit && !isSubmitting ? onSubmit : null,
+              child: Text(isSubmitting ? 'Saving...' : 'Save PIN'),
             ),
           ],
         ),
