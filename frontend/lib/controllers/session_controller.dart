@@ -30,6 +30,8 @@ class SessionController extends ChangeNotifier {
   bool _adminLoginIsSubmitting = false;
   String? _mentorSetupMessage;
   bool _mentorSetupIsSubmitting = false;
+  String? _adminSetupMessage;
+  bool _adminSetupIsSubmitting = false;
 
   SessionStatus get status => _status;
 
@@ -47,6 +49,9 @@ class SessionController extends ChangeNotifier {
 
   String? get mentorSetupMessage => _mentorSetupMessage;
   bool get mentorSetupIsSubmitting => _mentorSetupIsSubmitting;
+
+  String? get adminSetupMessage => _adminSetupMessage;
+  bool get adminSetupIsSubmitting => _adminSetupIsSubmitting;
 
   Future<void> restoreSession() async {
     _setStatus(SessionStatus.restoring);
@@ -195,6 +200,49 @@ class SessionController extends ChangeNotifier {
     _setStatus(SessionStatus.mentorArea);
   }
 
+  Future<void> submitAdminPasswordChange({
+    required String newPassword,
+  }) async {
+    if (_adminSetupIsSubmitting) return;
+
+    final token = _setupToken;
+    if (token == null) {
+      _adminLoginMessage = 'Setup session expired. Please log in again.';
+      _setStatus(SessionStatus.adminLogin);
+      return;
+    }
+
+    _adminSetupMessage = null;
+    _adminSetupIsSubmitting = true;
+    notifyListeners();
+
+    final result = await _authApi.changeAdminPassword(
+      setupToken: token,
+      newPassword: newPassword,
+    );
+
+    _adminSetupIsSubmitting = false;
+
+    if (result.failure != null) {
+      _adminSetupMessage = _messageForAdminSetupFailure(result.failure!);
+      _setStatus(SessionStatus.adminSetupPassword);
+      return;
+    }
+
+    if (result.mode != AuthMode.admin ||
+        result.tokenPurpose != AuthTokenPurpose.access ||
+        result.token == null) {
+      _adminSetupMessage = 'Unexpected server response.';
+      _setStatus(SessionStatus.adminSetupPassword);
+      return;
+    }
+
+    _accessToken = result.token;
+    _setupToken = null;
+    _adminSetupMessage = null;
+    _setStatus(SessionStatus.adminArea);
+  }
+
   void clearMentorLoginMessage() {
     if (_mentorLoginMessage == null) return;
 
@@ -216,8 +264,11 @@ class SessionController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void completeAdminSetup() {
-    _setStatus(SessionStatus.adminArea);
+  void clearAdminSetupMessage() {
+    if (_adminSetupMessage == null) return;
+
+    _adminSetupMessage = null;
+    notifyListeners();
   }
 
   void logout() {
@@ -227,6 +278,8 @@ class SessionController extends ChangeNotifier {
     _adminLoginMessage = null;
     _mentorSetupMessage = null;
     _mentorSetupIsSubmitting = false;
+    _adminSetupMessage = null;
+    _adminSetupIsSubmitting = false;
     _setStatus(SessionStatus.start);
   }
 
@@ -256,6 +309,15 @@ class SessionController extends ChangeNotifier {
     return switch (failure) {
       AuthFailure.badCredentials => 'Setup session expired. Please log in again.',
       AuthFailure.temporarySecretExpired => 'Temporary PIN expired.',
+      AuthFailure.serverError => 'Server error.',
+      AuthFailure.networkError => 'Cannot connect to server.',
+    };
+  }
+
+  String _messageForAdminSetupFailure(AuthFailure failure) {
+    return switch (failure) {
+      AuthFailure.badCredentials => 'Setup session expired. Please log in again.',
+      AuthFailure.temporarySecretExpired => 'Temporary password expired.',
       AuthFailure.serverError => 'Server error.',
       AuthFailure.networkError => 'Cannot connect to server.',
     };

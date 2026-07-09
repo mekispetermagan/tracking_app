@@ -40,6 +40,7 @@ class _AppRootState extends State<AppRoot> {
   final _mentorLoginController = MentorLoginController();
   final _adminLoginController = AdminLoginController();
   final _mentorSetupPinController = MentorSetupPinController();
+  final _adminSetupPasswordController = AdminSetupPasswordController();
   final _mentorAreaController = MentorAreaController();
   final _adminAreaController = AdminAreaController();
 
@@ -59,6 +60,7 @@ class _AppRootState extends State<AppRoot> {
         _mentorLoginController,
         _adminLoginController,
         _mentorSetupPinController,
+        _adminSetupPasswordController,
         _mentorAreaController,
         _adminAreaController,
       ]),
@@ -107,15 +109,19 @@ class _AppRootState extends State<AppRoot> {
           onCancel: _cancelMentorLogin,
         ),
 
-      SessionStatus.adminSetupPassword => AdminSetupPasswordScreen(
-          password: '',
-          confirmPassword: '',
-          canSubmit: true,
-          onPasswordChanged: (_) {},
-          onConfirmPasswordChanged: (_) {},
-          onSubmit: _completeAdminSetup,
-          onCancel: _sessionController.logout,
-        ),
+    SessionStatus.adminSetupPassword => AdminSetupPasswordScreen(
+        password: _adminSetupPasswordController.password,
+        confirmPassword: _adminSetupPasswordController.confirmPassword,
+        canSubmit: _adminSetupPasswordController.canSubmit,
+        isSubmitting: _sessionController.adminSetupIsSubmitting,
+        message: _sessionController.adminSetupMessage,
+        clearMessage: _sessionController.clearAdminSetupMessage,
+        onPasswordChanged: _adminSetupPasswordController.setPassword,
+        onConfirmPasswordChanged:
+            _adminSetupPasswordController.setConfirmPassword,
+        onSubmit: _completeAdminSetup,
+        onCancel: _logout,
+      ),
 
       SessionStatus.mentorSetupPin => MentorSetupPinScreen(
           pin: _mentorSetupPinController.pin,
@@ -265,9 +271,15 @@ class _AppRootState extends State<AppRoot> {
     _sessionController.cancelLogin();
   }
 
-  void _completeAdminSetup() {
-    _adminAreaController.reset();
-    _sessionController.completeAdminSetup();
+  Future<void> _completeAdminSetup() async {
+    await _sessionController.submitAdminPasswordChange(
+      newPassword: _adminSetupPasswordController.password,
+    );
+
+    if (_sessionController.status == SessionStatus.adminArea) {
+      _adminSetupPasswordController.reset();
+      _adminAreaController.reset();
+    }
   }
 
   Future<void> _completeMentorSetup() async {
@@ -287,6 +299,7 @@ class _AppRootState extends State<AppRoot> {
     _mentorLoginController.resetPin();
     _adminLoginController.resetPassword();
     _mentorSetupPinController.reset();
+    _adminSetupPasswordController.reset();
     _sessionController.logout();
   }
 }

@@ -4,6 +4,9 @@ class AdminSetupPasswordScreen extends StatelessWidget {
   final String password;
   final String confirmPassword;
   final bool canSubmit;
+  final bool isSubmitting;
+  final String? message;
+  final VoidCallback clearMessage;
   final ValueChanged<String> onPasswordChanged;
   final ValueChanged<String> onConfirmPasswordChanged;
   final VoidCallback onSubmit;
@@ -13,6 +16,9 @@ class AdminSetupPasswordScreen extends StatelessWidget {
     required this.password,
     required this.confirmPassword,
     required this.canSubmit,
+    required this.isSubmitting,
+    required this.message,
+    required this.clearMessage,
     required this.onPasswordChanged,
     required this.onConfirmPasswordChanged,
     required this.onSubmit,
@@ -22,6 +28,17 @@ class AdminSetupPasswordScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (message != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            SnackBar(content: Text(message!)),
+          );
+        clearMessage();
+      });
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Set new password'),
@@ -46,8 +63,8 @@ class AdminSetupPasswordScreen extends StatelessWidget {
             ),
             const SizedBox(height: 32),
             FilledButton(
-              onPressed: canSubmit ? onSubmit : null,
-              child: const Text('Save password'),
+              onPressed: canSubmit && !isSubmitting ? onSubmit : null,
+              child: Text(isSubmitting ? 'Saving...' : 'Save password'),
             ),
           ],
         ),

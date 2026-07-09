@@ -79,6 +79,32 @@ class AuthApi {
     );
   }
 
+  Future<AuthResult> changeMentorPin({
+    required String setupToken,
+    required String newPin,
+  }) {
+    return _postAuth(
+      path: '/api/auth/mentor/change-pin',
+      body: {
+        'new_pin': newPin,
+      },
+      bearerToken: setupToken,
+    );
+  }
+
+  Future<AuthResult> changeAdminPassword({
+    required String setupToken,
+    required String newPassword,
+  }) {
+    return _postAuth(
+      path: '/api/auth/admin/change-password',
+      body: {
+        'new_password': newPassword,
+      },
+      bearerToken: setupToken,
+    );
+  }
+
   Future<AuthResult> _postAuth({
     required String path,
     required Map<String, String> body,
@@ -149,18 +175,5 @@ class AuthApi {
       'admin' => AuthMode.admin,
       _ => throw FormatException('Unknown auth mode: $value'),
     };
-  }
-
-  Future<AuthResult> changeMentorPin({
-    required String setupToken,
-    required String newPin,
-  }) {
-    return _postAuth(
-      path: '/api/auth/mentor/change-pin',
-      body: {
-        'new_pin': newPin,
-      },
-      bearerToken: setupToken,
-    );
   }
 }
