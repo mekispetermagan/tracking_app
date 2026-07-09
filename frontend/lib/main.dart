@@ -19,10 +19,7 @@ class ProgressTrackingApp extends StatelessWidget {
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: scheme,
-        useMaterial3: true,
-      ),
+      theme: ThemeData(colorScheme: scheme, useMaterial3: true),
       home: const AppRoot(),
     );
   }
@@ -73,43 +70,43 @@ class _AppRootState extends State<AppRoot> {
       SessionStatus.restoring => const SplashScreen(),
 
       SessionStatus.start => StartScreen(
-          onAdminLogin: _sessionController.startAdminLogin,
-          onMentorLogin: _sessionController.startMentorLogin,
-        ),
+        onAdminLogin: _sessionController.startAdminLogin,
+        onMentorLogin: _sessionController.startMentorLogin,
+      ),
 
       SessionStatus.adminLogin => AdminLoginScreen(
-          phone: _adminLoginController.phone,
-          password: _adminLoginController.password,
-          phoneFieldVersion: _adminLoginController.phoneFieldVersion,
-          phoneIsValid: _adminLoginController.phoneIsValid,
-          canSubmit: _adminLoginController.canSubmit,
-          isSubmitting: _sessionController.adminLoginIsSubmitting,
-          message: _sessionController.adminLoginMessage,
-          clearMessage: _sessionController.clearAdminLoginMessage,
-          onPhoneChanged: _adminLoginController.setPhone,
-          onPasswordChanged: _adminLoginController.setPassword,
-          onClearPhone: _adminLoginController.clearPhone,
-          onSubmit: _enterAdminArea,
-          onCancel: _cancelAdminLogin,
-        ),
+        phone: _adminLoginController.phone,
+        password: _adminLoginController.password,
+        phoneFieldVersion: _adminLoginController.phoneFieldVersion,
+        phoneIsValid: _adminLoginController.phoneIsValid,
+        canSubmit: _adminLoginController.canSubmit,
+        isSubmitting: _sessionController.adminLoginIsSubmitting,
+        message: _sessionController.adminLoginMessage,
+        clearMessage: _sessionController.clearAdminLoginMessage,
+        onPhoneChanged: _adminLoginController.setPhone,
+        onPasswordChanged: _adminLoginController.setPassword,
+        onClearPhone: _adminLoginController.clearPhone,
+        onSubmit: _enterAdminArea,
+        onCancel: _cancelAdminLogin,
+      ),
 
       SessionStatus.mentorLogin => MentorLoginScreen(
-          phone: _mentorLoginController.phone,
-          pin: _mentorLoginController.pin,
-          phoneFieldVersion: _mentorLoginController.phoneFieldVersion,
-          phoneIsValid: _mentorLoginController.phoneIsValid,
-          canSubmit: _mentorLoginController.canSubmit,
-          isSubmitting: _sessionController.mentorLoginIsSubmitting,
-          message: _sessionController.mentorLoginMessage,
-          clearMessage: _sessionController.clearMentorLoginMessage,
-          onPhoneChanged: _mentorLoginController.setPhone,
-          onClearPhone: _mentorLoginController.clearPhone,
-          onPinChanged: _mentorLoginController.setPin,
-          onSubmit: _enterMentorArea,
-          onCancel: _cancelMentorLogin,
-        ),
+        phone: _mentorLoginController.phone,
+        pin: _mentorLoginController.pin,
+        phoneFieldVersion: _mentorLoginController.phoneFieldVersion,
+        phoneIsValid: _mentorLoginController.phoneIsValid,
+        canSubmit: _mentorLoginController.canSubmit,
+        isSubmitting: _sessionController.mentorLoginIsSubmitting,
+        message: _sessionController.mentorLoginMessage,
+        clearMessage: _sessionController.clearMentorLoginMessage,
+        onPhoneChanged: _mentorLoginController.setPhone,
+        onClearPhone: _mentorLoginController.clearPhone,
+        onPinChanged: _mentorLoginController.setPin,
+        onSubmit: _enterMentorArea,
+        onCancel: _cancelMentorLogin,
+      ),
 
-    SessionStatus.adminSetupPassword => AdminSetupPasswordScreen(
+      SessionStatus.adminSetupPassword => AdminSetupPasswordScreen(
         password: _adminSetupPasswordController.password,
         confirmPassword: _adminSetupPasswordController.confirmPassword,
         canSubmit: _adminSetupPasswordController.canSubmit,
@@ -124,17 +121,17 @@ class _AppRootState extends State<AppRoot> {
       ),
 
       SessionStatus.mentorSetupPin => MentorSetupPinScreen(
-          pin: _mentorSetupPinController.pin,
-          confirmPin: _mentorSetupPinController.confirmPin,
-          canSubmit: _mentorSetupPinController.canSubmit,
-          isSubmitting: _sessionController.mentorSetupIsSubmitting,
-          message: _sessionController.mentorSetupMessage,
-          clearMessage: _sessionController.clearMentorSetupMessage,
-          onPinChanged: _mentorSetupPinController.setPin,
-          onConfirmPinChanged: _mentorSetupPinController.setConfirmPin,
-          onSubmit: _completeMentorSetup,
-          onCancel: _logout,
-        ),
+        pin: _mentorSetupPinController.pin,
+        confirmPin: _mentorSetupPinController.confirmPin,
+        canSubmit: _mentorSetupPinController.canSubmit,
+        isSubmitting: _sessionController.mentorSetupIsSubmitting,
+        message: _sessionController.mentorSetupMessage,
+        clearMessage: _sessionController.clearMentorSetupMessage,
+        onPinChanged: _mentorSetupPinController.setPin,
+        onConfirmPinChanged: _mentorSetupPinController.setConfirmPin,
+        onSubmit: _completeMentorSetup,
+        onCancel: _logout,
+      ),
 
       SessionStatus.adminArea => _buildAdminArea(),
 
@@ -152,35 +149,35 @@ class _AppRootState extends State<AppRoot> {
       },
       child: switch (_adminAreaController.screen) {
         AdminScreen.menu => AdminMenuScreen(
-            items: _adminAreaController.menuItems,
-            onSelect: _adminAreaController.select,
-            onLogout: _logout,
-          ),
+          items: _adminAreaController.menuItems,
+          onSelect: _adminAreaController.select,
+          onLogout: _logout,
+        ),
         AdminScreen.manageMentors => PlaceholderTaskScreen(
-            title: 'Manage mentors',
-            onHome: _adminAreaController.reset,
-            onLogout: _logout,
-          ),
+          title: 'Manage mentors',
+          onHome: _adminAreaController.reset,
+          onLogout: _logout,
+        ),
         AdminScreen.manageCourses => PlaceholderTaskScreen(
-            title: 'Manage courses',
-            onHome: _adminAreaController.reset,
-            onLogout: _logout,
-          ),
+          title: 'Manage courses',
+          onHome: _adminAreaController.reset,
+          onLogout: _logout,
+        ),
         AdminScreen.manageStudents => PlaceholderTaskScreen(
-            title: 'Manage students',
-            onHome: _adminAreaController.reset,
-            onLogout: _logout,
-          ),
+          title: 'Manage students',
+          onHome: _adminAreaController.reset,
+          onLogout: _logout,
+        ),
         AdminScreen.trackStudents => PlaceholderTaskScreen(
-            title: 'Track students',
-            onHome: _adminAreaController.reset,
-            onLogout: _logout,
-          ),
+          title: 'Track students',
+          onHome: _adminAreaController.reset,
+          onLogout: _logout,
+        ),
         AdminScreen.reportsData => PlaceholderTaskScreen(
-            title: 'Reports & data',
-            onHome: _adminAreaController.reset,
-            onLogout: _logout,
-          ),
+          title: 'Reports & data',
+          onHome: _adminAreaController.reset,
+          onLogout: _logout,
+        ),
       },
     );
   }
@@ -195,40 +192,40 @@ class _AppRootState extends State<AppRoot> {
       },
       child: switch (_mentorAreaController.screen) {
         MentorScreen.menu => MentorMenuScreen(
-            items: _mentorAreaController.menuItems,
-            onSelect: _mentorAreaController.select,
-            onLogout: _logout,
-          ),
+          items: _mentorAreaController.menuItems,
+          onSelect: _mentorAreaController.select,
+          onLogout: _logout,
+        ),
         MentorScreen.myProfile => PlaceholderTaskScreen(
-            title: 'My profile',
-            onHome: _mentorAreaController.reset,
-            onLogout: _logout,
-          ),
+          title: 'My profile',
+          onHome: _mentorAreaController.reset,
+          onLogout: _logout,
+        ),
         MentorScreen.sessionLog => PlaceholderTaskScreen(
-            title: 'Session log',
-            onHome: _mentorAreaController.reset,
-            onLogout: _logout,
-          ),
+          title: 'Session log',
+          onHome: _mentorAreaController.reset,
+          onLogout: _logout,
+        ),
         MentorScreen.manageStudents => PlaceholderTaskScreen(
-            title: 'Manage students',
-            onHome: _mentorAreaController.reset,
-            onLogout: _logout,
-          ),
+          title: 'Manage students',
+          onHome: _mentorAreaController.reset,
+          onLogout: _logout,
+        ),
         MentorScreen.submitInvoice => PlaceholderTaskScreen(
-            title: 'Submit invoice',
-            onHome: _mentorAreaController.reset,
-            onLogout: _logout,
-          ),
+          title: 'Submit invoice',
+          onHome: _mentorAreaController.reset,
+          onLogout: _logout,
+        ),
         MentorScreen.uploadPhotos => PlaceholderTaskScreen(
-            title: 'Upload photos',
-            onHome: _mentorAreaController.reset,
-            onLogout: _logout,
-          ),
+          title: 'Upload photos',
+          onHome: _mentorAreaController.reset,
+          onLogout: _logout,
+        ),
         MentorScreen.storyOfTheMonth => PlaceholderTaskScreen(
-            title: 'Story of the month',
-            onHome: _mentorAreaController.reset,
-            onLogout: _logout,
-          ),
+          title: 'Story of the month',
+          onHome: _mentorAreaController.reset,
+          onLogout: _logout,
+        ),
       },
     );
   }
@@ -293,13 +290,13 @@ class _AppRootState extends State<AppRoot> {
     }
   }
 
-  void _logout() {
+  Future<void> _logout() async {
     _adminAreaController.reset();
     _mentorAreaController.reset();
     _mentorLoginController.resetPin();
     _adminLoginController.resetPassword();
     _mentorSetupPinController.reset();
     _adminSetupPasswordController.reset();
-    _sessionController.logout();
+    await _sessionController.logout();
   }
 }

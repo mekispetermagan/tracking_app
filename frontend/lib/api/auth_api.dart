@@ -4,15 +4,9 @@ import 'package:http/http.dart' as http;
 
 import '../config/api_config.dart';
 
-enum AuthTokenPurpose {
-  access,
-  setup,
-}
+enum AuthTokenPurpose { access, setup }
 
-enum AuthMode {
-  mentor,
-  admin,
-}
+enum AuthMode { mentor, admin }
 
 enum AuthFailure {
   badCredentials,
@@ -41,28 +35,20 @@ class AuthResult {
   }) : failure = null,
        message = null;
 
-  const AuthResult.failure({
-    required AuthFailure this.failure,
-    this.message,
-  }) : tokenPurpose = null,
-       mode = null,
-       token = null,
-       firstName = null,
-       lastName = null,
-       preferredLanguage = null;
-}
+  const AuthResult.failure({required AuthFailure this.failure, this.message})
+    : tokenPurpose = null,
+      mode = null,
+      token = null,
+      firstName = null,
+      lastName = null,
+      preferredLanguage = null;
+} // AuthResult
 
 class AuthApi {
-  Future<AuthResult> mentorLogin({
-    required String phone,
-    required String pin,
-  }) {
+  Future<AuthResult> mentorLogin({required String phone, required String pin}) {
     return _postAuth(
       path: '/api/auth/mentor/login',
-      body: {
-        'phone': phone,
-        'pin': pin,
-      },
+      body: {'phone': phone, 'pin': pin},
     );
   }
 
@@ -72,10 +58,7 @@ class AuthApi {
   }) {
     return _postAuth(
       path: '/api/auth/admin/login',
-      body: {
-        'phone': phone,
-        'password': password,
-      },
+      body: {'phone': phone, 'password': password},
     );
   }
 
@@ -85,9 +68,7 @@ class AuthApi {
   }) {
     return _postAuth(
       path: '/api/auth/mentor/change-pin',
-      body: {
-        'new_pin': newPin,
-      },
+      body: {'new_pin': newPin},
       bearerToken: setupToken,
     );
   }
@@ -98,11 +79,56 @@ class AuthApi {
   }) {
     return _postAuth(
       path: '/api/auth/admin/change-password',
-      body: {
-        'new_password': newPassword,
-      },
+      body: {'new_password': newPassword},
       bearerToken: setupToken,
     );
+  }
+
+  Future<MeResult> mentorMe({required String accessToken}) {
+    return _getMe(path: '/api/auth/mentor/me', accessToken: accessToken);
+  }
+
+  Future<MeResult> adminMe({required String accessToken}) {
+    return _getMe(path: '/api/auth/admin/me', accessToken: accessToken);
+  }
+
+  Future<MeResult> _getMe({
+    required String path,
+    required String accessToken,
+  }) async {
+    final uri = Uri.parse('${ApiConfig.baseUrl}$path');
+
+    try {
+      final response = await http.get(
+        uri,
+        headers: {'Authorization': 'Bearer $accessToken'},
+      );
+
+      final data = jsonDecode(response.body) as Map<String, dynamic>;
+
+      if (response.statusCode == 200) {
+        return MeResult.success(
+          mode: _modeFromJson(data['mode'] as String),
+          firstName: data['first_name'] as String,
+          lastName: data['last_name'] as String,
+          preferredLanguage: data['preferred_language'] as String,
+        );
+      }
+
+      if (response.statusCode == 401 || response.statusCode == 403) {
+        return MeResult.failure(
+          failure: AuthFailure.badCredentials,
+          message: data['detail']?.toString(),
+        );
+      }
+
+      return MeResult.failure(
+        failure: AuthFailure.serverError,
+        message: data['detail']?.toString(),
+      );
+    } catch (_) {
+      return const MeResult.failure(failure: AuthFailure.networkError);
+    }
   }
 
   Future<AuthResult> _postAuth({
@@ -155,9 +181,7 @@ class AuthApi {
         message: data['detail']?.toString(),
       );
     } catch (_) {
-      return const AuthResult.failure(
-        failure: AuthFailure.networkError,
-      );
+      return const AuthResult.failure(failure: AuthFailure.networkError);
     }
   }
 
@@ -176,4 +200,27 @@ class AuthApi {
       _ => throw FormatException('Unknown auth mode: $value'),
     };
   }
-}
+} // AuthApi
+
+class MeResult {
+  final AuthMode? mode;
+  final String? firstName;
+  final String? lastName;
+  final String? preferredLanguage;
+  final AuthFailure? failure;
+  final String? message;
+
+  const MeResult.success({
+    required this.mode,
+    required this.firstName,
+    required this.lastName,
+    required this.preferredLanguage,
+  }) : failure = null,
+       message = null;
+
+  const MeResult.failure({required this.failure, this.message})
+    : mode = null,
+      firstName = null,
+      lastName = null,
+      preferredLanguage = null;
+} // MeResult

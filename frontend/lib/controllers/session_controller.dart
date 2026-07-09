@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../api/api.dart';
+import '../storage/storage.dart';
 
 enum SessionStatus {
   restoring,
@@ -16,9 +17,9 @@ enum SessionStatus {
 class SessionController extends ChangeNotifier {
   final AuthApi _authApi;
 
-  SessionController({
-    AuthApi? authApi,
-  }) : _authApi = authApi ?? AuthApi();
+  SessionController({AuthApi? authApi, TokenStorage? tokenStorage})
+    : _authApi = authApi ?? AuthApi(),
+      _tokenStorage = tokenStorage ?? const TokenStorage();
 
   SessionStatus _status = SessionStatus.restoring;
 
@@ -32,6 +33,7 @@ class SessionController extends ChangeNotifier {
   bool _mentorSetupIsSubmitting = false;
   String? _adminSetupMessage;
   bool _adminSetupIsSubmitting = false;
+  final TokenStorage _tokenStorage;
 
   SessionStatus get status => _status;
 
@@ -56,9 +58,37 @@ class SessionController extends ChangeNotifier {
   Future<void> restoreSession() async {
     _setStatus(SessionStatus.restoring);
 
-    await Future<void>.delayed(const Duration(milliseconds: 300));
+    final storedSession = await _tokenStorage.readAccessSession();
 
-    _setStatus(SessionStatus.start);
+    if (storedSession == null) {
+      _setStatus(SessionStatus.start);
+      return;
+    }
+
+    final result = switch (storedSession.role) {
+      StoredAuthRole.mentor => await _authApi.mentorMe(
+        accessToken: storedSession.accessToken,
+      ),
+      StoredAuthRole.admin => await _authApi.adminMe(
+        accessToken: storedSession.accessToken,
+      ),
+    };
+
+    if (result.failure != null) {
+      await _tokenStorage.clear();
+      _accessToken = null;
+      _setStatus(SessionStatus.start);
+      return;
+    }
+
+    _accessToken = storedSession.accessToken;
+    _setupToken = null;
+
+    _setStatus(
+      storedSession.role == StoredAuthRole.mentor
+          ? SessionStatus.mentorArea
+          : SessionStatus.adminArea,
+    );
   }
 
   void startAdminLogin() {
@@ -87,10 +117,7 @@ class SessionController extends ChangeNotifier {
     _mentorLoginIsSubmitting = true;
     notifyListeners();
 
-    final result = await _authApi.mentorLogin(
-      phone: phone,
-      pin: pin,
-    );
+    final result = await _authApi.mentorLogin(phone: phone, pin: pin);
 
     _mentorLoginIsSubmitting = false;
 
@@ -114,6 +141,12 @@ class SessionController extends ChangeNotifier {
 
     _accessToken = result.token;
     _setupToken = null;
+
+    await _tokenStorage.saveAccessSession(
+      accessToken: result.token!,
+      role: StoredAuthRole.mentor,
+    );
+
     _setStatus(SessionStatus.mentorArea);
   }
 
@@ -127,10 +160,7 @@ class SessionController extends ChangeNotifier {
     _adminLoginIsSubmitting = true;
     notifyListeners();
 
-    final result = await _authApi.adminLogin(
-      phone: phone,
-      password: password,
-    );
+    final result = await _authApi.adminLogin(phone: phone, password: password);
 
     _adminLoginIsSubmitting = false;
 
@@ -154,12 +184,16 @@ class SessionController extends ChangeNotifier {
 
     _accessToken = result.token;
     _setupToken = null;
+
+    await _tokenStorage.saveAccessSession(
+      accessToken: result.token!,
+      role: StoredAuthRole.admin,
+    );
+
     _setStatus(SessionStatus.adminArea);
   }
 
-  Future<void> submitMentorPinChange({
-    required String newPin,
-  }) async {
+  Future<void> submitMentorPinChange({required String newPin}) async {
     if (_mentorSetupIsSubmitting) return;
 
     final token = _setupToken;
@@ -197,12 +231,16 @@ class SessionController extends ChangeNotifier {
     _accessToken = result.token;
     _setupToken = null;
     _mentorSetupMessage = null;
+
+    await _tokenStorage.saveAccessSession(
+      accessToken: result.token!,
+      role: StoredAuthRole.mentor,
+    );
+
     _setStatus(SessionStatus.mentorArea);
   }
 
-  Future<void> submitAdminPasswordChange({
-    required String newPassword,
-  }) async {
+  Future<void> submitAdminPasswordChange({required String newPassword}) async {
     if (_adminSetupIsSubmitting) return;
 
     final token = _setupToken;
@@ -240,6 +278,12 @@ class SessionController extends ChangeNotifier {
     _accessToken = result.token;
     _setupToken = null;
     _adminSetupMessage = null;
+
+    await _tokenStorage.saveAccessSession(
+      accessToken: result.token!,
+      role: StoredAuthRole.mentor,
+    );
+
     _setStatus(SessionStatus.adminArea);
   }
 
@@ -271,7 +315,7 @@ class SessionController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void logout() {
+  Future<void> logout() async {
     _accessToken = null;
     _setupToken = null;
     _mentorLoginMessage = null;
@@ -280,6 +324,9 @@ class SessionController extends ChangeNotifier {
     _mentorSetupIsSubmitting = false;
     _adminSetupMessage = null;
     _adminSetupIsSubmitting = false;
+
+    await _tokenStorage.clear();
+
     _setStatus(SessionStatus.start);
   }
 
@@ -307,7 +354,8 @@ class SessionController extends ChangeNotifier {
 
   String _messageForMentorSetupFailure(AuthFailure failure) {
     return switch (failure) {
-      AuthFailure.badCredentials => 'Setup session expired. Please log in again.',
+      AuthFailure.badCredentials =>
+        'Setup session expired. Please log in again.',
       AuthFailure.temporarySecretExpired => 'Temporary PIN expired.',
       AuthFailure.serverError => 'Server error.',
       AuthFailure.networkError => 'Cannot connect to server.',
@@ -316,7 +364,8 @@ class SessionController extends ChangeNotifier {
 
   String _messageForAdminSetupFailure(AuthFailure failure) {
     return switch (failure) {
-      AuthFailure.badCredentials => 'Setup session expired. Please log in again.',
+      AuthFailure.badCredentials =>
+        'Setup session expired. Please log in again.',
       AuthFailure.temporarySecretExpired => 'Temporary password expired.',
       AuthFailure.serverError => 'Server error.',
       AuthFailure.networkError => 'Cannot connect to server.',
@@ -332,5 +381,4 @@ class SessionController extends ChangeNotifier {
     _status = status;
     notifyListeners();
   }
-
 }
