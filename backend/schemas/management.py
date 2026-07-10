@@ -60,6 +60,10 @@ class MentorUpdateRequest(BaseModel):
     course_ids: list[int] | None = None
 
 
+class MentorResetPinRequest(BaseModel):
+    temporary_pin: str = Field(min_length=6, max_length=64)
+
+
 class MentorSelfUpdateRequest(BaseModel):
     first_name: str | None = None
     last_name: str | None = None

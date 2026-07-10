@@ -16,6 +16,7 @@ enum SessionStatus {
 
 class SessionController extends ChangeNotifier {
   final AuthApi _authApi;
+  final TokenStorage _tokenStorage;
 
   SessionController({AuthApi? authApi, TokenStorage? tokenStorage})
     : _authApi = authApi ?? AuthApi(),
@@ -25,15 +26,18 @@ class SessionController extends ChangeNotifier {
 
   String? _accessToken;
   String? _setupToken;
+
   String? _mentorLoginMessage;
   bool _mentorLoginIsSubmitting = false;
+
   String? _adminLoginMessage;
   bool _adminLoginIsSubmitting = false;
+
   String? _mentorSetupMessage;
   bool _mentorSetupIsSubmitting = false;
+
   String? _adminSetupMessage;
   bool _adminSetupIsSubmitting = false;
-  final TokenStorage _tokenStorage;
 
   SessionStatus get status => _status;
 
@@ -42,18 +46,19 @@ class SessionController extends ChangeNotifier {
 
   String? get mentorLoginMessage => _mentorLoginMessage;
   bool get mentorLoginIsSubmitting => _mentorLoginIsSubmitting;
+
   String? get adminLoginMessage => _adminLoginMessage;
   bool get adminLoginIsSubmitting => _adminLoginIsSubmitting;
-
-  bool get isAdmin => _status == SessionStatus.adminArea;
-  bool get isMentor => _status == SessionStatus.mentorArea;
-  bool get isAuthenticated => isAdmin || isMentor;
 
   String? get mentorSetupMessage => _mentorSetupMessage;
   bool get mentorSetupIsSubmitting => _mentorSetupIsSubmitting;
 
   String? get adminSetupMessage => _adminSetupMessage;
   bool get adminSetupIsSubmitting => _adminSetupIsSubmitting;
+
+  bool get isAdmin => _status == SessionStatus.adminArea;
+  bool get isMentor => _status == SessionStatus.mentorArea;
+  bool get isAuthenticated => isAdmin || isMentor;
 
   Future<void> restoreSession() async {
     _setStatus(SessionStatus.restoring);
@@ -77,6 +82,7 @@ class SessionController extends ChangeNotifier {
     if (result.failure != null) {
       await _tokenStorage.clear();
       _accessToken = null;
+      _setupToken = null;
       _setStatus(SessionStatus.start);
       return;
     }
@@ -122,7 +128,7 @@ class SessionController extends ChangeNotifier {
     _mentorLoginIsSubmitting = false;
 
     if (result.failure != null) {
-      _mentorLoginMessage = _messageForAuthFailure(result.failure!);
+      _mentorLoginMessage = _messageForMentorAuthFailure(result.failure!);
       _setStatus(SessionStatus.mentorLogin);
       return;
     }
@@ -197,6 +203,7 @@ class SessionController extends ChangeNotifier {
     if (_mentorSetupIsSubmitting) return;
 
     final token = _setupToken;
+
     if (token == null) {
       _mentorLoginMessage = 'Setup session expired. Please log in again.';
       _setStatus(SessionStatus.mentorLogin);
@@ -244,6 +251,7 @@ class SessionController extends ChangeNotifier {
     if (_adminSetupIsSubmitting) return;
 
     final token = _setupToken;
+
     if (token == null) {
       _adminLoginMessage = 'Setup session expired. Please log in again.';
       _setStatus(SessionStatus.adminLogin);
@@ -281,7 +289,7 @@ class SessionController extends ChangeNotifier {
 
     await _tokenStorage.saveAccessSession(
       accessToken: result.token!,
-      role: StoredAuthRole.mentor,
+      role: StoredAuthRole.admin,
     );
 
     _setStatus(SessionStatus.adminArea);
@@ -318,10 +326,16 @@ class SessionController extends ChangeNotifier {
   Future<void> logout() async {
     _accessToken = null;
     _setupToken = null;
+
     _mentorLoginMessage = null;
+    _mentorLoginIsSubmitting = false;
+
     _adminLoginMessage = null;
+    _adminLoginIsSubmitting = false;
+
     _mentorSetupMessage = null;
     _mentorSetupIsSubmitting = false;
+
     _adminSetupMessage = null;
     _adminSetupIsSubmitting = false;
 
@@ -330,11 +344,11 @@ class SessionController extends ChangeNotifier {
     _setStatus(SessionStatus.start);
   }
 
-  void handleUnauthorized() {
-    logout();
+  Future<void> handleUnauthorized() async {
+    await logout();
   }
 
-  String _messageForAuthFailure(AuthFailure failure) {
+  String _messageForMentorAuthFailure(AuthFailure failure) {
     return switch (failure) {
       AuthFailure.badCredentials => 'Bad phone or PIN.',
       AuthFailure.temporarySecretExpired => 'Temporary PIN expired.',

@@ -19,6 +19,7 @@ from schemas.management import (
     CourseOut,
     MentorCreateRequest,
     MentorOut,
+    MentorResetPinRequest,
     MentorUpdateRequest,
 )
 from security import hash_secret
@@ -130,6 +131,32 @@ def update_mentor(
 
     if data.course_ids is not None:
         mentor.courses = get_courses_by_ids(db, data.course_ids)
+
+    db.commit()
+    db.refresh(mentor)
+
+    return mentor_to_out(mentor)
+
+
+@router.post("/mentors/{mentor_id}/reset-pin", response_model=MentorOut)
+def reset_mentor_pin(
+    mentor_id: int,
+    data: MentorResetPinRequest,
+    auth: AdminAuth = Depends(get_current_admin),
+):
+    db = auth.db
+    mentor = db.get(MentorProfile, mentor_id)
+
+    if not mentor:
+        raise HTTPException(status_code=404, detail="Mentor not found")
+
+    mentor.pin_hash = hash_secret(data.temporary_pin)
+    mentor.must_change_pin = True
+    mentor.temporary_pin_expires_at = (
+        datetime.now(UTC) + timedelta(days=settings.temporary_secret_days)
+    )
+    mentor.failed_attempts = 0
+    mentor.locked_until = None
 
     db.commit()
     db.refresh(mentor)
