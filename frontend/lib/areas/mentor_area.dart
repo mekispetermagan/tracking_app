@@ -4,8 +4,13 @@ import '../controllers/controllers.dart';
 import '../screens/screens.dart';
 
 class MentorArea extends StatefulWidget {
-  const MentorArea({required this.onLogout, super.key});
+  const MentorArea({
+    required this.accessToken,
+    required this.onLogout,
+    super.key,
+  });
 
+  final String accessToken;
   final Future<void> Function() onLogout;
 
   @override
@@ -14,17 +19,19 @@ class MentorArea extends StatefulWidget {
 
 class _MentorAreaState extends State<MentorArea> {
   final _areaController = MentorAreaController();
+  final _courseController = MentorCourseManagementController();
 
   @override
   void dispose() {
     _areaController.dispose();
+    _courseController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
-      listenable: _areaController,
+      listenable: Listenable.merge([_areaController, _courseController]),
       builder: (_, _) => _buildArea(),
     );
   }
@@ -33,53 +40,117 @@ class _MentorAreaState extends State<MentorArea> {
     return PopScope(
       canPop: _areaController.screen == MentorScreen.menu,
       onPopInvokedWithResult: (didPop, result) {
-        if (!didPop && _areaController.screen != MentorScreen.menu) {
-          _areaController.reset();
+        if (didPop) {
+          return;
         }
+
+        if (_areaController.screen == MentorScreen.manageCourses &&
+            _courseController.view == MentorCourseManagementView.form) {
+          _courseController.cancelEdit();
+          return;
+        }
+
+        _goHome();
       },
       child: switch (_areaController.screen) {
         MentorScreen.menu => MentorMenuScreen(
           items: _areaController.menuItems,
-          onSelect: _areaController.select,
-          onLogout: widget.onLogout,
+          onSelect: _selectScreen,
+          onLogout: _logout,
         ),
 
         MentorScreen.myProfile => PlaceholderTaskScreen(
           title: 'My profile',
-          onHome: _areaController.reset,
-          onLogout: widget.onLogout,
+          onHome: _goHome,
+          onLogout: _logout,
+        ),
+
+        MentorScreen.manageCourses => _buildCourseManagement(),
+
+        MentorScreen.manageStudents => PlaceholderTaskScreen(
+          title: 'Manage students',
+          onHome: _goHome,
+          onLogout: _logout,
         ),
 
         MentorScreen.sessionLog => PlaceholderTaskScreen(
           title: 'Session log',
-          onHome: _areaController.reset,
-          onLogout: widget.onLogout,
-        ),
-
-        MentorScreen.manageStudents => PlaceholderTaskScreen(
-          title: 'Manage students',
-          onHome: _areaController.reset,
-          onLogout: widget.onLogout,
-        ),
-
-        MentorScreen.submitInvoice => PlaceholderTaskScreen(
-          title: 'Submit invoice',
-          onHome: _areaController.reset,
-          onLogout: widget.onLogout,
+          onHome: _goHome,
+          onLogout: _logout,
         ),
 
         MentorScreen.uploadPhotos => PlaceholderTaskScreen(
           title: 'Upload photos',
-          onHome: _areaController.reset,
-          onLogout: widget.onLogout,
+          onHome: _goHome,
+          onLogout: _logout,
+        ),
+
+        MentorScreen.submitInvoice => PlaceholderTaskScreen(
+          title: 'Submit invoice',
+          onHome: _goHome,
+          onLogout: _logout,
         ),
 
         MentorScreen.storyOfTheMonth => PlaceholderTaskScreen(
           title: 'Story of the month',
-          onHome: _areaController.reset,
-          onLogout: widget.onLogout,
+          onHome: _goHome,
+          onLogout: _logout,
         ),
       },
     );
+  }
+
+  Widget _buildCourseManagement() {
+    return switch (_courseController.view) {
+      MentorCourseManagementView.list => MentorCourseManagementScreen(
+        courses: _courseController.courses,
+        selectedCourseId: _courseController.selectedCourseId,
+        canEdit: _courseController.canEdit,
+        isLoading: _courseController.isLoading,
+        isSaving: _courseController.isSaving,
+        message: _courseController.message,
+        clearMessage: _courseController.clearMessage,
+        onSelectCourse: _courseController.selectCourse,
+        onEdit: _courseController.startEditSelectedCourse,
+        onHome: _goHome,
+        onLogout: _logout,
+      ),
+
+      MentorCourseManagementView.form => MentorCourseFormScreen(
+        course: _courseController.selectedCourse!,
+        isSaving: _courseController.isSaving,
+        message: _courseController.message,
+        clearMessage: _courseController.clearMessage,
+        onSave:
+            ({required description, required dayOfWeek, required startTime}) {
+              return _courseController.updateCourse(
+                accessToken: widget.accessToken,
+                description: description,
+                dayOfWeek: dayOfWeek,
+                startTime: startTime,
+              );
+            },
+        onCancel: _courseController.cancelEdit,
+      ),
+    };
+  }
+
+  void _selectScreen(MentorScreen screen) {
+    _areaController.select(screen);
+
+    if (screen == MentorScreen.manageCourses) {
+      _courseController.openList(accessToken: widget.accessToken);
+    }
+  }
+
+  void _goHome() {
+    _courseController.reset();
+    _areaController.reset();
+  }
+
+  Future<void> _logout() async {
+    _courseController.reset();
+    _areaController.reset();
+    await widget.onLogout();
   }
 }

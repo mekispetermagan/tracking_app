@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../controllers/mentor_area_controller.dart';
 
 class MentorMenuScreen extends StatelessWidget {
@@ -18,12 +19,7 @@ class MentorMenuScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Mentor menu'),
-        actions: [
-          TextButton(
-            onPressed: onLogout,
-            child: const Text('Logout'),
-          ),
-        ],
+        actions: [TextButton(onPressed: onLogout, child: const Text('Logout'))],
       ),
       body: SafeArea(
         child: ListView.separated(

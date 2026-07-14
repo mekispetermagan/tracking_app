@@ -145,7 +145,10 @@ class _AppRootState extends State<AppRoot> {
         onLogout: _logout,
       ),
 
-      SessionStatus.mentorArea => MentorArea(onLogout: _logout),
+      SessionStatus.mentorArea => MentorArea(
+        accessToken: _sessionController.accessToken!,
+        onLogout: _logout,
+      ),
     };
   }
 
