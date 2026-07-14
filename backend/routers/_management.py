@@ -121,11 +121,12 @@ def course_to_out(course: Course) -> CourseOut:
         name=course.name,
         description=course.description,
         country_id=course.country_id,
+        day_of_week=course.day_of_week,
+        start_time=course.start_time,
         active=course.active,
         mentor_ids=[mentor.id for mentor in course.mentors],
         student_ids=[student.id for student in course.students],
     )
-
 
 def student_to_out(student: Student) -> StudentOut:
     return StudentOut(

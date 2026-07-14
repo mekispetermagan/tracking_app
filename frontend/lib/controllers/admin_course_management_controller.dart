@@ -370,6 +370,8 @@ class AdminCourseManagementController extends ChangeNotifier {
       name: course.name,
       description: course.description,
       countryId: course.countryId,
+      dayOfWeek: course.dayOfWeek,
+      startTime: course.startTime,
       active: course.active,
       mentorIds: _assignedMentorIds.toList(),
       studentIds: course.studentIds,

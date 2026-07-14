@@ -36,7 +36,19 @@ class _AdminCourseFormScreenState extends State<AdminCourseFormScreen> {
   late final TextEditingController _descriptionController;
   late final TextEditingController _countryIdController;
 
+  late int _dayOfWeek;
+  late TimeOfDay _startTime;
   late bool _active;
+
+  static const _dayNames = [
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday',
+    'Sunday',
+  ];
 
   @override
   void initState() {
@@ -51,6 +63,9 @@ class _AdminCourseFormScreenState extends State<AdminCourseFormScreen> {
     _countryIdController = TextEditingController(
       text: course?.countryId.toString() ?? '',
     );
+
+    _dayOfWeek = course?.dayOfWeek ?? 0;
+    _startTime = _parseTime(course?.startTime ?? '09:00:00');
     _active = course?.active ?? true;
   }
 
@@ -110,6 +125,37 @@ class _AdminCourseFormScreenState extends State<AdminCourseFormScreen> {
                 validator: _requiredInt,
               ),
               const SizedBox(height: 20),
+              const Text('Day'),
+              const SizedBox(height: 8),
+              DropdownButtonFormField<int>(
+                initialValue: _dayOfWeek,
+                items: List.generate(
+                  _dayNames.length,
+                  (index) => DropdownMenuItem(
+                    value: index,
+                    child: Text(_dayNames[index]),
+                  ),
+                ),
+                onChanged: widget.isSaving
+                    ? null
+                    : (value) {
+                        if (value != null) {
+                          setState(() {
+                            _dayOfWeek = value;
+                          });
+                        }
+                      },
+              ),
+              const SizedBox(height: 20),
+              const Text('Starting time'),
+              const SizedBox(height: 8),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                title: Text(_startTime.format(context)),
+                trailing: const Icon(Icons.schedule),
+                onTap: widget.isSaving ? null : _selectStartTime,
+              ),
+              const SizedBox(height: 20),
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
                 title: const Text('Active'),
@@ -140,12 +186,28 @@ class _AdminCourseFormScreenState extends State<AdminCourseFormScreen> {
     );
   }
 
+  Future<void> _selectStartTime() async {
+    final selected = await showTimePicker(
+      context: context,
+      initialTime: _startTime,
+    );
+
+    if (selected == null) {
+      return;
+    }
+
+    setState(() {
+      _startTime = selected;
+    });
+  }
+
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) {
       return;
     }
 
     final countryId = int.parse(_countryIdController.text.trim());
+    final startTime = _formatTime(_startTime);
     final course = widget.course;
 
     final success = course != null
@@ -155,6 +217,8 @@ class _AdminCourseFormScreenState extends State<AdminCourseFormScreen> {
               name: _nameController.text.trim(),
               description: _descriptionController.text.trim(),
               countryId: countryId,
+              dayOfWeek: _dayOfWeek,
+              startTime: startTime,
               active: _active,
               mentorIds: course.mentorIds,
               studentIds: course.studentIds,
@@ -165,6 +229,8 @@ class _AdminCourseFormScreenState extends State<AdminCourseFormScreen> {
               name: _nameController.text.trim(),
               description: _descriptionController.text.trim(),
               countryId: countryId,
+              dayOfWeek: _dayOfWeek,
+              startTime: startTime,
               active: _active,
             ),
           );
@@ -172,6 +238,19 @@ class _AdminCourseFormScreenState extends State<AdminCourseFormScreen> {
     if (!mounted || !success) {
       return;
     }
+  }
+
+  TimeOfDay _parseTime(String value) {
+    final parts = value.split(':');
+
+    return TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
+  }
+
+  String _formatTime(TimeOfDay value) {
+    final hour = value.hour.toString().padLeft(2, '0');
+    final minute = value.minute.toString().padLeft(2, '0');
+
+    return '$hour:$minute:00';
   }
 
   String? _required(String? value) {

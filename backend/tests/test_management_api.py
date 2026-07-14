@@ -1,4 +1,4 @@
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime, time, timedelta
 
 import pytest
 from fastapi.testclient import TestClient
@@ -20,7 +20,11 @@ def db_session():
         connect_args={"check_same_thread": False},
         poolclass=StaticPool,
     )
-    TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+    TestingSessionLocal = sessionmaker(
+        autocommit=False,
+        autoflush=False,
+        bind=engine,
+    )
 
     Base.metadata.create_all(bind=engine)
 
@@ -99,7 +103,13 @@ def seeded(db_session):
         preferred_language="en",
     )
 
-    db_session.add_all([abdallah_account, margret_account, peter_account])
+    db_session.add_all(
+        [
+            abdallah_account,
+            margret_account,
+            peter_account,
+        ]
+    )
     db_session.flush()
 
     abdallah = MentorProfile(
@@ -128,18 +138,24 @@ def seeded(db_session):
         name="Hillside Katalemwa",
         description="Digital education course at Hillside Katalemwa.",
         country_id=uganda.id,
+        day_of_week=6,
+        start_time=time(14, 0),
         mentors=[abdallah, margret],
     )
     cdi = Course(
         name="CDI Luwero",
         description="Digital education course in Luwero.",
         country_id=uganda.id,
+        day_of_week=5,
+        start_time=time(10, 0),
         mentors=[abdallah, margret],
     )
     margret_only = Course(
         name="Margret Only Course",
         description="Course visible only to Margret.",
         country_id=uganda.id,
+        day_of_week=2,
+        start_time=time(16, 30),
         mentors=[margret],
     )
 
@@ -196,10 +212,26 @@ def seeded(db_session):
         "cdi": cdi,
         "margret_only": margret_only,
         "students": students,
-        "admin_token": make_token(peter_account.id, "admin", admin.id),
-        "abdallah_token": make_token(abdallah_account.id, "mentor", abdallah.id),
-        "margret_token": make_token(margret_account.id, "mentor", margret.id),
-        "setup_token": make_token(abdallah_account.id, "mentor_setup", abdallah.id),
+        "admin_token": make_token(
+            peter_account.id,
+            "admin",
+            admin.id,
+        ),
+        "abdallah_token": make_token(
+            abdallah_account.id,
+            "mentor",
+            abdallah.id,
+        ),
+        "margret_token": make_token(
+            margret_account.id,
+            "mentor",
+            margret.id,
+        ),
+        "setup_token": make_token(
+            abdallah_account.id,
+            "mentor_setup",
+            abdallah.id,
+        ),
     }
 
 
@@ -230,7 +262,10 @@ def test_admin_gets_all_mentors(client, seeded):
     assert response.status_code == 200
 
     data = response.json()
-    names = {(mentor["first_name"], mentor["last_name"]) for mentor in data}
+    names = {
+        (mentor["first_name"], mentor["last_name"])
+        for mentor in data
+    }
 
     assert ("Abdallah", "Kiggundu") in names
     assert ("Margret", "Nakalema") in names
@@ -244,9 +279,96 @@ def test_mentor_gets_only_own_courses(client, seeded):
 
     assert response.status_code == 200
 
-    course_names = {course["name"] for course in response.json()}
+    courses = response.json()
+    course_names = {course["name"] for course in courses}
 
-    assert course_names == {"Hillside Katalemwa", "CDI Luwero"}
+    assert course_names == {
+        "Hillside Katalemwa",
+        "CDI Luwero",
+    }
+
+    hillside = next(
+        course
+        for course in courses
+        if course["name"] == "Hillside Katalemwa"
+    )
+
+    assert hillside["day_of_week"] == 6
+    assert hillside["start_time"] == "14:00:00"
+
+
+def test_admin_creates_course_with_day_and_start_time(client, seeded):
+    response = client.post(
+        "/api/admin/courses",
+        json={
+            "name": "Kirinnyabigo",
+            "description": "Course in Kirinnyabigo.",
+            "country_id": seeded["uganda"].id,
+            "day_of_week": 1,
+            "start_time": "15:30:00",
+            "active": True,
+            "mentor_ids": [
+                seeded["abdallah"].id,
+                seeded["margret"].id,
+            ],
+            "student_ids": [],
+        },
+        headers=auth_header(seeded["admin_token"]),
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["name"] == "Kirinnyabigo"
+    assert data["day_of_week"] == 1
+    assert data["start_time"] == "15:30:00"
+    assert set(data["mentor_ids"]) == {
+        seeded["abdallah"].id,
+        seeded["margret"].id,
+    }
+
+
+def test_admin_updates_course_day_and_start_time(client, seeded):
+    response = client.put(
+        f"/api/shared/courses/{seeded['hillside'].id}",
+        json={
+            "day_of_week": 3,
+            "start_time": "17:45:00",
+        },
+        headers=auth_header(seeded["admin_token"]),
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["day_of_week"] == 3
+    assert data["start_time"] == "17:45:00"
+
+
+def test_course_rejects_day_above_six(client, seeded):
+    response = client.put(
+        f"/api/shared/courses/{seeded['hillside'].id}",
+        json={
+            "day_of_week": 7,
+        },
+        headers=auth_header(seeded["admin_token"]),
+    )
+
+    assert response.status_code == 422
+
+
+def test_course_rejects_negative_day(client, seeded):
+    response = client.put(
+        f"/api/shared/courses/{seeded['hillside'].id}",
+        json={
+            "day_of_week": -1,
+        },
+        headers=auth_header(seeded["admin_token"]),
+    )
+
+    assert response.status_code == 422
 
 
 def test_admin_updates_mentor_course_assignments(client, seeded):
@@ -259,7 +381,9 @@ def test_admin_updates_mentor_course_assignments(client, seeded):
     )
 
     assert response.status_code == 200
-    assert response.json()["course_ids"] == [seeded["hillside"].id]
+    assert response.json()["course_ids"] == [
+        seeded["hillside"].id,
+    ]
 
     course_response = client.get(
         f"/api/shared/courses/{seeded['cdi'].id}",
@@ -267,10 +391,81 @@ def test_admin_updates_mentor_course_assignments(client, seeded):
     )
 
     assert course_response.status_code == 200
-    assert seeded["margret"].id not in course_response.json()["mentor_ids"]
+    assert (
+        seeded["margret"].id
+        not in course_response.json()["mentor_ids"]
+    )
 
 
-def test_mentor_cannot_update_course_mentor_assignments(client, seeded):
+def test_mentor_can_update_course_description_day_and_time(client, seeded):
+    response = client.put(
+        f"/api/shared/courses/{seeded['hillside'].id}",
+        json={
+            "description": "Updated course description.",
+            "day_of_week": 2,
+            "start_time": "17:30:00",
+        },
+        headers=auth_header(seeded["abdallah_token"]),
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["description"] == "Updated course description."
+    assert data["day_of_week"] == 2
+    assert data["start_time"] == "17:30:00"
+
+
+def test_mentor_cannot_update_course_name(client, seeded):
+    response = client.put(
+        f"/api/shared/courses/{seeded['hillside'].id}",
+        json={
+            "name": "Renamed Course",
+        },
+        headers=auth_header(seeded["abdallah_token"]),
+    )
+
+    assert response.status_code == 403
+    assert response.json()["detail"] == (
+        "Mentor cannot change course name"
+    )
+
+
+def test_mentor_cannot_update_course_country(client, seeded):
+    response = client.put(
+        f"/api/shared/courses/{seeded['hillside'].id}",
+        json={
+            "country_id": seeded["uganda"].id + 1,
+        },
+        headers=auth_header(seeded["abdallah_token"]),
+    )
+
+    assert response.status_code == 403
+    assert response.json()["detail"] == (
+        "Mentor cannot change course country"
+    )
+
+
+def test_mentor_cannot_update_course_status(client, seeded):
+    response = client.put(
+        f"/api/shared/courses/{seeded['hillside'].id}",
+        json={
+            "active": False,
+        },
+        headers=auth_header(seeded["abdallah_token"]),
+    )
+
+    assert response.status_code == 403
+    assert response.json()["detail"] == (
+        "Mentor cannot change course status"
+    )
+
+
+def test_mentor_cannot_update_course_mentor_assignments(
+    client,
+    seeded,
+):
     response = client.put(
         f"/api/shared/courses/{seeded['hillside'].id}",
         json={
@@ -280,6 +475,32 @@ def test_mentor_cannot_update_course_mentor_assignments(client, seeded):
     )
 
     assert response.status_code == 403
+    assert response.json()["detail"] == (
+        "Mentor cannot assign or unassign mentors to courses"
+    )
+
+
+def test_mentor_can_submit_unchanged_restricted_course_fields(
+    client,
+    seeded,
+):
+    response = client.put(
+        f"/api/shared/courses/{seeded['hillside'].id}",
+        json={
+            "name": seeded["hillside"].name,
+            "country_id": seeded["hillside"].country_id,
+            "active": seeded["hillside"].active,
+            "mentor_ids": [
+                mentor.id
+                for mentor in seeded["hillside"].mentors
+            ],
+            "description": "Changed by mentor.",
+        },
+        headers=auth_header(seeded["abdallah_token"]),
+    )
+
+    assert response.status_code == 200
+    assert response.json()["description"] == "Changed by mentor."
 
 
 def test_mentor_can_create_student_for_own_course(client, seeded):
@@ -301,10 +522,15 @@ def test_mentor_can_create_student_for_own_course(client, seeded):
     data = response.json()
 
     assert data["first_name"] == "Joan"
-    assert data["course_ids"] == [seeded["hillside"].id]
+    assert data["course_ids"] == [
+        seeded["hillside"].id,
+    ]
 
 
-def test_mentor_cannot_create_student_for_other_mentors_course(client, seeded):
+def test_mentor_cannot_create_student_for_other_mentors_course(
+    client,
+    seeded,
+):
     response = client.post(
         "/api/shared/students",
         json={
@@ -329,7 +555,10 @@ def test_mentor_gets_only_students_from_own_courses(client, seeded):
 
     assert response.status_code == 200
 
-    names = {(student["first_name"], student["last_name"]) for student in response.json()}
+    names = {
+        (student["first_name"], student["last_name"])
+        for student in response.json()
+    }
 
     assert ("Aisha", "Namutebi") in names
     assert ("Brian", "Sserwadda") in names
@@ -337,7 +566,10 @@ def test_mentor_gets_only_students_from_own_courses(client, seeded):
     assert ("Grace", "Namuli") not in names
 
 
-def test_mentor_cannot_get_student_from_other_mentors_course(client, seeded):
+def test_mentor_cannot_get_student_from_other_mentors_course(
+    client,
+    seeded,
+):
     other_student = seeded["students"][3]
 
     response = client.get(
@@ -360,7 +592,9 @@ def test_admin_can_update_student_course_assignments(client, seeded):
     )
 
     assert response.status_code == 200
-    assert response.json()["course_ids"] == [seeded["cdi"].id]
+    assert response.json()["course_ids"] == [
+        seeded["cdi"].id,
+    ]
 
 
 def test_mentor_cannot_deactivate_student(client, seeded):

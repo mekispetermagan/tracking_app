@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, UTC
+from datetime import datetime, time, timedelta, UTC
 
 from pwdlib import PasswordHash
 
@@ -73,11 +73,21 @@ def get_mentor_profile(db, first_name, last_name):
     )
 
 
-def add_course_with_students(db, name, description, country_id, mentors, students):
+def add_course_with_students(
+        db, 
+        name, 
+        description, 
+        country_id, 
+        day_of_week, 
+        start_time, 
+        mentors, 
+        students):
     course = Course(
         name=name,
         description=description,
         country_id=country_id,
+        day_of_week=day_of_week,
+        start_time=start_time,
         mentors=mentors,
     )
     db.add(course)
@@ -119,6 +129,8 @@ def main():
             name="Hillside Katalemwa",
             description="Digital education course at Hillside Katalemwa.",
             country_id=uganda.id,
+            day_of_week=6,
+            start_time=time(14, 0),
             mentors=shared_mentors,
             students=[
                 {"first_name": "Aisha", "last_name": "Namutebi", "birth_year": 2014, "gender": "F"},
@@ -139,6 +151,8 @@ def main():
             name="CDI Luwero",
             description="Digital education course in Luwero with Change Development Initiatives.",
             country_id=uganda.id,
+            day_of_week=5,
+            start_time=time(10, 0),
             mentors=shared_mentors,
             students=[
                 {"first_name": "Faith", "last_name": "Nakalema", "birth_year": 2014, "gender": "F"},

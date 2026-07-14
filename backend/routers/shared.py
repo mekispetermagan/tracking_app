@@ -147,9 +147,6 @@ def update_course(
         if data.name is not None and data.name != course.name:
             raise HTTPException(status_code=403, detail="Mentor cannot change course name")
 
-        if data.description is not None and data.description != course.description:
-            raise HTTPException(status_code=403, detail="Mentor cannot change course description")
-
         if data.country_id is not None and data.country_id != course.country_id:
             raise HTTPException(status_code=403, detail="Mentor cannot change course country")
 
@@ -158,8 +155,8 @@ def update_course(
 
         if data.mentor_ids is not None:
             current_mentor_ids = {mentor.id for mentor in course.mentors}
-            if set(data.mentor_ids) != current_mentor_ids:
-                raise HTTPException(status_code=403, detail="Mentor cannot assign mentors to courses")
+            if set(unique_ids(data.mentor_ids)) != current_mentor_ids:
+                raise HTTPException(status_code=403, detail="Mentor cannot assign or unassign mentors to courses")
 
         if data.student_ids is not None:
             requested_ids = set(unique_ids(data.student_ids))
@@ -178,12 +175,6 @@ def update_course(
             if not requested_ids.issubset(allowed_ids):
                 raise HTTPException(status_code=403, detail="Student not available")
 
-            course.students = get_students_by_ids(db, list(requested_ids))
-
-        db.commit()
-        db.refresh(course)
-        return course_to_out(course)
-
     if data.name is not None:
         course.name = data.name
 
@@ -193,6 +184,12 @@ def update_course(
     if data.country_id is not None:
         ensure_country_exists(db, data.country_id)
         course.country_id = data.country_id
+
+    if data.day_of_week is not None:
+        course.day_of_week = data.day_of_week
+
+    if data.start_time is not None:
+        course.start_time = data.start_time
 
     if data.active is not None:
         course.active = data.active

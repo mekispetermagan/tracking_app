@@ -197,6 +197,8 @@ def create_course(
         name=data.name,
         description=data.description,
         country_id=data.country_id,
+        day_of_week=data.day_of_week,
+        start_time=data.start_time,
         active=data.active,
     )
     course.mentors = get_mentors_by_ids(db, data.mentor_ids)

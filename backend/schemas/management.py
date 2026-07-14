@@ -1,5 +1,5 @@
 from typing import Literal
-
+from datetime import time
 from pydantic import BaseModel, Field
 
 
@@ -23,10 +23,11 @@ class CourseOut(BaseModel):
     name: str
     description: str
     country_id: int
+    day_of_week: int
+    start_time: time
     active: bool
     mentor_ids: list[int]
     student_ids: list[int]
-
 
 class StudentOut(BaseModel):
     id: int
@@ -72,22 +73,25 @@ class MentorSelfUpdateRequest(BaseModel):
     preferred_language: str | None = Field(default=None, min_length=2, max_length=2)
 
 
-class CourseCreateRequest(BaseModel):
-    name: str
-    description: str = ""
-    country_id: int
-    active: bool = True
-    mentor_ids: list[int] = Field(default_factory=list)
-    student_ids: list[int] = Field(default_factory=list)
-
-
 class CourseUpdateRequest(BaseModel):
     name: str | None = None
     description: str | None = None
     country_id: int | None = None
+    day_of_week: int | None = Field(default=None, ge=0, le=6)
+    start_time: time | None = None
     active: bool | None = None
     mentor_ids: list[int] | None = None
     student_ids: list[int] | None = None
+
+class CourseCreateRequest(BaseModel):
+    name: str
+    description: str = ""
+    country_id: int
+    day_of_week: int = Field(ge=0, le=6)
+    start_time: time
+    active: bool = True
+    mentor_ids: list[int] = Field(default_factory=list)
+    student_ids: list[int] = Field(default_factory=list)
 
 
 class StudentCreateRequest(BaseModel):

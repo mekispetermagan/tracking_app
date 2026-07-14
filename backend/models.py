@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import UTC, datetime, time
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String
+from sqlalchemy import Boolean, CheckConstraint, DateTime, ForeignKey, Integer, String, Time
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from database import Base
@@ -114,6 +114,12 @@ class Student(Base):
 
 class Course(Base):
     __tablename__ = "courses"
+    __table_args__ = (
+        CheckConstraint(
+            "day_of_week BETWEEN 0 AND 6",
+            name="ck_courses_day_of_week",
+        ),
+    )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
 
@@ -130,6 +136,10 @@ class Course(Base):
         nullable=False,
     )
 
+    day_of_week: Mapped[int] = mapped_column(Integer, nullable=False)
+    start_time: Mapped[time] = mapped_column(Time, nullable=False)
+    
+    #0: Monday 6: Sunday
     mentors: Mapped[list[MentorProfile]] = relationship(
         secondary="mentor_courses",
         back_populates="courses",
