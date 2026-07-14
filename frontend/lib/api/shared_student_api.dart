@@ -114,6 +114,44 @@ class SharedStudentApi {
   Future<SharedStudentResult> createStudent({
     required String accessToken,
     required StudentCreateRequest request,
+  }) {
+    return _createStudent(accessToken: accessToken, body: request.toJson());
+  }
+
+  Future<SharedStudentResult> createStudentAsMentor({
+    required String accessToken,
+    required MentorStudentCreateRequest request,
+  }) {
+    return _createStudent(accessToken: accessToken, body: request.toJson());
+  }
+
+  Future<SharedStudentResult> updateStudent({
+    required String accessToken,
+    required int studentId,
+    required StudentUpdateRequest request,
+  }) {
+    return _updateStudent(
+      accessToken: accessToken,
+      studentId: studentId,
+      body: request.toJson(),
+    );
+  }
+
+  Future<SharedStudentResult> updateStudentAsMentor({
+    required String accessToken,
+    required int studentId,
+    required MentorStudentUpdateRequest request,
+  }) {
+    return _updateStudent(
+      accessToken: accessToken,
+      studentId: studentId,
+      body: request.toJson(),
+    );
+  }
+
+  Future<SharedStudentResult> _createStudent({
+    required String accessToken,
+    required Map<String, dynamic> body,
   }) async {
     final uri = Uri.parse('${ApiConfig.baseUrl}/api/shared/students');
 
@@ -121,7 +159,7 @@ class SharedStudentApi {
       final response = await http.post(
         uri,
         headers: _headers(accessToken),
-        body: jsonEncode(request.toJson()),
+        body: jsonEncode(body),
       );
 
       final data = jsonDecode(response.body);
@@ -143,10 +181,10 @@ class SharedStudentApi {
     }
   }
 
-  Future<SharedStudentResult> updateStudent({
+  Future<SharedStudentResult> _updateStudent({
     required String accessToken,
     required int studentId,
-    required StudentUpdateRequest request,
+    required Map<String, dynamic> body,
   }) async {
     final uri = Uri.parse(
       '${ApiConfig.baseUrl}/api/shared/students/$studentId',
@@ -156,7 +194,7 @@ class SharedStudentApi {
       final response = await http.put(
         uri,
         headers: _headers(accessToken),
-        body: jsonEncode(request.toJson()),
+        body: jsonEncode(body),
       );
 
       final data = jsonDecode(response.body);

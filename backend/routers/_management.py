@@ -128,7 +128,10 @@ def course_to_out(course: Course) -> CourseOut:
         student_ids=[student.id for student in course.students],
     )
 
-def student_to_out(student: Student) -> StudentOut:
+def student_to_out(
+    student: Student,
+    visible_course_ids: set[int] | None = None,
+) -> StudentOut:
     return StudentOut(
         id=student.id,
         first_name=student.first_name,
@@ -137,5 +140,9 @@ def student_to_out(student: Student) -> StudentOut:
         birth_year=student.birth_year,
         gender=student.gender,
         active=student.active,
-        course_ids=[course.id for course in student.courses],
+        course_ids=[
+            course.id
+            for course in student.courses
+            if visible_course_ids is None or course.id in visible_course_ids
+        ],
     )

@@ -20,6 +20,7 @@ class MentorArea extends StatefulWidget {
 class _MentorAreaState extends State<MentorArea> {
   final _areaController = MentorAreaController();
   final _courseController = MentorCourseManagementController();
+  final _studentController = MentorStudentManagementController();
   final _profileController = MentorProfileController();
 
   bool _showChangePin = false;
@@ -28,6 +29,7 @@ class _MentorAreaState extends State<MentorArea> {
   void dispose() {
     _areaController.dispose();
     _courseController.dispose();
+    _studentController.dispose();
     _profileController.dispose();
     super.dispose();
   }
@@ -38,6 +40,7 @@ class _MentorAreaState extends State<MentorArea> {
       listenable: Listenable.merge([
         _areaController,
         _courseController,
+        _studentController,
         _profileController,
       ]),
       builder: (_, _) => _buildArea(),
@@ -66,6 +69,12 @@ class _MentorAreaState extends State<MentorArea> {
           return;
         }
 
+        if (_areaController.screen == MentorScreen.manageStudents &&
+            _studentController.view == MentorStudentManagementView.form) {
+          _studentController.cancelForm();
+          return;
+        }
+
         _goHome();
       },
       child: switch (_areaController.screen) {
@@ -79,11 +88,7 @@ class _MentorAreaState extends State<MentorArea> {
 
         MentorScreen.manageCourses => _buildCourseManagement(),
 
-        MentorScreen.manageStudents => PlaceholderTaskScreen(
-          title: 'Manage students',
-          onHome: _goHome,
-          onLogout: _logout,
-        ),
+        MentorScreen.manageStudents => _buildStudentManagement(),
 
         MentorScreen.sessionLog => PlaceholderTaskScreen(
           title: 'Session log',
@@ -192,6 +197,50 @@ class _MentorAreaState extends State<MentorArea> {
     };
   }
 
+  Widget _buildStudentManagement() {
+    return switch (_studentController.view) {
+      MentorStudentManagementView.list => MentorStudentManagementScreen(
+        students: _studentController.visibleStudents,
+        courses: _studentController.courses,
+        courseIdFilter: _studentController.courseIdFilter,
+        selectedStudentId: _studentController.selectedStudentId,
+        canEdit: _studentController.canEdit,
+        isLoading: _studentController.isLoading,
+        isSaving: _studentController.isSaving,
+        message: _studentController.message,
+        clearMessage: _studentController.clearMessage,
+        onCourseFilterChanged: _studentController.setCourseIdFilter,
+        onSelectStudent: _studentController.selectStudent,
+        onAdd: _studentController.startAddStudent,
+        onEdit: _studentController.startEditSelectedStudent,
+        onHome: _goHome,
+        onLogout: _logout,
+      ),
+
+      MentorStudentManagementView.form => MentorStudentFormScreen(
+        student: _studentController.formStudent,
+        courses: _studentController.courses,
+        isSaving: _studentController.isSaving,
+        message: _studentController.message,
+        clearMessage: _studentController.clearMessage,
+        onCreate: (request) {
+          return _studentController.createStudent(
+            accessToken: widget.accessToken,
+            request: request,
+          );
+        },
+        onUpdate: (studentId, request) {
+          return _studentController.updateStudent(
+            accessToken: widget.accessToken,
+            studentId: studentId,
+            request: request,
+          );
+        },
+        onCancel: _studentController.cancelForm,
+      ),
+    };
+  }
+
   String? get _profileCountryName {
     final countryId = _profileController.mentor?.countryId;
 
@@ -228,6 +277,10 @@ class _MentorAreaState extends State<MentorArea> {
     if (screen == MentorScreen.manageCourses) {
       _courseController.openList(accessToken: widget.accessToken);
     }
+
+    if (screen == MentorScreen.manageStudents) {
+      _studentController.openList(accessToken: widget.accessToken);
+    }
   }
 
   void _openProfile() {
@@ -243,6 +296,7 @@ class _MentorAreaState extends State<MentorArea> {
     _profileController.reset();
     _courseController.reset();
     _areaController.reset();
+    _studentController.reset();
   }
 
   Future<void> _logout() async {
@@ -253,6 +307,7 @@ class _MentorAreaState extends State<MentorArea> {
     _profileController.reset();
     _courseController.reset();
     _areaController.reset();
+    _studentController.reset();
 
     await widget.onLogout();
   }

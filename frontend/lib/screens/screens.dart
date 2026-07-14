@@ -10,6 +10,8 @@ export 'mentor_profile_screen.dart';
 export 'mentor_change_pin_screen.dart';
 export 'mentor_course_management_screen.dart';
 export 'mentor_course_form_screen.dart';
+export 'mentor_student_management_screen.dart';
+export 'mentor_student_form_screen.dart';
 export 'admin_mentor_management_screen.dart';
 export 'admin_mentor_form_screen.dart';
 export 'admin_mentor_reset_pin_screen.dart';

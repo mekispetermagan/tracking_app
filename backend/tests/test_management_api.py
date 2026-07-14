@@ -609,3 +609,259 @@ def test_mentor_cannot_deactivate_student(client, seeded):
     )
 
     assert response.status_code == 403
+
+
+def test_mentor_must_assign_new_student_to_course(client, seeded):
+    response = client.post(
+        "/api/shared/students",
+        json={
+            "first_name": "No",
+            "last_name": "Course",
+            "origin_country_id": seeded["uganda"].id,
+            "birth_year": 2015,
+            "gender": "F",
+            "course_ids": [],
+        },
+        headers=auth_header(seeded["abdallah_token"]),
+    )
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == (
+        "Mentor must assign student to a course"
+    )
+
+
+def test_mentor_cannot_create_inactive_student(client, seeded):
+    response = client.post(
+        "/api/shared/students",
+        json={
+            "first_name": "Inactive",
+            "last_name": "Student",
+            "origin_country_id": seeded["uganda"].id,
+            "birth_year": 2015,
+            "gender": "M",
+            "active": False,
+            "course_ids": [seeded["hillside"].id],
+        },
+        headers=auth_header(seeded["abdallah_token"]),
+    )
+
+    assert response.status_code == 403
+    assert response.json()["detail"] == (
+        "Mentor cannot create inactive student"
+    )
+
+
+def test_mentor_student_reads_hide_other_mentors_course_ids(
+    client,
+    seeded,
+    db_session,
+):
+    shared_student = Student(
+        first_name="Shared",
+        last_name="Student",
+        origin_country_id=seeded["uganda"].id,
+        birth_year=2014,
+        gender="F",
+        courses=[
+            seeded["hillside"],
+            seeded["margret_only"],
+        ],
+    )
+    db_session.add(shared_student)
+    db_session.commit()
+
+    list_response = client.get(
+        "/api/shared/students",
+        headers=auth_header(seeded["abdallah_token"]),
+    )
+    course_response = client.get(
+        f"/api/shared/students?course_id={seeded['hillside'].id}",
+        headers=auth_header(seeded["abdallah_token"]),
+    )
+    detail_response = client.get(
+        f"/api/shared/students/{shared_student.id}",
+        headers=auth_header(seeded["abdallah_token"]),
+    )
+
+    assert list_response.status_code == 200
+    assert course_response.status_code == 200
+    assert detail_response.status_code == 200
+
+    list_student = next(
+        student
+        for student in list_response.json()
+        if student["id"] == shared_student.id
+    )
+    course_student = next(
+        student
+        for student in course_response.json()
+        if student["id"] == shared_student.id
+    )
+
+    expected_course_ids = [seeded["hillside"].id]
+
+    assert list_student["course_ids"] == expected_course_ids
+    assert course_student["course_ids"] == expected_course_ids
+    assert detail_response.json()["course_ids"] == expected_course_ids
+
+    admin_response = client.get(
+        f"/api/shared/students/{shared_student.id}",
+        headers=auth_header(seeded["admin_token"]),
+    )
+
+    assert admin_response.status_code == 200
+    assert set(admin_response.json()["course_ids"]) == {
+        seeded["hillside"].id,
+        seeded["margret_only"].id,
+    }
+
+
+def test_mentor_update_preserves_other_mentors_course_assignments(
+    client,
+    seeded,
+    db_session,
+):
+    shared_student = Student(
+        first_name="Shared",
+        last_name="Update",
+        origin_country_id=seeded["uganda"].id,
+        birth_year=2014,
+        gender="M",
+        courses=[
+            seeded["hillside"],
+            seeded["margret_only"],
+        ],
+    )
+    db_session.add(shared_student)
+    db_session.commit()
+
+    response = client.put(
+        f"/api/shared/students/{shared_student.id}",
+        json={
+            "course_ids": [seeded["cdi"].id],
+        },
+        headers=auth_header(seeded["abdallah_token"]),
+    )
+
+    assert response.status_code == 200
+    assert response.json()["course_ids"] == [seeded["cdi"].id]
+
+    admin_response = client.get(
+        f"/api/shared/students/{shared_student.id}",
+        headers=auth_header(seeded["admin_token"]),
+    )
+
+    assert admin_response.status_code == 200
+    assert set(admin_response.json()["course_ids"]) == {
+        seeded["cdi"].id,
+        seeded["margret_only"].id,
+    }
+
+
+def test_mentor_can_unassign_student_from_all_own_courses(
+    client,
+    seeded,
+    db_session,
+):
+    shared_student = Student(
+        first_name="Disappearing",
+        last_name="Student",
+        origin_country_id=seeded["uganda"].id,
+        birth_year=2014,
+        gender="F",
+        courses=[
+            seeded["hillside"],
+            seeded["margret_only"],
+        ],
+    )
+    db_session.add(shared_student)
+    db_session.commit()
+
+    response = client.put(
+        f"/api/shared/students/{shared_student.id}",
+        json={"course_ids": []},
+        headers=auth_header(seeded["abdallah_token"]),
+    )
+
+    assert response.status_code == 200
+    assert response.json()["course_ids"] == []
+
+    mentor_response = client.get(
+        f"/api/shared/students/{shared_student.id}",
+        headers=auth_header(seeded["abdallah_token"]),
+    )
+
+    assert mentor_response.status_code == 403
+
+    admin_response = client.get(
+        f"/api/shared/students/{shared_student.id}",
+        headers=auth_header(seeded["admin_token"]),
+    )
+
+    assert admin_response.status_code == 200
+    assert admin_response.json()["course_ids"] == [
+        seeded["margret_only"].id,
+    ]
+
+
+def test_mentor_cannot_assign_existing_student_to_foreign_course(
+    client,
+    seeded,
+):
+    student = seeded["students"][0]
+
+    response = client.put(
+        f"/api/shared/students/{student.id}",
+        json={
+            "course_ids": [seeded["margret_only"].id],
+        },
+        headers=auth_header(seeded["abdallah_token"]),
+    )
+
+    assert response.status_code == 403
+    assert response.json()["detail"] == (
+        "Cannot assign student to this course"
+    )
+
+    admin_response = client.get(
+        f"/api/shared/students/{student.id}",
+        headers=auth_header(seeded["admin_token"]),
+    )
+
+    assert admin_response.status_code == 200
+    assert admin_response.json()["course_ids"] == [
+        seeded["hillside"].id,
+    ]
+
+
+def test_mentor_can_edit_visible_student_details(client, seeded):
+    student = seeded["students"][0]
+
+    response = client.put(
+        f"/api/shared/students/{student.id}",
+        json={
+            "first_name": "Aishah",
+            "last_name": "Namutebi-Kato",
+            "birth_year": 2013,
+            "gender": "F",
+            "course_ids": [
+                seeded["hillside"].id,
+                seeded["cdi"].id,
+            ],
+        },
+        headers=auth_header(seeded["abdallah_token"]),
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["first_name"] == "Aishah"
+    assert data["last_name"] == "Namutebi-Kato"
+    assert data["birth_year"] == 2013
+    assert data["gender"] == "F"
+    assert set(data["course_ids"]) == {
+        seeded["hillside"].id,
+        seeded["cdi"].id,
+    }

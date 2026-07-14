@@ -43,6 +43,13 @@ class Actor:
     db: Session
 
 
+def student_to_actor_out(student: Student, actor: Actor) -> StudentOut:
+    if actor.role == "admin":
+        return student_to_out(student)
+
+    return student_to_out(student, mentor_course_ids(actor.profile))
+
+
 def get_current_actor(
     credentials: HTTPAuthorizationCredentials = Depends(bearer),
     db: Session = Depends(get_db),
@@ -228,7 +235,10 @@ def get_students(
         if active_only:
             students = [student for student in students if student.active]
 
-        return [student_to_out(student) for student in sorted(students, key=lambda s: (s.first_name, s.last_name))]
+        return [
+            student_to_actor_out(student, actor)
+            for student in sorted(students, key=lambda s: (s.first_name, s.last_name))
+        ]
 
     if actor.role == "admin":
         query = db.query(Student)
@@ -237,7 +247,7 @@ def get_students(
             query = query.filter(Student.active.is_(True))
 
         students = query.order_by(Student.first_name, Student.last_name).all()
-        return [student_to_out(student) for student in students]
+        return [student_to_actor_out(student, actor) for student in students]
 
     visible_course_ids = mentor_course_ids(actor.profile)
 
@@ -255,7 +265,7 @@ def get_students(
         query = query.filter(Student.active.is_(True))
 
     students = query.order_by(Student.first_name, Student.last_name).all()
-    return [student_to_out(student) for student in students]
+    return [student_to_actor_out(student, actor) for student in students]
 
 
 @router.get("/students/{student_id}", response_model=StudentOut)
@@ -271,7 +281,7 @@ def get_student(
     if actor.role == "mentor" and not student_visible_to_mentor(student, actor.profile):
         raise HTTPException(status_code=403, detail="Student not available")
 
-    return student_to_out(student)
+    return student_to_actor_out(student, actor)
 
 
 @router.post("/students", response_model=StudentOut)
@@ -310,7 +320,7 @@ def create_student(
     db.commit()
     db.refresh(student)
 
-    return student_to_out(student)
+    return student_to_actor_out(student, actor)
 
 
 @router.put("/students/{student_id}", response_model=StudentOut)
@@ -359,4 +369,4 @@ def update_student(
     db.commit()
     db.refresh(student)
 
-    return student_to_out(student)
+    return student_to_actor_out(student, actor)

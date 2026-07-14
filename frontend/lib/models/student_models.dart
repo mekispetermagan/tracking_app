@@ -110,3 +110,72 @@ class StudentUpdateRequest {
     };
   }
 }
+
+class MentorStudentCreateRequest {
+  final String firstName;
+  final String lastName;
+  final int? originCountryId;
+  final int? birthYear;
+  final String? gender;
+  final List<int> courseIds;
+
+  const MentorStudentCreateRequest({
+    required this.firstName,
+    required this.lastName,
+    required this.courseIds,
+    this.originCountryId,
+    this.birthYear,
+    this.gender,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'first_name': firstName,
+      'last_name': lastName,
+      'origin_country_id': originCountryId,
+      'birth_year': birthYear,
+      'gender': gender,
+      'course_ids': courseIds,
+    };
+  }
+}
+
+class MentorStudentUpdateRequest {
+  final String firstName;
+  final String lastName;
+  final int? originCountryId;
+  final int? birthYear;
+  final String? gender;
+  final List<int> courseIds;
+
+  const MentorStudentUpdateRequest({
+    required this.firstName,
+    required this.lastName,
+    required this.originCountryId,
+    required this.birthYear,
+    required this.gender,
+    required this.courseIds,
+  });
+
+  factory MentorStudentUpdateRequest.fromStudent(Student student) {
+    return MentorStudentUpdateRequest(
+      firstName: student.firstName,
+      lastName: student.lastName,
+      originCountryId: student.originCountryId,
+      birthYear: student.birthYear,
+      gender: student.gender,
+      courseIds: student.courseIds,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'first_name': firstName,
+      'last_name': lastName,
+      'origin_country_id': originCountryId,
+      'birth_year': birthYear,
+      'gender': gender,
+      'course_ids': courseIds,
+    };
+  }
+}
