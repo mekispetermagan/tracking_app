@@ -22,6 +22,7 @@ class _MentorAreaState extends State<MentorArea> {
   final _courseController = MentorCourseManagementController();
   final _studentController = MentorStudentManagementController();
   final _profileController = MentorProfileController();
+  final _sessionLogController = MentorSessionLogController();
 
   bool _showChangePin = false;
 
@@ -31,6 +32,7 @@ class _MentorAreaState extends State<MentorArea> {
     _courseController.dispose();
     _studentController.dispose();
     _profileController.dispose();
+    _sessionLogController.dispose();
     super.dispose();
   }
 
@@ -42,6 +44,7 @@ class _MentorAreaState extends State<MentorArea> {
         _courseController,
         _studentController,
         _profileController,
+        _sessionLogController,
       ]),
       builder: (_, _) => _buildArea(),
     );
@@ -90,11 +93,7 @@ class _MentorAreaState extends State<MentorArea> {
 
         MentorScreen.manageStudents => _buildStudentManagement(),
 
-        MentorScreen.sessionLog => PlaceholderTaskScreen(
-          title: 'Session log',
-          onHome: _goHome,
-          onLogout: _logout,
-        ),
+        MentorScreen.sessionLog => _buildSessionLogForm(),
 
         MentorScreen.uploadPhotos => PlaceholderTaskScreen(
           title: 'Upload photos',
@@ -241,6 +240,45 @@ class _MentorAreaState extends State<MentorArea> {
     };
   }
 
+  Widget _buildSessionLogForm() {
+    return MentorSessionLogFormScreen(
+      courses: _sessionLogController.courses,
+      students: _sessionLogController.students,
+      selectedCourseId: _sessionLogController.selectedCourseId,
+      selectedStudentIds: _sessionLogController.selectedStudentIds,
+      isLoading: _sessionLogController.isLoading,
+      isSaving: _sessionLogController.isSaving,
+      message: _sessionLogController.message,
+      clearMessage: _sessionLogController.clearMessage,
+      onCourseSelected: (courseId) {
+        return _sessionLogController.selectCourse(
+          accessToken: widget.accessToken,
+          courseId: courseId,
+        );
+      },
+      onToggleStudent: _sessionLogController.toggleStudent,
+      onSelectAllStudents: _sessionLogController.selectAllStudents,
+      onClearStudents: _sessionLogController.clearStudentSelection,
+      onSubmit: (request) {
+        return _sessionLogController.submit(
+          accessToken: widget.accessToken,
+          request: request,
+        );
+      },
+      onSubmitted: _finishSessionLogSubmission,
+      onCancel: _goHome,
+    );
+  }
+
+  void _finishSessionLogSubmission() {
+    _sessionLogController.reset();
+    _areaController.reset();
+
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(const SnackBar(content: Text('Session log submitted.')));
+  }
+
   String? get _profileCountryName {
     final countryId = _profileController.mentor?.countryId;
 
@@ -281,6 +319,10 @@ class _MentorAreaState extends State<MentorArea> {
     if (screen == MentorScreen.manageStudents) {
       _studentController.openList(accessToken: widget.accessToken);
     }
+
+    if (screen == MentorScreen.sessionLog) {
+      _sessionLogController.initialize(accessToken: widget.accessToken);
+    }
   }
 
   void _openProfile() {
@@ -297,6 +339,7 @@ class _MentorAreaState extends State<MentorArea> {
     _courseController.reset();
     _areaController.reset();
     _studentController.reset();
+    _sessionLogController.reset();
   }
 
   Future<void> _logout() async {
@@ -308,6 +351,7 @@ class _MentorAreaState extends State<MentorArea> {
     _courseController.reset();
     _areaController.reset();
     _studentController.reset();
+    _sessionLogController.reset();
 
     await widget.onLogout();
   }
