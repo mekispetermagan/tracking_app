@@ -1,11 +1,36 @@
 from __future__ import annotations
 
-from datetime import UTC, datetime, time
-
-from sqlalchemy import Boolean, CheckConstraint, DateTime, ForeignKey, Integer, String, Time
+from datetime import UTC, date, datetime, time
+from enum import Enum
+from sqlalchemy import (
+    Boolean,
+    CheckConstraint,
+    Date,
+    DateTime,
+    Enum as SqlEnum,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+    Time,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from database import Base
+
+
+class ProjectType(str, Enum):
+    SCRATCH = "scratch"
+    ROBOTICS = "robotics"
+    APP_INVENTOR = "app_inventor"
+    WEB_DEVELOPMENT = "web_development"
+    OTHER = "other"
+
+
+class CompletionStatus(str, Enum):
+    COMPLETED = "completed"
+    PARTLY_COMPLETED = "partly_completed"
+    NOT_COMPLETED = "not_completed"
 
 
 class Country(Base):
@@ -65,6 +90,9 @@ class MentorProfile(Base):
         secondary="mentor_courses",
         back_populates="mentors",
     )
+    session_logs: Mapped[list[SessionLog]] = relationship(
+        back_populates="mentor_profile",
+    )
 
 
 class AdminProfile(Base):
@@ -111,6 +139,11 @@ class Student(Base):
         back_populates="students",
     )
 
+    session_logs: Mapped[list[SessionLog]] = relationship(
+        secondary="session_log_students",
+        back_populates="students",
+    )
+
 
 class Course(Base):
     __tablename__ = "courses"
@@ -138,7 +171,7 @@ class Course(Base):
 
     day_of_week: Mapped[int] = mapped_column(Integer, nullable=False)
     start_time: Mapped[time] = mapped_column(Time, nullable=False)
-    
+
     #0: Monday 6: Sunday
     mentors: Mapped[list[MentorProfile]] = relationship(
         secondary="mentor_courses",
@@ -147,6 +180,10 @@ class Course(Base):
     students: Mapped[list[Student]] = relationship(
         secondary="student_courses",
         back_populates="courses",
+    )
+
+    session_logs: Mapped[list[SessionLog]] = relationship(
+        back_populates="course",
     )
 
 
@@ -173,4 +210,105 @@ class StudentCourse(Base):
     course_id: Mapped[int] = mapped_column(
         ForeignKey("courses.id"),
         primary_key=True,
+    )
+
+
+class SessionLogStudent(Base):
+    __tablename__ = "session_log_students"
+
+    session_log_id: Mapped[int] = mapped_column(
+        ForeignKey("session_logs.id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+    student_id: Mapped[int] = mapped_column(
+        ForeignKey("students.id"),
+        primary_key=True,
+    )
+
+
+class SessionLog(Base):
+    __tablename__ = "session_logs"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+
+    mentor_profile_id: Mapped[int] = mapped_column(
+        ForeignKey("mentor_profiles.id"),
+        nullable=False,
+    )
+    course_id: Mapped[int] = mapped_column(
+        ForeignKey("courses.id"),
+        nullable=False,
+    )
+
+    date: Mapped[date] = mapped_column(
+        Date,
+        default=date.today,
+        nullable=False,
+    )
+
+    project_title: Mapped[str] = mapped_column(
+        String(100),
+        nullable=False,
+    )
+    project_type: Mapped[ProjectType] = mapped_column(
+        SqlEnum(
+            ProjectType,
+            name="project_types",
+            native_enum=False,
+            create_constraint=True,
+            validate_strings=True,
+            values_callable=lambda enum: [item.value for item in enum],
+        ),
+        nullable=False,
+    )
+    other_project_type: Mapped[str | None] = mapped_column(
+        String(100),
+        nullable=True,
+    )
+
+    games_played: Mapped[str | None] = mapped_column(
+        Text,
+        nullable=True,
+    )
+
+    completion_status: Mapped[CompletionStatus] = mapped_column(
+        SqlEnum(
+            CompletionStatus,
+            name="completion_statuses",
+            native_enum=False,
+            create_constraint=True,
+            validate_strings=True,
+            values_callable=lambda enum: [item.value for item in enum],
+        ),
+        nullable=False,
+    )
+
+    what_worked: Mapped[str | None] = mapped_column(
+        Text,
+        nullable=True,
+    )
+    challenges: Mapped[str | None] = mapped_column(
+        Text,
+        nullable=True,
+    )
+    next_step: Mapped[str | None] = mapped_column(
+        Text,
+        nullable=True,
+    )
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(UTC),
+        nullable=False,
+    )
+
+    mentor_profile: Mapped[MentorProfile] = relationship(
+        back_populates="session_logs",
+    )
+    course: Mapped[Course] = relationship(
+        back_populates="session_logs",
+    )
+    students: Mapped[list[Student]] = relationship(
+        secondary="session_log_students",
+        back_populates="session_logs",
     )

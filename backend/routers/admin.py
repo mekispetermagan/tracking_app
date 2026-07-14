@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from config import settings
 from dependencies import AdminAuth, get_current_admin
-from models import Account, Course, MentorProfile
+from models import Account, Course, MentorProfile, SessionLog
 from routers._management import (
     course_to_out,
     ensure_country_exists,
@@ -23,6 +23,9 @@ from schemas.management import (
     MentorUpdateRequest,
 )
 from security import hash_secret
+
+from routers._session_logs import session_log_to_out
+from schemas.session_logs import SessionLogOut
 
 router = APIRouter()
 
@@ -228,3 +231,24 @@ def deactivate_course(
     db.refresh(course)
 
     return course_to_out(course)
+
+@router.get(
+    "/session-logs",
+    response_model=list[SessionLogOut],
+)
+def get_session_logs(
+    auth: AdminAuth = Depends(get_current_admin),
+):
+    session_logs = (
+        auth.db.query(SessionLog)
+        .order_by(
+            SessionLog.date.desc(),
+            SessionLog.id.desc(),
+        )
+        .all()
+    )
+
+    return [
+        session_log_to_out(session_log)
+        for session_log in session_logs
+    ]
