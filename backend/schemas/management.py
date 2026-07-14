@@ -112,3 +112,7 @@ class StudentUpdateRequest(BaseModel):
     gender: Gender | None = None
     active: bool | None = None
     course_ids: list[int] | None = None
+
+class MentorChangePinRequest(BaseModel):
+    current_pin: str = Field(min_length=6, max_length=64)
+    new_pin: str = Field(min_length=6, max_length=64)

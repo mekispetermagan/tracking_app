@@ -121,15 +121,11 @@ class MentorSelfUpdateRequest {
   final String firstName;
   final String lastName;
   final String phone;
-  final int? countryId;
-  final String preferredLanguage;
 
   const MentorSelfUpdateRequest({
     required this.firstName,
     required this.lastName,
     required this.phone,
-    required this.countryId,
-    required this.preferredLanguage,
   });
 
   factory MentorSelfUpdateRequest.fromMentor(Mentor mentor) {
@@ -137,22 +133,15 @@ class MentorSelfUpdateRequest {
       firstName: mentor.firstName,
       lastName: mentor.lastName,
       phone: mentor.phone,
-      countryId: mentor.countryId,
-      preferredLanguage: mentor.preferredLanguage,
     );
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'first_name': firstName,
-      'last_name': lastName,
-      'phone': phone,
-      'country_id': countryId,
-      'preferred_language': preferredLanguage,
-    };
+    return {'first_name': firstName, 'last_name': lastName, 'phone': phone};
   }
 }
 
+// admin
 class MentorResetPinRequest {
   final String temporaryPin;
 
@@ -160,5 +149,20 @@ class MentorResetPinRequest {
 
   Map<String, dynamic> toJson() {
     return {'temporary_pin': temporaryPin};
+  }
+}
+
+// mentor
+class MentorChangePinRequest {
+  final String currentPin;
+  final String newPin;
+
+  const MentorChangePinRequest({
+    required this.currentPin,
+    required this.newPin,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {'current_pin': currentPin, 'new_pin': newPin};
   }
 }

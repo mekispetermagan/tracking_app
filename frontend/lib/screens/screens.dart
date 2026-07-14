@@ -6,6 +6,8 @@ export 'mentor_login_screen.dart';
 export 'mentor_setup_pin_screen.dart';
 export 'admin_setup_password_screen.dart';
 export 'mentor_menu_screen.dart';
+export 'mentor_profile_screen.dart';
+export 'mentor_change_pin_screen.dart';
 export 'mentor_course_management_screen.dart';
 export 'mentor_course_form_screen.dart';
 export 'admin_mentor_management_screen.dart';

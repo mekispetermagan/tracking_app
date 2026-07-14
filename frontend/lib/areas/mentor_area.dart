@@ -20,18 +20,26 @@ class MentorArea extends StatefulWidget {
 class _MentorAreaState extends State<MentorArea> {
   final _areaController = MentorAreaController();
   final _courseController = MentorCourseManagementController();
+  final _profileController = MentorProfileController();
+
+  bool _showChangePin = false;
 
   @override
   void dispose() {
     _areaController.dispose();
     _courseController.dispose();
+    _profileController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
-      listenable: Listenable.merge([_areaController, _courseController]),
+      listenable: Listenable.merge([
+        _areaController,
+        _courseController,
+        _profileController,
+      ]),
       builder: (_, _) => _buildArea(),
     );
   }
@@ -41,6 +49,14 @@ class _MentorAreaState extends State<MentorArea> {
       canPop: _areaController.screen == MentorScreen.menu,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) {
+          return;
+        }
+
+        if (_areaController.screen == MentorScreen.myProfile &&
+            _showChangePin) {
+          setState(() {
+            _showChangePin = false;
+          });
           return;
         }
 
@@ -59,11 +75,7 @@ class _MentorAreaState extends State<MentorArea> {
           onLogout: _logout,
         ),
 
-        MentorScreen.myProfile => PlaceholderTaskScreen(
-          title: 'My profile',
-          onHome: _goHome,
-          onLogout: _logout,
-        ),
+        MentorScreen.myProfile => _buildProfile(),
 
         MentorScreen.manageCourses => _buildCourseManagement(),
 
@@ -97,6 +109,51 @@ class _MentorAreaState extends State<MentorArea> {
           onLogout: _logout,
         ),
       },
+    );
+  }
+
+  Widget _buildProfile() {
+    if (_showChangePin) {
+      return MentorChangePinScreen(
+        isChangingPin: _profileController.isChangingPin,
+        message: _profileController.message,
+        clearMessage: _profileController.clearMessage,
+        onChangePin: (request) {
+          return _profileController.changePin(
+            accessToken: widget.accessToken,
+            request: request,
+          );
+        },
+        onCancel: () {
+          setState(() {
+            _showChangePin = false;
+          });
+        },
+      );
+    }
+
+    return MentorProfileScreen(
+      mentor: _profileController.mentor,
+      countryName: _profileCountryName,
+      courseNames: _profileCourseNames,
+      isLoading: _profileController.isLoading,
+      isSaving: _profileController.isSaving,
+      message: _profileController.message,
+      clearMessage: _profileController.clearMessage,
+      onSave: (request) {
+        return _profileController.updateProfile(
+          accessToken: widget.accessToken,
+          request: request,
+        );
+      },
+      onChangePin: () {
+        setState(() {
+          _showChangePin = true;
+        });
+      },
+      onReload: _openProfile,
+      onHome: _goHome,
+      onLogout: _logout,
     );
   }
 
@@ -135,22 +192,68 @@ class _MentorAreaState extends State<MentorArea> {
     };
   }
 
+  String? get _profileCountryName {
+    final countryId = _profileController.mentor?.countryId;
+
+    if (countryId == null) {
+      return null;
+    }
+
+    return 'ID $countryId';
+  }
+
+  List<String> get _profileCourseNames {
+    final mentor = _profileController.mentor;
+
+    if (mentor == null) {
+      return const [];
+    }
+
+    final namesById = {
+      for (final course in _courseController.courses) course.id: course.name,
+    };
+
+    return mentor.courseIds
+        .map((courseId) => namesById[courseId] ?? 'Course #$courseId')
+        .toList();
+  }
+
   void _selectScreen(MentorScreen screen) {
     _areaController.select(screen);
+
+    if (screen == MentorScreen.myProfile) {
+      _openProfile();
+    }
 
     if (screen == MentorScreen.manageCourses) {
       _courseController.openList(accessToken: widget.accessToken);
     }
   }
 
+  void _openProfile() {
+    _profileController.loadProfile(accessToken: widget.accessToken);
+    _courseController.openList(accessToken: widget.accessToken);
+  }
+
   void _goHome() {
+    setState(() {
+      _showChangePin = false;
+    });
+
+    _profileController.reset();
     _courseController.reset();
     _areaController.reset();
   }
 
   Future<void> _logout() async {
+    setState(() {
+      _showChangePin = false;
+    });
+
+    _profileController.reset();
     _courseController.reset();
     _areaController.reset();
+
     await widget.onLogout();
   }
 }
