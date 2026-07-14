@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/models.dart';
+import '../validation/credential_validation.dart' show isValidPhone;
 
 class MentorProfileScreen extends StatefulWidget {
   final Mentor? mentor;
@@ -143,7 +144,7 @@ class _MentorProfileScreenState extends State<MentorProfileScreen> {
             enabled: !widget.isSaving,
             keyboardType: TextInputType.phone,
             textInputAction: TextInputAction.done,
-            validator: _required,
+            validator: _phoneValidator,
           ),
           const SizedBox(height: 32),
 
@@ -220,6 +221,20 @@ class _MentorProfileScreenState extends State<MentorProfileScreen> {
   String? _required(String? value) {
     if (value == null || value.trim().isEmpty) {
       return 'Required';
+    }
+
+    return null;
+  }
+
+  String? _phoneValidator(String? value) {
+    final phone = value?.trim() ?? '';
+
+    if (phone.isEmpty) {
+      return 'Required';
+    }
+
+    if (!isValidPhone(phone)) {
+      return 'Enter 10 digits starting with 0';
     }
 
     return null;

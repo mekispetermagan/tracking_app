@@ -1,5 +1,9 @@
 import 'package:flutter/foundation.dart';
+import 'package:frontend/validation/credential_validation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../validation/credential_validation.dart'
+    show isValidPhone, isValidPassword;
 
 class AdminLoginController extends ChangeNotifier {
   static const _lastPhoneKey = 'admin_last_phone';
@@ -12,10 +16,9 @@ class AdminLoginController extends ChangeNotifier {
   String get password => _password;
   int get phoneFieldVersion => _phoneFieldVersion;
 
-  bool get phoneIsValid =>
-      _phone.length == 10 && _phone.startsWith('0') && _digitsOnly(_phone);
+  bool get phoneIsValid => isValidPhone(_phone);
 
-  bool get passwordIsValid => _password.isNotEmpty;
+  bool get passwordIsValid => isValidPassword(_password);
 
   bool get canSubmit => phoneIsValid && passwordIsValid;
 
@@ -78,9 +81,5 @@ class AdminLoginController extends ChangeNotifier {
   static String _normalizeDigits(String value, {required int maxLength}) {
     final digits = value.replaceAll(RegExp(r'\D'), '');
     return digits.length <= maxLength ? digits : digits.substring(0, maxLength);
-  }
-
-  static bool _digitsOnly(String value) {
-    return RegExp(r'^\d+$').hasMatch(value);
   }
 }

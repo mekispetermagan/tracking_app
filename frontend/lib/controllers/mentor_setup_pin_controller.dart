@@ -1,5 +1,7 @@
 import 'package:flutter/foundation.dart';
 
+import '../validation/credential_validation.dart' show isValidPin;
+
 class MentorSetupPinController extends ChangeNotifier {
   String _pin = '';
   String _confirmPin = '';
@@ -7,8 +9,8 @@ class MentorSetupPinController extends ChangeNotifier {
   String get pin => _pin;
   String get confirmPin => _confirmPin;
 
-  bool get pinIsValid => _isSixDigits(_pin);
-  bool get confirmPinIsValid => _isSixDigits(_confirmPin);
+  bool get pinIsValid => isValidPin(_pin);
+  bool get confirmPinIsValid => isValidPin(_confirmPin);
   bool get pinsMatch => _pin == _confirmPin;
 
   bool get canSubmit => pinIsValid && confirmPinIsValid && pinsMatch;
@@ -40,9 +42,5 @@ class MentorSetupPinController extends ChangeNotifier {
   static String _normalizePin(String value) {
     final digits = value.replaceAll(RegExp(r'\D'), '');
     return digits.length <= 6 ? digits : digits.substring(0, 6);
-  }
-
-  static bool _isSixDigits(String value) {
-    return RegExp(r'^\d{6}$').hasMatch(value);
   }
 }

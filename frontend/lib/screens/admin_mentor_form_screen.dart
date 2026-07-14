@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/models.dart';
+import '../validation/credential_validation.dart' show isValidPhone, isValidPin;
 
 class AdminMentorFormScreen extends StatefulWidget {
   final Mentor? mentor;
@@ -120,7 +121,7 @@ class _AdminMentorFormScreenState extends State<AdminMentorFormScreen> {
                 controller: _phoneController,
                 keyboardType: TextInputType.phone,
                 textInputAction: TextInputAction.next,
-                validator: _required,
+                validator: _phoneValidator,
               ),
               const SizedBox(height: 20),
 
@@ -266,19 +267,29 @@ class _AdminMentorFormScreenState extends State<AdminMentorFormScreen> {
     return null;
   }
 
-  String? _temporaryPinValidator(String? value) {
-    final text = value?.trim() ?? '';
+  String? _phoneValidator(String? value) {
+    final phone = value?.trim() ?? '';
 
-    if (text.isEmpty) {
+    if (phone.isEmpty) {
       return 'Required';
     }
 
-    if (text.length < 6) {
-      return 'At least 6 characters';
+    if (!isValidPhone(phone)) {
+      return '10 digits starting with 0';
     }
 
-    if (text.length > 64) {
-      return 'Maximum 64 characters';
+    return null;
+  }
+
+  String? _temporaryPinValidator(String? value) {
+    final pin = value?.trim() ?? '';
+
+    if (pin.isEmpty) {
+      return 'Required';
+    }
+
+    if (!isValidPin(pin)) {
+      return 'Enter exactly 6 digits';
     }
 
     return null;

@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:frontend/validation/credential_validation.dart';
 
 class AdminSetupPasswordController extends ChangeNotifier {
   String _password = '';
@@ -7,8 +8,8 @@ class AdminSetupPasswordController extends ChangeNotifier {
   String get password => _password;
   String get confirmPassword => _confirmPassword;
 
-  bool get passwordIsValid => _password.length >= 6;
-  bool get confirmPasswordIsValid => _confirmPassword.length >= 6;
+  bool get passwordIsValid => isValidPassword(_password);
+  bool get confirmPasswordIsValid => isValidPassword(_confirmPassword);
   bool get passwordsMatch => _password == _confirmPassword;
 
   bool get canSubmit =>

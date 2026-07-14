@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/models.dart';
+import '../validation/credential_validation.dart' show isValidPin;
 
 class AdminMentorResetPinScreen extends StatefulWidget {
   final Mentor? mentor;
@@ -102,18 +103,14 @@ class _AdminMentorResetPinScreenState extends State<AdminMentorResetPinScreen> {
   }
 
   String? _temporaryPinValidator(String? value) {
-    final text = value?.trim() ?? '';
+    final pin = value?.trim() ?? '';
 
-    if (text.isEmpty) {
+    if (pin.isEmpty) {
       return 'Required';
     }
 
-    if (text.length < 6) {
-      return 'At least 6 characters';
-    }
-
-    if (text.length > 64) {
-      return 'Maximum 64 characters';
+    if (!isValidPin(pin)) {
+      return 'Enter exactly 6 digits';
     }
 
     return null;

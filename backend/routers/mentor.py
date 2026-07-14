@@ -38,13 +38,6 @@ def update_my_mentor_profile(
         ensure_phone_available(db, data.phone, current_account_id=account.id)
         account.phone = data.phone
 
-    if data.country_id is not None:
-        ensure_country_exists(db, data.country_id)
-        account.country_id = data.country_id
-
-    if data.preferred_language is not None:
-        account.preferred_language = data.preferred_language
-
     db.commit()
     db.refresh(auth.profile)
 

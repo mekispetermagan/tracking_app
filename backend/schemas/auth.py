@@ -1,24 +1,26 @@
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
+
+from schemas._validation import Password, Phone, Pin
 
 
 class MentorLoginRequest(BaseModel):
-    phone: str
-    pin: str = Field(min_length=6, max_length=6, pattern=r"^\d{6}$")
+    phone: Phone
+    pin: Pin
 
 
 class AdminLoginRequest(BaseModel):
-    phone: str
-    password: str = Field(min_length=6)
+    phone: Phone
+    password: Password
 
 
 class ChangeMentorPinRequest(BaseModel):
-    new_pin: str = Field(min_length=6, max_length=6, pattern=r"^\d{6}$")
+    new_pin: Pin
 
 
 class ChangeAdminPasswordRequest(BaseModel):
-    new_password: str = Field(min_length=6)
+    new_password: Password
 
 
 class AuthResponse(BaseModel):

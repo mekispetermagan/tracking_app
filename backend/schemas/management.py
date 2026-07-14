@@ -2,6 +2,7 @@ from typing import Literal
 from datetime import time
 from pydantic import BaseModel, Field
 
+from schemas._validation import Phone, Pin
 
 Gender = Literal["M", "F", "N"]
 
@@ -43,10 +44,10 @@ class StudentOut(BaseModel):
 class MentorCreateRequest(BaseModel):
     first_name: str
     last_name: str
-    phone: str
+    phone: Phone
     country_id: int | None = None
     preferred_language: str = Field(default="en", min_length=2, max_length=2)
-    temporary_pin: str = Field(min_length=6, max_length=64)
+    temporary_pin: Pin
     active: bool = True
     course_ids: list[int] = Field(default_factory=list)
 
@@ -54,24 +55,30 @@ class MentorCreateRequest(BaseModel):
 class MentorUpdateRequest(BaseModel):
     first_name: str | None = None
     last_name: str | None = None
-    phone: str | None = None
+    phone: Phone | None = None
     country_id: int | None = None
-    preferred_language: str | None = Field(default=None, min_length=2, max_length=2)
+    preferred_language: str | None = Field(
+        default=None,
+        min_length=2,
+        max_length=2,
+    )
     active: bool | None = None
     course_ids: list[int] | None = None
 
 
 class MentorResetPinRequest(BaseModel):
-    temporary_pin: str = Field(min_length=6, max_length=64)
+    temporary_pin: Pin
 
 
 class MentorSelfUpdateRequest(BaseModel):
     first_name: str | None = None
     last_name: str | None = None
-    phone: str | None = None
-    country_id: int | None = None
-    preferred_language: str | None = Field(default=None, min_length=2, max_length=2)
+    phone: Phone | None = None
 
+
+class MentorChangePinRequest(BaseModel):
+    current_pin: Pin
+    new_pin: Pin
 
 class CourseUpdateRequest(BaseModel):
     name: str | None = None
@@ -112,7 +119,3 @@ class StudentUpdateRequest(BaseModel):
     gender: Gender | None = None
     active: bool | None = None
     course_ids: list[int] | None = None
-
-class MentorChangePinRequest(BaseModel):
-    current_pin: str = Field(min_length=6, max_length=64)
-    new_pin: str = Field(min_length=6, max_length=64)
