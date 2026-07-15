@@ -5,6 +5,7 @@ enum AdminScreen {
   manageMentors,
   manageCourses,
   manageStudents,
+  viewSessionLogs,
   trackStudents,
   reportsData,
 }
@@ -13,10 +14,7 @@ class AdminMenuItem {
   final AdminScreen screen;
   final String label;
 
-  const AdminMenuItem({
-    required this.screen,
-    required this.label,
-  });
+  const AdminMenuItem({required this.screen, required this.label});
 }
 
 class AdminAreaController extends ChangeNotifier {
@@ -25,27 +23,16 @@ class AdminAreaController extends ChangeNotifier {
   AdminScreen get screen => _screen;
 
   List<AdminMenuItem> get menuItems => const [
-        AdminMenuItem(
-          screen: AdminScreen.manageMentors,
-          label: 'Manage mentors',
-        ),
-        AdminMenuItem(
-          screen: AdminScreen.manageCourses,
-          label: 'Manage courses',
-        ),
-        AdminMenuItem(
-          screen: AdminScreen.manageStudents,
-          label: 'Manage students',
-        ),
-        AdminMenuItem(
-          screen: AdminScreen.trackStudents,
-          label: 'Track students',
-        ),
-        AdminMenuItem(
-          screen: AdminScreen.reportsData,
-          label: 'Reports & data',
-        ),
-      ];
+    AdminMenuItem(screen: AdminScreen.manageMentors, label: 'Manage mentors'),
+    AdminMenuItem(screen: AdminScreen.manageCourses, label: 'Manage courses'),
+    AdminMenuItem(screen: AdminScreen.manageStudents, label: 'Manage students'),
+    AdminMenuItem(
+      screen: AdminScreen.viewSessionLogs,
+      label: 'View session logs',
+    ),
+    AdminMenuItem(screen: AdminScreen.trackStudents, label: 'Track students'),
+    AdminMenuItem(screen: AdminScreen.reportsData, label: 'Reports & data'),
+  ];
 
   void select(AdminScreen screen) {
     if (_screen == screen) return;

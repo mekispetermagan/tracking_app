@@ -23,6 +23,7 @@ class _MentorAreaState extends State<MentorArea> {
   final _studentController = MentorStudentManagementController();
   final _profileController = MentorProfileController();
   final _sessionLogController = MentorSessionLogController();
+  final _viewSessionLogsController = MentorViewSessionLogsController();
 
   bool _showChangePin = false;
 
@@ -33,6 +34,7 @@ class _MentorAreaState extends State<MentorArea> {
     _studentController.dispose();
     _profileController.dispose();
     _sessionLogController.dispose();
+    _viewSessionLogsController.dispose();
     super.dispose();
   }
 
@@ -45,6 +47,7 @@ class _MentorAreaState extends State<MentorArea> {
         _studentController,
         _profileController,
         _sessionLogController,
+        _viewSessionLogsController,
       ]),
       builder: (_, _) => _buildArea(),
     );
@@ -78,6 +81,13 @@ class _MentorAreaState extends State<MentorArea> {
           return;
         }
 
+        if (_areaController.screen == MentorScreen.viewSessionLogs &&
+            _viewSessionLogsController.view ==
+                MentorViewSessionLogsView.detail) {
+          _viewSessionLogsController.closeDetail();
+          return;
+        }
+
         _goHome();
       },
       child: switch (_areaController.screen) {
@@ -93,7 +103,9 @@ class _MentorAreaState extends State<MentorArea> {
 
         MentorScreen.manageStudents => _buildStudentManagement(),
 
-        MentorScreen.sessionLog => _buildSessionLogForm(),
+        MentorScreen.submitSessionLog => _buildSessionLogForm(),
+
+        MentorScreen.viewSessionLogs => _buildViewSessionLogsArea(),
 
         MentorScreen.uploadPhotos => PlaceholderTaskScreen(
           title: 'Upload photos',
@@ -270,6 +282,44 @@ class _MentorAreaState extends State<MentorArea> {
     );
   }
 
+  Widget _buildViewSessionLogsArea() {
+    final selectedSessionLog = _viewSessionLogsController.selectedSessionLog;
+
+    return switch (_viewSessionLogsController.view) {
+      MentorViewSessionLogsView.list => MentorViewSessionLogsScreen(
+        sessionLogs: _viewSessionLogsController.visibleSessionLogs,
+        courses: _viewSessionLogsController.filterCourses,
+        selectedSessionLogId: _viewSessionLogsController.selectedSessionLogId,
+        courseIdFilter: _viewSessionLogsController.courseIdFilter,
+        projectTypeFilter: _viewSessionLogsController.projectTypeFilter,
+        canView: _viewSessionLogsController.canView,
+        isLoading: _viewSessionLogsController.isLoading,
+        message: _viewSessionLogsController.message,
+        courseNameFor: _viewSessionLogsController.courseNameFor,
+        clearMessage: _viewSessionLogsController.clearMessage,
+        onCourseFilterChanged: _viewSessionLogsController.setCourseIdFilter,
+        onProjectTypeFilterChanged:
+            _viewSessionLogsController.setProjectTypeFilter,
+        onClearFilters: _viewSessionLogsController.clearFilters,
+        onSelectSessionLog: _viewSessionLogsController.selectSessionLog,
+        onView: _viewSessionLogsController.openSelectedSessionLog,
+        onHome: _goHome,
+        onLogout: _logout,
+      ),
+
+      MentorViewSessionLogsView.detail => MentorViewSessionLogScreen(
+        sessionLog: selectedSessionLog!,
+        courseName: _viewSessionLogsController.courseNameFor(
+          selectedSessionLog,
+        ),
+        studentNames: _viewSessionLogsController.studentNamesFor(
+          selectedSessionLog,
+        ),
+        onBack: _viewSessionLogsController.closeDetail,
+      ),
+    };
+  }
+
   void _finishSessionLogSubmission() {
     _sessionLogController.reset();
     _areaController.reset();
@@ -320,8 +370,12 @@ class _MentorAreaState extends State<MentorArea> {
       _studentController.openList(accessToken: widget.accessToken);
     }
 
-    if (screen == MentorScreen.sessionLog) {
+    if (screen == MentorScreen.submitSessionLog) {
       _sessionLogController.initialize(accessToken: widget.accessToken);
+    }
+
+    if (screen == MentorScreen.viewSessionLogs) {
+      _viewSessionLogsController.openList(accessToken: widget.accessToken);
     }
   }
 
@@ -340,6 +394,7 @@ class _MentorAreaState extends State<MentorArea> {
     _areaController.reset();
     _studentController.reset();
     _sessionLogController.reset();
+    _viewSessionLogsController.reset();
   }
 
   Future<void> _logout() async {
@@ -352,6 +407,7 @@ class _MentorAreaState extends State<MentorArea> {
     _areaController.reset();
     _studentController.reset();
     _sessionLogController.reset();
+    _viewSessionLogsController.reset();
 
     await widget.onLogout();
   }

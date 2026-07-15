@@ -23,6 +23,7 @@ class _AdminAreaState extends State<AdminArea> {
   final _mentorManagementController = AdminMentorManagementController();
   final _courseManagementController = AdminCourseManagementController();
   final _studentManagementController = AdminStudentManagementController();
+  final _viewSessionLogsController = AdminViewSessionLogsController();
 
   @override
   void dispose() {
@@ -30,6 +31,7 @@ class _AdminAreaState extends State<AdminArea> {
     _mentorManagementController.dispose();
     _courseManagementController.dispose();
     _studentManagementController.dispose();
+    _viewSessionLogsController.dispose();
     super.dispose();
   }
 
@@ -41,6 +43,7 @@ class _AdminAreaState extends State<AdminArea> {
         _mentorManagementController,
         _courseManagementController,
         _studentManagementController,
+        _viewSessionLogsController,
       ]),
       builder: (_, _) => _buildArea(),
     );
@@ -75,8 +78,14 @@ class _AdminAreaState extends State<AdminArea> {
           return;
         }
 
+        if (_areaController.screen == AdminScreen.viewSessionLogs &&
+            _viewSessionLogsController.view == AdminSessionLogView.detail) {
+          _viewSessionLogsController.closeDetail();
+          return;
+        }
+
         if (_areaController.screen != AdminScreen.menu) {
-          _areaController.reset();
+          _returnToMenu();
         }
       },
       child: switch (_areaController.screen) {
@@ -91,6 +100,8 @@ class _AdminAreaState extends State<AdminArea> {
         AdminScreen.manageCourses => _buildCourseManagementArea(),
 
         AdminScreen.manageStudents => _buildStudentManagementArea(),
+
+        AdminScreen.viewSessionLogs => _buildViewSessionLogsArea(),
 
         AdminScreen.trackStudents => PlaceholderTaskScreen(
           title: 'Track students',
@@ -261,6 +272,51 @@ class _AdminAreaState extends State<AdminArea> {
     };
   }
 
+  Widget _buildViewSessionLogsArea() {
+    final selectedSessionLog = _viewSessionLogsController.selectedSessionLog;
+
+    return switch (_viewSessionLogsController.view) {
+      AdminSessionLogView.list => AdminViewSessionLogsScreen(
+        sessionLogs: _viewSessionLogsController.visibleSessionLogs,
+        courses: _viewSessionLogsController.filterCourses,
+        mentors: _viewSessionLogsController.filterMentors,
+        selectedSessionLogId: _viewSessionLogsController.selectedSessionLogId,
+        courseIdFilter: _viewSessionLogsController.courseIdFilter,
+        mentorIdFilter: _viewSessionLogsController.mentorIdFilter,
+        projectTypeFilter: _viewSessionLogsController.projectTypeFilter,
+        canView: _viewSessionLogsController.canView,
+        isLoading: _viewSessionLogsController.isLoading,
+        message: _viewSessionLogsController.message,
+        courseNameFor: _viewSessionLogsController.courseNameFor,
+        mentorNameFor: _viewSessionLogsController.mentorNameFor,
+        clearMessage: _viewSessionLogsController.clearMessage,
+        onCourseFilterChanged: _viewSessionLogsController.setCourseIdFilter,
+        onMentorFilterChanged: _viewSessionLogsController.setMentorIdFilter,
+        onProjectTypeFilterChanged:
+            _viewSessionLogsController.setProjectTypeFilter,
+        onClearFilters: _viewSessionLogsController.clearFilters,
+        onSelectSessionLog: _viewSessionLogsController.selectSessionLog,
+        onView: _viewSessionLogsController.openSelectedSessionLog,
+        onHome: _returnToMenu,
+        onLogout: widget.onLogout,
+      ),
+
+      AdminSessionLogView.detail => AdminViewSessionLogScreen(
+        sessionLog: selectedSessionLog!,
+        courseName: _viewSessionLogsController.courseNameFor(
+          selectedSessionLog,
+        ),
+        mentorName: _viewSessionLogsController.mentorNameFor(
+          selectedSessionLog,
+        ),
+        studentNames: _viewSessionLogsController.studentNamesFor(
+          selectedSessionLog,
+        ),
+        onBack: _viewSessionLogsController.closeDetail,
+      ),
+    };
+  }
+
   Future<void> _selectScreen(AdminScreen screen) async {
     _areaController.select(screen);
 
@@ -278,6 +334,12 @@ class _AdminAreaState extends State<AdminArea> {
 
     if (screen == AdminScreen.manageStudents) {
       await _studentManagementController.openList(
+        accessToken: widget.accessToken,
+      );
+    }
+
+    if (screen == AdminScreen.viewSessionLogs) {
+      await _viewSessionLogsController.openList(
         accessToken: widget.accessToken,
       );
     }
@@ -405,6 +467,7 @@ class _AdminAreaState extends State<AdminArea> {
     _mentorManagementController.cancelTaskScreen();
     _courseManagementController.cancelTaskScreen();
     _studentManagementController.cancelTaskScreen();
+    _viewSessionLogsController.reset();
     _areaController.reset();
   }
 }
