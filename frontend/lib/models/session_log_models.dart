@@ -34,7 +34,7 @@ enum CompletionStatus {
 
 class SessionLog {
   final int id;
-  final int mentorProfileId;
+  final int submittedByMentorProfileId;
   final int courseId;
   final DateTime date;
   final String projectTitle;
@@ -45,12 +45,14 @@ class SessionLog {
   final String? whatWorked;
   final String? challenges;
   final String? nextStep;
+  final List<int> teachingMentorIds;
+  final List<int> supportingMentorIds;
   final List<int> studentIds;
   final DateTime createdAt;
 
   const SessionLog({
     required this.id,
-    required this.mentorProfileId,
+    required this.submittedByMentorProfileId,
     required this.courseId,
     required this.date,
     required this.projectTitle,
@@ -61,6 +63,8 @@ class SessionLog {
     required this.whatWorked,
     required this.challenges,
     required this.nextStep,
+    required this.teachingMentorIds,
+    required this.supportingMentorIds,
     required this.studentIds,
     required this.createdAt,
   });
@@ -68,7 +72,7 @@ class SessionLog {
   factory SessionLog.fromJson(Map<String, dynamic> json) {
     return SessionLog(
       id: json['id'] as int,
-      mentorProfileId: json['mentor_profile_id'] as int,
+      submittedByMentorProfileId: json['submitted_by_mentor_profile_id'] as int,
       courseId: json['course_id'] as int,
       date: DateTime.parse(json['date'] as String),
       projectTitle: json['project_title'] as String,
@@ -81,6 +85,10 @@ class SessionLog {
       whatWorked: json['what_worked'] as String?,
       challenges: json['challenges'] as String?,
       nextStep: json['next_step'] as String?,
+      teachingMentorIds: List<int>.from(json['teaching_mentor_ids'] as List),
+      supportingMentorIds: List<int>.from(
+        json['supporting_mentor_ids'] as List,
+      ),
       studentIds: List<int>.from(json['student_ids'] as List),
       createdAt: DateTime.parse(json['created_at'] as String),
     );
@@ -98,6 +106,8 @@ class SessionLogCreateRequest {
   final String? whatWorked;
   final String? challenges;
   final String? nextStep;
+  final List<int> teachingMentorIds;
+  final List<int> supportingMentorIds;
   final List<int> studentIds;
 
   const SessionLogCreateRequest({
@@ -106,7 +116,9 @@ class SessionLogCreateRequest {
     required this.projectTitle,
     required this.projectType,
     required this.completionStatus,
+    required this.teachingMentorIds,
     required this.studentIds,
+    this.supportingMentorIds = const [],
     this.otherProjectType,
     this.gamesPlayed,
     this.whatWorked,
@@ -126,6 +138,8 @@ class SessionLogCreateRequest {
       'what_worked': whatWorked,
       'challenges': challenges,
       'next_step': nextStep,
+      'teaching_mentor_ids': teachingMentorIds,
+      'supporting_mentor_ids': supportingMentorIds,
       'student_ids': studentIds,
     };
   }

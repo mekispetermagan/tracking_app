@@ -9,18 +9,22 @@ class MentorViewSessionLogsController extends ChangeNotifier {
   final MentorSessionLogApi _sessionLogApi;
   final SharedCourseApi _courseApi;
   final SharedStudentApi _studentApi;
+  final SharedCourseMentorsApi _mentorApi;
 
   MentorViewSessionLogsController({
     MentorSessionLogApi? sessionLogApi,
     SharedCourseApi? courseApi,
     SharedStudentApi? studentApi,
+    SharedCourseMentorsApi? mentorApi,
   }) : _sessionLogApi = sessionLogApi ?? MentorSessionLogApi(),
        _courseApi = courseApi ?? SharedCourseApi(),
-       _studentApi = studentApi ?? SharedStudentApi();
+       _studentApi = studentApi ?? SharedStudentApi(),
+       _mentorApi = mentorApi ?? SharedCourseMentorsApi();
 
   List<SessionLog> _sessionLogs = [];
   List<Course> _courses = [];
   List<Student> _students = [];
+  List<SharedMentor> _mentors = [];
 
   MentorViewSessionLogsView _view = MentorViewSessionLogsView.list;
 
@@ -95,6 +99,18 @@ class MentorViewSessionLogsController extends ChangeNotifier {
     return 'Course #${sessionLog.courseId}';
   }
 
+  String submittedByMentorNameFor(SessionLog sessionLog) {
+    return _mentorNameForId(sessionLog.submittedByMentorProfileId);
+  }
+
+  List<String> teachingMentorNamesFor(SessionLog sessionLog) {
+    return _mentorNamesForIds(sessionLog.teachingMentorIds);
+  }
+
+  List<String> supportingMentorNamesFor(SessionLog sessionLog) {
+    return _mentorNamesForIds(sessionLog.supportingMentorIds);
+  }
+
   List<String> studentNamesFor(SessionLog sessionLog) {
     final studentsById = {for (final student in _students) student.id: student};
 
@@ -105,11 +121,11 @@ class MentorViewSessionLogsController extends ChangeNotifier {
         return 'Student #$studentId';
       }
 
-      return '${student.firstName} ${student.lastName}';
+      return '${student.firstName} '
+          '${student.lastName}';
     }).toList();
 
     names.sort();
-
     return names;
   }
 
@@ -119,6 +135,7 @@ class MentorViewSessionLogsController extends ChangeNotifier {
     _sessionLogs = [];
     _courses = [];
     _students = [];
+    _mentors = [];
     _isLoading = true;
     _message = null;
     notifyListeners();
@@ -170,6 +187,33 @@ class MentorViewSessionLogsController extends ChangeNotifier {
     }
 
     _students = studentResult.students!;
+
+    final mentorsById = <int, SharedMentor>{};
+    final courseIds = {
+      for (final sessionLog in _sessionLogs) sessionLog.courseId,
+    };
+
+    for (final courseId in courseIds) {
+      final mentorResult = await _mentorApi.fetchCourseMentors(
+        accessToken: accessToken,
+        courseId: courseId,
+      );
+
+      if (mentorResult.mentors == null) {
+        _finishLoading(
+          mentorResult.message ??
+              _messageForMentorFailure(mentorResult.failure),
+        );
+        return;
+      }
+
+      for (final mentor in mentorResult.mentors!) {
+        mentorsById[mentor.id] = mentor;
+      }
+    }
+
+    _mentors = mentorsById.values.toList()
+      ..sort((a, b) => a.fullName.compareTo(b.fullName));
 
     _finishLoading(null);
   }
@@ -244,6 +288,7 @@ class MentorViewSessionLogsController extends ChangeNotifier {
     _sessionLogs = [];
     _courses = [];
     _students = [];
+    _mentors = [];
     _view = MentorViewSessionLogsView.list;
     _selectedSessionLogId = null;
     _courseIdFilter = null;
@@ -251,6 +296,23 @@ class MentorViewSessionLogsController extends ChangeNotifier {
     _isLoading = false;
     _message = null;
     notifyListeners();
+  }
+
+  String _mentorNameForId(int mentorId) {
+    for (final mentor in _mentors) {
+      if (mentor.id == mentorId) {
+        return mentor.fullName;
+      }
+    }
+
+    return 'Mentor #$mentorId';
+  }
+
+  List<String> _mentorNamesForIds(List<int> mentorIds) {
+    final names = mentorIds.map(_mentorNameForId).toList();
+
+    names.sort();
+    return names;
   }
 
   void _clearSelectionIfHidden() {
@@ -310,6 +372,18 @@ class MentorViewSessionLogsController extends ChangeNotifier {
       SharedStudentFailure.conflict => 'Student conflict.',
       SharedStudentFailure.serverError => 'Server error.',
       SharedStudentFailure.networkError => 'Cannot connect to server.',
+      null => 'Unknown error.',
+    };
+  }
+
+  String _messageForMentorFailure(SharedCourseMentorsFailure? failure) {
+    return switch (failure) {
+      SharedCourseMentorsFailure.badRequest => 'Invalid mentor request.',
+      SharedCourseMentorsFailure.unauthorized => 'Login expired.',
+      SharedCourseMentorsFailure.forbidden => 'Mentor access denied.',
+      SharedCourseMentorsFailure.notFound => 'Course not found.',
+      SharedCourseMentorsFailure.serverError => 'Server error.',
+      SharedCourseMentorsFailure.networkError => 'Cannot connect to server.',
       null => 'Unknown error.',
     };
   }

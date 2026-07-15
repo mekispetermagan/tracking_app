@@ -5,143 +5,114 @@ import '../models/models.dart';
 class SessionLogViewer extends StatelessWidget {
   final SessionLog sessionLog;
   final String courseName;
-  final String? mentorName;
+  final String submittedByMentorName;
+  final List<String> teachingMentorNames;
+  final List<String> supportingMentorNames;
   final List<String> studentNames;
 
   const SessionLogViewer({
     required this.sessionLog,
     required this.courseName,
+    required this.submittedByMentorName,
+    required this.teachingMentorNames,
+    required this.supportingMentorNames,
     required this.studentNames,
-    this.mentorName,
     super.key,
   });
 
   @override
   Widget build(BuildContext context) {
+    final projectType = sessionLog.projectType == ProjectType.other
+        ? sessionLog.otherProjectType ?? 'Other'
+        : sessionLog.projectType.label;
+
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _section(
-          context,
+        Text(
+          sessionLog.projectTitle,
+          style: Theme.of(context).textTheme.headlineSmall,
+        ),
+        const SizedBox(height: 24),
+
+        _Section(
           title: 'Session',
           children: [
-            _valueRow('Course', courseName),
-            _valueRow('Date', _formatDate(sessionLog.date)),
-            if (mentorName != null) _valueRow('Mentor', mentorName!),
+            _Field(label: 'Course', value: courseName),
+            _Field(label: 'Date', value: _formatDate(sessionLog.date)),
+            _Field(label: 'Project type', value: projectType),
+            _Field(
+              label: 'Completion',
+              value: sessionLog.completionStatus.label,
+            ),
+            _Field(label: 'Submitted by', value: submittedByMentorName),
           ],
         ),
-        const SizedBox(height: 24),
-        _section(
-          context,
-          title: 'Project',
+        const SizedBox(height: 16),
+
+        _Section(
+          title: 'Mentors',
           children: [
-            _valueRow('Project', sessionLog.projectTitle),
-            _valueRow(
-              'Type',
-              sessionLog.projectType == ProjectType.other
-                  ? sessionLog.otherProjectType ?? 'Other'
-                  : sessionLog.projectType.label,
+            _Field(
+              label: 'Teaching',
+              value: teachingMentorNames.isEmpty
+                  ? 'None'
+                  : teachingMentorNames.join(', '),
             ),
-            _valueRow('Completion', sessionLog.completionStatus.label),
-            if (_hasText(sessionLog.gamesPlayed))
-              _valueRow('Skill-building games', sessionLog.gamesPlayed!),
+            _Field(
+              label: 'Supporting',
+              value: supportingMentorNames.isEmpty
+                  ? 'None'
+                  : supportingMentorNames.join(', '),
+            ),
           ],
         ),
-        const SizedBox(height: 24),
-        _buildAttendance(context),
-        if (_hasAnyNotes) ...[
-          const SizedBox(height: 24),
-          _section(
-            context,
-            title: 'Outcome and notes',
-            children: [
-              if (_hasText(sessionLog.whatWorked))
-                _textBlock(context, 'What worked', sessionLog.whatWorked!),
-              if (_hasText(sessionLog.challenges))
-                _textBlock(context, 'Challenges', sessionLog.challenges!),
-              if (_hasText(sessionLog.nextStep))
-                _textBlock(context, 'Next step', sessionLog.nextStep!),
-            ],
+        const SizedBox(height: 16),
+
+        _Section(
+          title: 'Students (${studentNames.length})',
+          children: [
+            Text(studentNames.isEmpty ? 'None' : studentNames.join('\n')),
+          ],
+        ),
+
+        if (_hasText(sessionLog.gamesPlayed)) ...[
+          const SizedBox(height: 16),
+          _Section(
+            title: 'Skill-building games',
+            children: [Text(sessionLog.gamesPlayed!)],
           ),
         ],
-      ],
-    );
-  }
 
-  Widget _buildAttendance(BuildContext context) {
-    return _section(
-      context,
-      title: 'Attendance (${studentNames.length})',
-      children: [
-        if (studentNames.isEmpty)
-          const Text('No students recorded.')
-        else
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: studentNames
-                .map((name) => Chip(label: Text(name)))
-                .toList(),
-          ),
-      ],
-    );
-  }
-
-  Widget _section(
-    BuildContext context, {
-    required String title,
-    required List<Widget> children,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(title, style: Theme.of(context).textTheme.titleLarge),
-        const SizedBox(height: 12),
-        ...children,
-      ],
-    );
-  }
-
-  Widget _valueRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 150,
-            child: Text(
-              label,
-              style: const TextStyle(fontWeight: FontWeight.w600),
+        const SizedBox(height: 16),
+        _Section(
+          title: 'Outcome and notes',
+          children: [
+            _Field(
+              label: 'What worked?',
+              value: _textOrDash(sessionLog.whatWorked),
             ),
-          ),
-          Expanded(child: Text(value)),
-        ],
-      ),
+            _Field(
+              label: 'Challenges',
+              value: _textOrDash(sessionLog.challenges),
+            ),
+            _Field(label: 'Next step', value: _textOrDash(sessionLog.nextStep)),
+          ],
+        ),
+      ],
     );
   }
-
-  Widget _textBlock(BuildContext context, String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 18),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(label, style: Theme.of(context).textTheme.titleSmall),
-          const SizedBox(height: 6),
-          Text(value),
-        ],
-      ),
-    );
-  }
-
-  bool get _hasAnyNotes =>
-      _hasText(sessionLog.whatWorked) ||
-      _hasText(sessionLog.challenges) ||
-      _hasText(sessionLog.nextStep);
 
   bool _hasText(String? value) {
     return value != null && value.trim().isNotEmpty;
+  }
+
+  String _textOrDash(String? value) {
+    if (!_hasText(value)) {
+      return '—';
+    }
+
+    return value!.trim();
   }
 
   String _formatDate(DateTime date) {
@@ -149,5 +120,52 @@ class SessionLogViewer extends StatelessWidget {
     final month = date.month.toString().padLeft(2, '0');
 
     return '$day-$month-${date.year}';
+  }
+}
+
+class _Section extends StatelessWidget {
+  final String title;
+  final List<Widget> children;
+
+  const _Section({required this.title, required this.children});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(title, style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 12),
+            ...children,
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _Field extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const _Field({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: Theme.of(context).textTheme.labelLarge),
+          const SizedBox(height: 2),
+          Text(value),
+        ],
+      ),
+    );
   }
 }

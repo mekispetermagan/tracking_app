@@ -16,6 +16,8 @@ class MentorViewSessionLogsScreen extends StatelessWidget {
 
   final String Function(SessionLog sessionLog) courseNameFor;
 
+  final List<String> Function(SessionLog sessionLog) teachingMentorNamesFor;
+
   final VoidCallback clearMessage;
   final ValueChanged<int?> onCourseFilterChanged;
   final ValueChanged<ProjectType?> onProjectTypeFilterChanged;
@@ -35,6 +37,7 @@ class MentorViewSessionLogsScreen extends StatelessWidget {
     required this.isLoading,
     required this.message,
     required this.courseNameFor,
+    required this.teachingMentorNamesFor,
     required this.clearMessage,
     required this.onCourseFilterChanged,
     required this.onProjectTypeFilterChanged,
@@ -173,6 +176,8 @@ class MentorViewSessionLogsScreen extends StatelessWidget {
         final sessionLog = sessionLogs[index];
         final selected = sessionLog.id == selectedSessionLogId;
 
+        final teachingNames = teachingMentorNamesFor(sessionLog);
+
         return Card(
           clipBehavior: Clip.antiAlias,
           child: InkWell(
@@ -185,14 +190,28 @@ class MentorViewSessionLogsScreen extends StatelessWidget {
                     : Icons.radio_button_unchecked,
               ),
               title: Text(sessionLog.projectTitle),
-              subtitle: Text(
-                '${_formatDate(sessionLog.date)}\n'
-                '${courseNameFor(sessionLog)}\n'
-                '${sessionLog.projectType.label} · '
-                '${sessionLog.completionStatus.label}',
+              subtitle: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${_formatDate(sessionLog.date)} · '
+                    '${courseNameFor(sessionLog)}',
+                  ),
+                  Text(
+                    'Teaching: '
+                    '${teachingNames.join(', ')}',
+                  ),
+                  Text(
+                    '${sessionLog.projectType.label} · '
+                    '${sessionLog.completionStatus.label}',
+                  ),
+                ],
               ),
-              isThreeLine: true,
-              trailing: Text('${sessionLog.studentIds.length} students'),
+              trailing: Text(
+                '${sessionLog.studentIds.length}\n'
+                'students',
+                textAlign: TextAlign.center,
+              ),
             ),
           ),
         );

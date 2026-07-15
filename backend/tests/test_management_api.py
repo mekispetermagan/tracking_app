@@ -1,4 +1,4 @@
-from datetime import UTC, datetime, time, timedelta
+from datetime import UTC, date, datetime, time, timedelta
 
 import pytest
 from fastapi.testclient import TestClient
@@ -10,8 +10,19 @@ from sqlalchemy.pool import StaticPool
 from config import settings
 from database import Base, get_db
 from main import app
-from models import Account, AdminProfile, Country, Course, MentorProfile, Student
-
+from models import (
+    Account,
+    AdminProfile,
+    CompletionStatus,
+    Country,
+    Course,
+    MentorProfile,
+    ProjectType,
+    SessionLog,
+    SessionLogMentor,
+    SessionLogMentorRole,
+    Student,
+)
 
 @pytest.fixture()
 def db_session():
@@ -865,3 +876,250 @@ def test_mentor_can_edit_visible_student_details(client, seeded):
         seeded["hillside"].id,
         seeded["cdi"].id,
     }
+
+def test_mentor_gets_mentors_for_assigned_course(
+    client,
+    seeded,
+):
+    response = client.get(
+        (
+            "/api/shared/mentors"
+            f"?course_id={seeded['hillside'].id}"
+        ),
+        headers=auth_header(seeded["abdallah_token"]),
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+    mentors_by_id = {
+        mentor["id"]: mentor
+        for mentor in data
+    }
+
+    assert set(mentors_by_id) == {
+        seeded["abdallah"].id,
+        seeded["margret"].id,
+    }
+
+    assert mentors_by_id[seeded["abdallah"].id] == {
+        "id": seeded["abdallah"].id,
+        "first_name": "Abdallah",
+        "last_name": "Kiggundu",
+        "active": True,
+        "assigned_to_course": True,
+    }
+
+    assert mentors_by_id[seeded["margret"].id] == {
+        "id": seeded["margret"].id,
+        "first_name": "Margret",
+        "last_name": "Nakalema",
+        "active": True,
+        "assigned_to_course": True,
+    }
+
+
+def test_shared_mentor_response_excludes_private_fields(
+    client,
+    seeded,
+):
+    response = client.get(
+        (
+            "/api/shared/mentors"
+            f"?course_id={seeded['hillside'].id}"
+        ),
+        headers=auth_header(seeded["abdallah_token"]),
+    )
+
+    assert response.status_code == 200
+
+    for mentor in response.json():
+        assert set(mentor) == {
+            "id",
+            "first_name",
+            "last_name",
+            "active",
+            "assigned_to_course",
+        }
+
+        assert "phone" not in mentor
+        assert "account_id" not in mentor
+        assert "course_ids" not in mentor
+
+
+def test_mentor_cannot_get_mentors_for_unavailable_course(
+    client,
+    seeded,
+):
+    response = client.get(
+        (
+            "/api/shared/mentors"
+            f"?course_id={seeded['margret_only'].id}"
+        ),
+        headers=auth_header(seeded["abdallah_token"]),
+    )
+
+    assert response.status_code == 403
+    assert response.json()["detail"] == (
+        "Course not available"
+    )
+
+
+def test_admin_gets_mentors_for_any_course(
+    client,
+    seeded,
+):
+    response = client.get(
+        (
+            "/api/shared/mentors"
+            f"?course_id={seeded['margret_only'].id}"
+        ),
+        headers=auth_header(seeded["admin_token"]),
+    )
+
+    assert response.status_code == 200
+
+    assert response.json() == [
+        {
+            "id": seeded["margret"].id,
+            "first_name": "Margret",
+            "last_name": "Nakalema",
+            "active": True,
+            "assigned_to_course": True,
+        },
+    ]
+
+
+def test_inactive_assigned_mentor_is_listed(
+    client,
+    seeded,
+    db_session,
+):
+    account = Account(
+        first_name="Inactive",
+        last_name="Mentor",
+        phone="0700000001",
+        country_id=seeded["uganda"].id,
+        preferred_language="en",
+    )
+    db_session.add(account)
+    db_session.flush()
+
+    mentor = MentorProfile(
+        account_id=account.id,
+        pin_hash="test",
+        must_change_pin=False,
+        active=False,
+    )
+
+    seeded["hillside"].mentors.append(mentor)
+
+    db_session.add(mentor)
+    db_session.commit()
+
+    response = client.get(
+        (
+            "/api/shared/mentors"
+            f"?course_id={seeded['hillside'].id}"
+        ),
+        headers=auth_header(seeded["abdallah_token"]),
+    )
+
+    assert response.status_code == 200
+
+    inactive = next(
+        item
+        for item in response.json()
+        if item["id"] == mentor.id
+    )
+
+    assert inactive == {
+        "id": mentor.id,
+        "first_name": "Inactive",
+        "last_name": "Mentor",
+        "active": False,
+        "assigned_to_course": True,
+    }
+
+
+def test_historical_mentor_remains_visible_after_unassignment(
+    client,
+    seeded,
+    db_session,
+):
+    account = Account(
+        first_name="Former",
+        last_name="Mentor",
+        phone="0700000002",
+        country_id=seeded["uganda"].id,
+        preferred_language="en",
+    )
+    db_session.add(account)
+    db_session.flush()
+
+    former_mentor = MentorProfile(
+        account_id=account.id,
+        pin_hash="test",
+        must_change_pin=False,
+        active=True,
+    )
+    db_session.add(former_mentor)
+    db_session.flush()
+
+    session_log = SessionLog(
+        submitted_by=former_mentor,
+        course=seeded["hillside"],
+        date=date(2026, 7, 1),
+        project_title="Historical project",
+        project_type=ProjectType.SCRATCH,
+        completion_status=CompletionStatus.COMPLETED,
+        mentor_participations=[
+            SessionLogMentor(
+                mentor=former_mentor,
+                role=SessionLogMentorRole.TEACHING,
+            ),
+        ],
+        students=[seeded["students"][0]],
+    )
+
+    db_session.add(session_log)
+    db_session.commit()
+
+    assert former_mentor not in seeded["hillside"].mentors
+
+    response = client.get(
+        (
+            "/api/shared/mentors"
+            f"?course_id={seeded['hillside'].id}"
+        ),
+        headers=auth_header(seeded["abdallah_token"]),
+    )
+
+    assert response.status_code == 200
+
+    historical = next(
+        item
+        for item in response.json()
+        if item["id"] == former_mentor.id
+    )
+
+    assert historical == {
+        "id": former_mentor.id,
+        "first_name": "Former",
+        "last_name": "Mentor",
+        "active": True,
+        "assigned_to_course": False,
+    }
+
+
+def test_get_course_mentors_returns_not_found(
+    client,
+    seeded,
+):
+    response = client.get(
+        "/api/shared/mentors?course_id=999999",
+        headers=auth_header(seeded["abdallah_token"]),
+    )
+
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Course not found"

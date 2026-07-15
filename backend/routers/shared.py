@@ -26,6 +26,7 @@ from routers._management import (
 from schemas.management import (
     CourseOut,
     CourseUpdateRequest,
+    SharedMentorOut,
     StudentCreateRequest,
     StudentOut,
     StudentUpdateRequest,
@@ -87,6 +88,81 @@ def get_current_actor(
         return Actor(role="mentor", account=account, profile=profile, db=db)
 
     raise HTTPException(status_code=403, detail="Access token required")
+
+
+@router.get(
+    "/mentors",
+    response_model=list[SharedMentorOut],
+)
+def get_course_mentors(
+    course_id: int,
+    actor: Actor = Depends(get_current_actor),
+):
+    course = actor.db.get(Course, course_id)
+
+    if not course:
+        raise HTTPException(
+            status_code=404,
+            detail="Course not found",
+        )
+
+    if (
+        actor.role == "mentor"
+        and not course_visible_to_mentor(
+            course,
+            actor.profile,
+        )
+    ):
+        raise HTTPException(
+            status_code=403,
+            detail="Course not available",
+        )
+
+    assigned_mentor_ids = {
+        mentor.id
+        for mentor in course.mentors
+    }
+
+    mentors_by_id = {
+        mentor.id: mentor
+        for mentor in course.mentors
+    }
+
+    for session_log in course.session_logs:
+        mentors_by_id[
+            session_log.submitted_by.id
+        ] = session_log.submitted_by
+
+        for participation in (
+            session_log.mentor_participations
+        ):
+            mentors_by_id[
+                participation.mentor.id
+            ] = participation.mentor
+
+    mentors = sorted(
+        mentors_by_id.values(),
+        key=lambda mentor: (
+            mentor.account.first_name,
+            mentor.account.last_name,
+        ),
+    )
+
+    return [
+        SharedMentorOut(
+            id=mentor.id,
+            first_name=mentor.account.first_name,
+            last_name=mentor.account.last_name,
+            active=(
+                mentor.active
+                and mentor.account.active
+            ),
+            assigned_to_course=(
+                mentor.id in assigned_mentor_ids
+            ),
+        )
+        for mentor in mentors
+    ]
 
 
 @router.get("/courses", response_model=list[CourseOut])

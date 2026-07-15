@@ -33,15 +33,24 @@ class CompletionStatus(str, Enum):
     NOT_COMPLETED = "not_completed"
 
 
+class SessionLogMentorRole(str, Enum):
+    TEACHING = "teaching"
+    SUPPORTING = "supporting"
+
+
 class Country(Base):
     __tablename__ = "countries"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
+
     code: Mapped[str] = mapped_column(String(10), unique=True, nullable=False)
+
     name: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
 
     accounts: Mapped[list[Account]] = relationship(back_populates="country")
+
     students: Mapped[list[Student]] = relationship(back_populates="origin_country")
+
     courses: Mapped[list[Course]] = relationship(back_populates="country")
 
 
@@ -49,17 +58,21 @@ class Account(Base):
     __tablename__ = "accounts"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
+
     phone: Mapped[str] = mapped_column(String(32), unique=True, index=True, nullable=False)
 
     first_name: Mapped[str] = mapped_column(String(50), nullable=False)
+
     last_name: Mapped[str] = mapped_column(String(50), nullable=False)
 
     country_id: Mapped[int | None] = mapped_column(ForeignKey("countries.id"), nullable=True)
+
     country: Mapped[Country | None] = relationship(back_populates="accounts")
 
     preferred_language: Mapped[str] = mapped_column(String(2), default="en", nullable=False)
 
     active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(UTC),
@@ -67,6 +80,7 @@ class Account(Base):
     )
 
     mentor_profile: Mapped[MentorProfile | None] = relationship(back_populates="account")
+
     admin_profile: Mapped[AdminProfile | None] = relationship(back_populates="account")
 
 
@@ -74,24 +88,35 @@ class MentorProfile(Base):
     __tablename__ = "mentor_profiles"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
+
     account_id: Mapped[int] = mapped_column(ForeignKey("accounts.id"), unique=True, nullable=False)
 
     pin_hash: Mapped[str] = mapped_column(String(255), nullable=False)
+
     must_change_pin: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+
     temporary_pin_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     failed_attempts: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+
     locked_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
     account: Mapped[Account] = relationship(back_populates="mentor_profile")
+
     courses: Mapped[list[Course]] = relationship(
         secondary="mentor_courses",
         back_populates="mentors",
     )
-    session_logs: Mapped[list[SessionLog]] = relationship(
-        back_populates="mentor_profile",
+
+    submitted_session_logs: Mapped[list[SessionLog]] = relationship(
+        back_populates="submitted_by",
+        foreign_keys="SessionLog.submitted_by_mentor_profile_id",
+    )
+
+    session_log_participations: Mapped[list[SessionLogMentor]] = relationship(
+        back_populates="mentor",
     )
 
 
@@ -99,13 +124,17 @@ class AdminProfile(Base):
     __tablename__ = "admin_profiles"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
+
     account_id: Mapped[int] = mapped_column(ForeignKey("accounts.id"), unique=True, nullable=False)
 
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
+
     must_change_password: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+
     temporary_password_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     failed_attempts: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+
     locked_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
@@ -119,15 +148,19 @@ class Student(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
 
     first_name: Mapped[str] = mapped_column(String(50), nullable=False)
+
     last_name: Mapped[str] = mapped_column(String(50), nullable=False)
 
     origin_country_id: Mapped[int | None] = mapped_column(ForeignKey("countries.id"), nullable=True)
+
     origin_country: Mapped[Country | None] = relationship(back_populates="students")
 
     birth_year: Mapped[int | None] = mapped_column(Integer, nullable=True)
+
     gender: Mapped[str | None] = mapped_column(String(1), nullable=True)
 
     active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(UTC),
@@ -177,6 +210,7 @@ class Course(Base):
         secondary="mentor_courses",
         back_populates="courses",
     )
+
     students: Mapped[list[Student]] = relationship(
         secondary="student_courses",
         back_populates="courses",
@@ -194,6 +228,7 @@ class MentorCourse(Base):
         ForeignKey("mentor_profiles.id"),
         primary_key=True,
     )
+
     course_id: Mapped[int] = mapped_column(
         ForeignKey("courses.id"),
         primary_key=True,
@@ -207,6 +242,7 @@ class StudentCourse(Base):
         ForeignKey("students.id"),
         primary_key=True,
     )
+
     course_id: Mapped[int] = mapped_column(
         ForeignKey("courses.id"),
         primary_key=True,
@@ -220,9 +256,46 @@ class SessionLogStudent(Base):
         ForeignKey("session_logs.id", ondelete="CASCADE"),
         primary_key=True,
     )
+
     student_id: Mapped[int] = mapped_column(
         ForeignKey("students.id"),
         primary_key=True,
+    )
+
+
+class SessionLogMentor(Base):
+    __tablename__ = "session_log_mentors"
+
+    session_log_id: Mapped[int] = mapped_column(
+        ForeignKey("session_logs.id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+
+    mentor_profile_id: Mapped[int] = mapped_column(
+        ForeignKey("mentor_profiles.id"),
+        primary_key=True,
+    )
+
+    role: Mapped[SessionLogMentorRole] = mapped_column(
+        SqlEnum(
+            SessionLogMentorRole,
+            name="session_log_mentor_roles",
+            native_enum=False,
+            create_constraint=True,
+            validate_strings=True,
+            values_callable=lambda enum: [
+                item.value for item in enum
+            ],
+        ),
+        nullable=False,
+    )
+
+    session_log: Mapped[SessionLog] = relationship(
+        back_populates="mentor_participations",
+    )
+
+    mentor: Mapped[MentorProfile] = relationship(
+        back_populates="session_log_participations",
     )
 
 
@@ -231,10 +304,11 @@ class SessionLog(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
 
-    mentor_profile_id: Mapped[int] = mapped_column(
+    submitted_by_mentor_profile_id: Mapped[int] = mapped_column(
         ForeignKey("mentor_profiles.id"),
         nullable=False,
     )
+
     course_id: Mapped[int] = mapped_column(
         ForeignKey("courses.id"),
         nullable=False,
@@ -250,6 +324,7 @@ class SessionLog(Base):
         String(100),
         nullable=False,
     )
+
     project_type: Mapped[ProjectType] = mapped_column(
         SqlEnum(
             ProjectType,
@@ -287,10 +362,12 @@ class SessionLog(Base):
         Text,
         nullable=True,
     )
+
     challenges: Mapped[str | None] = mapped_column(
         Text,
         nullable=True,
     )
+
     next_step: Mapped[str | None] = mapped_column(
         Text,
         nullable=True,
@@ -302,12 +379,20 @@ class SessionLog(Base):
         nullable=False,
     )
 
-    mentor_profile: Mapped[MentorProfile] = relationship(
-        back_populates="session_logs",
+    submitted_by: Mapped[MentorProfile] = relationship(
+        back_populates="submitted_session_logs",
+        foreign_keys=[submitted_by_mentor_profile_id],
     )
+
+    mentor_participations: Mapped[list[SessionLogMentor]] = relationship(
+        back_populates="session_log",
+        cascade="all, delete-orphan",
+    )
+
     course: Mapped[Course] = relationship(
         back_populates="session_logs",
     )
+
     students: Mapped[list[Student]] = relationship(
         secondary="session_log_students",
         back_populates="session_logs",

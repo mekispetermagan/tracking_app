@@ -17,7 +17,8 @@ class AdminViewSessionLogsScreen extends StatelessWidget {
   final String? message;
 
   final String Function(SessionLog sessionLog) courseNameFor;
-  final String Function(SessionLog sessionLog) mentorNameFor;
+
+  final List<String> Function(SessionLog sessionLog) teachingMentorNamesFor;
 
   final VoidCallback clearMessage;
   final ValueChanged<int?> onCourseFilterChanged;
@@ -41,7 +42,7 @@ class AdminViewSessionLogsScreen extends StatelessWidget {
     required this.isLoading,
     required this.message,
     required this.courseNameFor,
-    required this.mentorNameFor,
+    required this.teachingMentorNamesFor,
     required this.clearMessage,
     required this.onCourseFilterChanged,
     required this.onMentorFilterChanged,
@@ -85,7 +86,7 @@ class AdminViewSessionLogsScreen extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
-            _buildFilters(context),
+            _buildFilters(),
             const Divider(height: 1),
             Expanded(child: _buildList()),
           ],
@@ -104,7 +105,7 @@ class AdminViewSessionLogsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildFilters(BuildContext context) {
+  Widget _buildFilters() {
     final filtersActive =
         courseIdFilter != null ||
         mentorIdFilter != null ||
@@ -136,7 +137,9 @@ class AdminViewSessionLogsScreen extends StatelessWidget {
           DropdownButtonFormField<int?>(
             key: ValueKey(('mentor', mentorIdFilter)),
             initialValue: mentorIdFilter,
-            decoration: const InputDecoration(labelText: 'Mentor'),
+            decoration: const InputDecoration(
+              labelText: 'Participating mentor',
+            ),
             items: [
               const DropdownMenuItem<int?>(
                 value: null,
@@ -145,7 +148,10 @@ class AdminViewSessionLogsScreen extends StatelessWidget {
               ...mentors.map(
                 (mentor) => DropdownMenuItem<int?>(
                   value: mentor.id,
-                  child: Text('${mentor.firstName} ${mentor.lastName}'),
+                  child: Text(
+                    '${mentor.firstName} '
+                    '${mentor.lastName}',
+                  ),
                 ),
               ),
             ],
@@ -203,6 +209,8 @@ class AdminViewSessionLogsScreen extends StatelessWidget {
         final sessionLog = sessionLogs[index];
         final selected = sessionLog.id == selectedSessionLogId;
 
+        final teachingNames = teachingMentorNamesFor(sessionLog);
+
         return Card(
           clipBehavior: Clip.antiAlias,
           child: InkWell(
@@ -215,15 +223,28 @@ class AdminViewSessionLogsScreen extends StatelessWidget {
                     : Icons.radio_button_unchecked,
               ),
               title: Text(sessionLog.projectTitle),
-              subtitle: Text(
-                '${_formatDate(sessionLog.date)}\n'
-                '${courseNameFor(sessionLog)} · '
-                '${mentorNameFor(sessionLog)}\n'
-                '${sessionLog.projectType.label} · '
-                '${sessionLog.completionStatus.label}',
+              subtitle: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${_formatDate(sessionLog.date)} · '
+                    '${courseNameFor(sessionLog)}',
+                  ),
+                  Text(
+                    'Teaching: '
+                    '${teachingNames.join(', ')}',
+                  ),
+                  Text(
+                    '${sessionLog.projectType.label} · '
+                    '${sessionLog.completionStatus.label}',
+                  ),
+                ],
               ),
-              isThreeLine: true,
-              trailing: Text('${sessionLog.studentIds.length} students'),
+              trailing: Text(
+                '${sessionLog.studentIds.length}\n'
+                'students',
+                textAlign: TextAlign.center,
+              ),
             ),
           ),
         );

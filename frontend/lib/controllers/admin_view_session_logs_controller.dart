@@ -56,9 +56,14 @@ class AdminViewSessionLogsController extends ChangeNotifier {
       final courseMatches =
           _courseIdFilter == null || sessionLog.courseId == _courseIdFilter;
 
+      final participantMentorIds = {
+        ...sessionLog.teachingMentorIds,
+        ...sessionLog.supportingMentorIds,
+      };
+
       final mentorMatches =
           _mentorIdFilter == null ||
-          sessionLog.mentorProfileId == _mentorIdFilter;
+          participantMentorIds.contains(_mentorIdFilter);
 
       final projectTypeMatches =
           _projectTypeFilter == null ||
@@ -78,13 +83,17 @@ class AdminViewSessionLogsController extends ChangeNotifier {
         .toList();
 
     result.sort((a, b) => a.name.compareTo(b.name));
+
     return result;
   }
 
   List<Mentor> get filterMentors {
-    final usedMentorIds = {
-      for (final sessionLog in _sessionLogs) sessionLog.mentorProfileId,
-    };
+    final usedMentorIds = <int>{};
+
+    for (final sessionLog in _sessionLogs) {
+      usedMentorIds.addAll(sessionLog.teachingMentorIds);
+      usedMentorIds.addAll(sessionLog.supportingMentorIds);
+    }
 
     final result = _mentors
         .where((mentor) => usedMentorIds.contains(mentor.id))
@@ -131,14 +140,20 @@ class AdminViewSessionLogsController extends ChangeNotifier {
     return 'Course #${sessionLog.courseId}';
   }
 
-  String mentorNameFor(SessionLog sessionLog) {
-    for (final mentor in _mentors) {
-      if (mentor.id == sessionLog.mentorProfileId) {
-        return '${mentor.firstName} ${mentor.lastName}';
-      }
-    }
+  String submittedByMentorNameFor(SessionLog sessionLog) {
+    return _mentorNameForId(sessionLog.submittedByMentorProfileId);
+  }
 
-    return 'Mentor #${sessionLog.mentorProfileId}';
+  String mentorNameFor(SessionLog sessionLog) {
+    return submittedByMentorNameFor(sessionLog);
+  }
+
+  List<String> teachingMentorNamesFor(SessionLog sessionLog) {
+    return _mentorNamesForIds(sessionLog.teachingMentorIds);
+  }
+
+  List<String> supportingMentorNamesFor(SessionLog sessionLog) {
+    return _mentorNamesForIds(sessionLog.supportingMentorIds);
   }
 
   List<String> studentNamesFor(SessionLog sessionLog) {
@@ -151,7 +166,8 @@ class AdminViewSessionLogsController extends ChangeNotifier {
         return 'Student #$studentId';
       }
 
-      return '${student.firstName} ${student.lastName}';
+      return '${student.firstName} '
+          '${student.lastName}';
     }).toList();
 
     names.sort();
@@ -326,6 +342,24 @@ class AdminViewSessionLogsController extends ChangeNotifier {
     _isLoading = false;
     _message = null;
     notifyListeners();
+  }
+
+  String _mentorNameForId(int mentorId) {
+    for (final mentor in _mentors) {
+      if (mentor.id == mentorId) {
+        return '${mentor.firstName} '
+            '${mentor.lastName}';
+      }
+    }
+
+    return 'Mentor #$mentorId';
+  }
+
+  List<String> _mentorNamesForIds(List<int> mentorIds) {
+    final names = mentorIds.map(_mentorNameForId).toList();
+
+    names.sort();
+    return names;
   }
 
   void _clearSelectionIfHidden() {

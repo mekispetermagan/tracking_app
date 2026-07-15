@@ -288,7 +288,8 @@ class _AdminAreaState extends State<AdminArea> {
         isLoading: _viewSessionLogsController.isLoading,
         message: _viewSessionLogsController.message,
         courseNameFor: _viewSessionLogsController.courseNameFor,
-        mentorNameFor: _viewSessionLogsController.mentorNameFor,
+        teachingMentorNamesFor:
+            _viewSessionLogsController.teachingMentorNamesFor,
         clearMessage: _viewSessionLogsController.clearMessage,
         onCourseFilterChanged: _viewSessionLogsController.setCourseIdFilter,
         onMentorFilterChanged: _viewSessionLogsController.setMentorIdFilter,
@@ -306,9 +307,13 @@ class _AdminAreaState extends State<AdminArea> {
         courseName: _viewSessionLogsController.courseNameFor(
           selectedSessionLog,
         ),
-        mentorName: _viewSessionLogsController.mentorNameFor(
+        submittedByMentorName: _viewSessionLogsController
+            .submittedByMentorNameFor(selectedSessionLog),
+        teachingMentorNames: _viewSessionLogsController.teachingMentorNamesFor(
           selectedSessionLog,
         ),
+        supportingMentorNames: _viewSessionLogsController
+            .supportingMentorNamesFor(selectedSessionLog),
         studentNames: _viewSessionLogsController.studentNamesFor(
           selectedSessionLog,
         ),

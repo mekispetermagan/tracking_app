@@ -256,8 +256,13 @@ class _MentorAreaState extends State<MentorArea> {
     return MentorSessionLogFormScreen(
       courses: _sessionLogController.courses,
       students: _sessionLogController.students,
+      mentors: _sessionLogController.mentors,
       selectedCourseId: _sessionLogController.selectedCourseId,
       selectedStudentIds: _sessionLogController.selectedStudentIds,
+      selectedTeachingMentorIds:
+          _sessionLogController.selectedTeachingMentorIds,
+      selectedSupportingMentorIds:
+          _sessionLogController.selectedSupportingMentorIds,
       isLoading: _sessionLogController.isLoading,
       isSaving: _sessionLogController.isSaving,
       message: _sessionLogController.message,
@@ -271,6 +276,9 @@ class _MentorAreaState extends State<MentorArea> {
       onToggleStudent: _sessionLogController.toggleStudent,
       onSelectAllStudents: _sessionLogController.selectAllStudents,
       onClearStudents: _sessionLogController.clearStudentSelection,
+      onToggleTeachingMentor: _sessionLogController.toggleTeachingMentor,
+      onToggleSupportingMentor: _sessionLogController.toggleSupportingMentor,
+      onClearMentors: _sessionLogController.clearMentorSelection,
       onSubmit: (request) {
         return _sessionLogController.submit(
           accessToken: widget.accessToken,
@@ -296,6 +304,8 @@ class _MentorAreaState extends State<MentorArea> {
         isLoading: _viewSessionLogsController.isLoading,
         message: _viewSessionLogsController.message,
         courseNameFor: _viewSessionLogsController.courseNameFor,
+        teachingMentorNamesFor:
+            _viewSessionLogsController.teachingMentorNamesFor,
         clearMessage: _viewSessionLogsController.clearMessage,
         onCourseFilterChanged: _viewSessionLogsController.setCourseIdFilter,
         onProjectTypeFilterChanged:
@@ -312,6 +322,13 @@ class _MentorAreaState extends State<MentorArea> {
         courseName: _viewSessionLogsController.courseNameFor(
           selectedSessionLog,
         ),
+        submittedByMentorName: _viewSessionLogsController
+            .submittedByMentorNameFor(selectedSessionLog),
+        teachingMentorNames: _viewSessionLogsController.teachingMentorNamesFor(
+          selectedSessionLog,
+        ),
+        supportingMentorNames: _viewSessionLogsController
+            .supportingMentorNamesFor(selectedSessionLog),
         studentNames: _viewSessionLogsController.studentNamesFor(
           selectedSessionLog,
         ),

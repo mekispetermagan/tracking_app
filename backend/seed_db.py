@@ -15,6 +15,8 @@ from models import (
     MentorProfile,
     ProjectType,
     SessionLog,
+    SessionLogMentor,
+    SessionLogMentorRole,
     Student,
 )
 
@@ -68,10 +70,12 @@ def hash_secret(secret: str) -> str:
 
 def get_or_create_uganda(db):
     country = db.query(Country).filter_by(name="Uganda").first()
+
     if not country:
         country = Country(code="UG", name="Uganda")
         db.add(country)
         db.flush()
+
     return country
 
 
@@ -183,6 +187,84 @@ def matching_course_dates(day_of_week):
     return dates
 
 
+def session_mentor_data(index, mentors):
+    if not mentors:
+        raise ValueError(
+            "Session log requires at least one mentor.",
+        )
+
+    primary = mentors[index % len(mentors)]
+
+    if len(mentors) == 1:
+        return (
+            primary,
+            [
+                SessionLogMentor(
+                    mentor=primary,
+                    role=SessionLogMentorRole.TEACHING,
+                ),
+            ],
+        )
+
+    secondary = mentors[(index + 1) % len(mentors)]
+    pattern = index % 4
+
+    if pattern == 0:
+        return (
+            primary,
+            [
+                SessionLogMentor(
+                    mentor=primary,
+                    role=SessionLogMentorRole.TEACHING,
+                ),
+                SessionLogMentor(
+                    mentor=secondary,
+                    role=SessionLogMentorRole.SUPPORTING,
+                ),
+            ],
+        )
+
+    if pattern == 1:
+        return (
+            primary,
+            [
+                SessionLogMentor(
+                    mentor=primary,
+                    role=SessionLogMentorRole.TEACHING,
+                ),
+            ],
+        )
+
+    if pattern == 2:
+        return (
+            primary,
+            [
+                SessionLogMentor(
+                    mentor=primary,
+                    role=SessionLogMentorRole.TEACHING,
+                ),
+                SessionLogMentor(
+                    mentor=secondary,
+                    role=SessionLogMentorRole.TEACHING,
+                ),
+            ],
+        )
+
+    return (
+        secondary,
+        [
+            SessionLogMentor(
+                mentor=primary,
+                role=SessionLogMentorRole.SUPPORTING,
+            ),
+            SessionLogMentor(
+                mentor=secondary,
+                role=SessionLogMentorRole.TEACHING,
+            ),
+        ],
+    )
+
+
 def add_session_logs(db, course, mentors, projects):
     dates = matching_course_dates(course.day_of_week)
 
@@ -206,25 +288,42 @@ def add_session_logs(db, course, mentors, projects):
         CompletionStatus.NOT_COMPLETED,
     )
 
-    for index, (project_type, project_title) in enumerate(projects):
+    for index, (project_type, project_title) in enumerate(
+        projects,
+    ):
         attendance_count = random.randint(
             minimum_attendance,
             maximum_attendance,
         )
 
+        submitted_by, mentor_participations = (
+            session_mentor_data(index, mentors)
+        )
+
         db.add(
             SessionLog(
-                mentor_profile=mentors[index % len(mentors)],
+                submitted_by=submitted_by,
+                mentor_participations=mentor_participations,
                 course=course,
                 date=dates[index],
                 project_title=project_title,
                 project_type=project_type,
                 other_project_type=None,
-                games_played=SKILL_GAMES[index % len(SKILL_GAMES)],
-                completion_status=statuses[index % len(statuses)],
-                what_worked=WHAT_WORKED[index % len(WHAT_WORKED)],
-                challenges=CHALLENGES[index % len(CHALLENGES)],
-                next_step=NEXT_STEPS[index % len(NEXT_STEPS)],
+                games_played=SKILL_GAMES[
+                    index % len(SKILL_GAMES)
+                ],
+                completion_status=statuses[
+                    index % len(statuses)
+                ],
+                what_worked=WHAT_WORKED[
+                    index % len(WHAT_WORKED)
+                ],
+                challenges=CHALLENGES[
+                    index % len(CHALLENGES)
+                ],
+                next_step=NEXT_STEPS[
+                    index % len(NEXT_STEPS)
+                ],
                 students=random.sample(
                     students,
                     attendance_count,
@@ -285,7 +384,8 @@ def main():
             db=db,
             name="Hillside Katalemwa",
             description=(
-                "Digital education course at Hillside Katalemwa."
+                "Digital education course at "
+                "Hillside Katalemwa."
             ),
             country_id=uganda.id,
             day_of_week=6,

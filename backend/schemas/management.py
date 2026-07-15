@@ -19,6 +19,14 @@ class MentorOut(BaseModel):
     course_ids: list[int]
 
 
+class SharedMentorOut(BaseModel):
+    id: int
+    first_name: str
+    last_name: str
+    active: bool
+    assigned_to_course: bool
+
+
 class CourseOut(BaseModel):
     id: int
     name: str
