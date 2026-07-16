@@ -15,3 +15,5 @@ export 'admin_course_management_controller.dart';
 export 'admin_student_management_controller.dart';
 export 'admin_view_session_logs_controller.dart';
 export 'session_photo_controller.dart';
+export 'student_record_controller.dart';
+export 'track_students_controller.dart';

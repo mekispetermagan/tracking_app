@@ -42,6 +42,8 @@ from schemas.management import (
 from routers._photos import photo_to_out
 from schemas.photos import SessionPhotoOut
 
+from routers._student_records import build_student_record
+from schemas.student_records import StudentRecordOut
 
 router = APIRouter()
 bearer = HTTPBearer()
@@ -369,6 +371,39 @@ def get_student(
         raise HTTPException(status_code=403, detail="Student not available")
 
     return student_to_actor_out(student, actor)
+
+@router.get(
+    "/students/{student_id}/record",
+    response_model=StudentRecordOut,
+)
+def get_student_record(
+    student_id: int,
+    actor: Actor = Depends(get_current_actor),
+):
+    student = actor.db.get(Student, student_id)
+
+    if not student:
+        raise HTTPException(
+            status_code=404,
+            detail="Student not found",
+        )
+
+    if (
+        actor.role == "mentor"
+        and not student_visible_to_mentor(
+            student,
+            actor.profile,
+        )
+    ):
+        raise HTTPException(
+            status_code=403,
+            detail="Student not available",
+        )
+
+    return build_student_record(
+        actor.db,
+        student,
+    )
 
 
 @router.post("/students", response_model=StudentOut)

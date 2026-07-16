@@ -34,5 +34,7 @@ export 'admin_view_session_log_screen.dart';
 export 'session_photos_screen.dart';
 export 'course_photos_screen.dart';
 export 'photo_course_selection_screen.dart';
+export 'track_students_screen.dart';
+export 'student_record_screen.dart';
 
 export 'placeholder_task_screen.dart';

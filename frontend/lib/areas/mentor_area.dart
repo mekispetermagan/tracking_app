@@ -25,6 +25,7 @@ class _MentorAreaState extends State<MentorArea> {
   final _sessionLogController = MentorSessionLogController();
   final _viewSessionLogsController = MentorViewSessionLogsController();
   final _photoController = SessionPhotoController();
+  final _trackStudentsController = TrackStudentsController();
 
   bool _showSessionPhotos = false;
   bool _showCoursePhotos = false;
@@ -40,6 +41,7 @@ class _MentorAreaState extends State<MentorArea> {
     _sessionLogController.dispose();
     _viewSessionLogsController.dispose();
     _photoController.dispose();
+    _trackStudentsController.dispose();
     super.dispose();
   }
 
@@ -54,6 +56,9 @@ class _MentorAreaState extends State<MentorArea> {
         _sessionLogController,
         _viewSessionLogsController,
         _photoController,
+        _trackStudentsController,
+        _trackStudentsController.recordController,
+        _viewSessionLogsController.studentRecordController,
       ]),
       builder: (_, _) => _buildArea(),
     );
@@ -84,6 +89,19 @@ class _MentorAreaState extends State<MentorArea> {
         if (_areaController.screen == MentorScreen.manageStudents &&
             _studentController.view == MentorStudentManagementView.form) {
           _studentController.cancelForm();
+          return;
+        }
+
+        if (_areaController.screen == MentorScreen.viewSessionLogs &&
+            _viewSessionLogsController.view ==
+                MentorViewSessionLogsView.studentRecord) {
+          _viewSessionLogsController.closeStudentRecord();
+          return;
+        }
+
+        if (_areaController.screen == MentorScreen.trackStudents &&
+            _trackStudentsController.view == TrackStudentsView.record) {
+          _trackStudentsController.closeRecord();
           return;
         }
 
@@ -126,6 +144,8 @@ class _MentorAreaState extends State<MentorArea> {
         MentorScreen.viewSessionLogs => _buildViewSessionLogsArea(),
 
         MentorScreen.viewPhotos => _buildPhotoArea(),
+
+        MentorScreen.trackStudents => _buildTrackStudentsArea(),
 
         MentorScreen.submitInvoice => PlaceholderTaskScreen(
           title: 'Submit invoice',
@@ -386,11 +406,25 @@ class _MentorAreaState extends State<MentorArea> {
         ),
         supportingMentorNames: _viewSessionLogsController
             .supportingMentorNamesFor(selectedSessionLog),
-        studentNames: _viewSessionLogsController.studentNamesFor(
-          selectedSessionLog,
-        ),
+        students: _viewSessionLogsController.studentsFor(selectedSessionLog),
+        onStudentSelected: (studentId) {
+          _viewSessionLogsController.openStudentRecord(
+            accessToken: widget.accessToken,
+            studentId: studentId,
+          );
+        },
         onViewPhotos: _openSessionPhotos,
         onBack: _viewSessionLogsController.closeDetail,
+      ),
+
+      MentorViewSessionLogsView.studentRecord => StudentRecordScreen(
+        studentRecord:
+            _viewSessionLogsController.studentRecordController.studentRecord,
+        isLoading: _viewSessionLogsController.studentRecordController.isLoading,
+        message: _viewSessionLogsController.studentRecordController.message,
+        clearMessage:
+            _viewSessionLogsController.studentRecordController.clearMessage,
+        onBack: _viewSessionLogsController.closeStudentRecord,
       ),
     };
   }
@@ -419,6 +453,35 @@ class _MentorAreaState extends State<MentorArea> {
       onHome: _goHome,
       onLogout: _logout,
     );
+  }
+
+  Widget _buildTrackStudentsArea() {
+    return switch (_trackStudentsController.view) {
+      TrackStudentsView.list => TrackStudentsScreen(
+        students: _trackStudentsController.students,
+        selectedStudentId: _trackStudentsController.selectedStudentId,
+        canView: _trackStudentsController.canView,
+        isLoading: _trackStudentsController.isLoading,
+        message: _trackStudentsController.message,
+        clearMessage: _trackStudentsController.clearMessage,
+        onSelectStudent: _trackStudentsController.selectStudent,
+        onView: () {
+          _trackStudentsController.openSelectedStudentRecord(
+            accessToken: widget.accessToken,
+          );
+        },
+        onHome: _goHome,
+        onLogout: _logout,
+      ),
+
+      TrackStudentsView.record => StudentRecordScreen(
+        studentRecord: _trackStudentsController.recordController.studentRecord,
+        isLoading: _trackStudentsController.recordController.isLoading,
+        message: _trackStudentsController.recordController.message,
+        clearMessage: _trackStudentsController.recordController.clearMessage,
+        onBack: _trackStudentsController.closeRecord,
+      ),
+    };
   }
 
   Future<void> _openSessionPhotos() async {
@@ -539,6 +602,10 @@ class _MentorAreaState extends State<MentorArea> {
         accessToken: widget.accessToken,
       );
     }
+
+    if (screen == MentorScreen.trackStudents) {
+      _trackStudentsController.openList(accessToken: widget.accessToken);
+    }
   }
 
   void _openProfile() {
@@ -558,6 +625,7 @@ class _MentorAreaState extends State<MentorArea> {
     _sessionLogController.reset();
     _viewSessionLogsController.reset();
     _photoController.reset();
+    _trackStudentsController.reset();
 
     setState(() {
       _showSessionPhotos = false;
@@ -577,6 +645,7 @@ class _MentorAreaState extends State<MentorArea> {
     _sessionLogController.reset();
     _viewSessionLogsController.reset();
     _photoController.reset();
+    _trackStudentsController.reset();
 
     setState(() {
       _showSessionPhotos = false;

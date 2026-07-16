@@ -8,6 +8,7 @@ enum MentorScreen {
   submitSessionLog,
   viewSessionLogs,
   viewPhotos,
+  trackStudents,
   submitInvoice,
   storyOfTheMonth,
 }
@@ -39,6 +40,7 @@ class MentorAreaController extends ChangeNotifier {
       screen: MentorScreen.viewSessionLogs,
       label: 'View session logs',
     ),
+    MentorMenuItem(screen: MentorScreen.trackStudents, label: 'Track students'),
     MentorMenuItem(screen: MentorScreen.viewPhotos, label: 'View photos'),
     MentorMenuItem(screen: MentorScreen.submitInvoice, label: 'Submit invoice'),
     MentorMenuItem(

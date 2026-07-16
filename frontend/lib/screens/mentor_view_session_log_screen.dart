@@ -9,7 +9,9 @@ class MentorViewSessionLogScreen extends StatelessWidget {
   final String submittedByMentorName;
   final List<String> teachingMentorNames;
   final List<String> supportingMentorNames;
-  final List<String> studentNames;
+  final List<Student> students;
+
+  final ValueChanged<int> onStudentSelected;
   final VoidCallback onViewPhotos;
   final VoidCallback onBack;
 
@@ -19,7 +21,8 @@ class MentorViewSessionLogScreen extends StatelessWidget {
     required this.submittedByMentorName,
     required this.teachingMentorNames,
     required this.supportingMentorNames,
-    required this.studentNames,
+    required this.students,
+    required this.onStudentSelected,
     required this.onViewPhotos,
     required this.onBack,
     super.key,
@@ -42,7 +45,8 @@ class MentorViewSessionLogScreen extends StatelessWidget {
               submittedByMentorName: submittedByMentorName,
               teachingMentorNames: teachingMentorNames,
               supportingMentorNames: supportingMentorNames,
-              studentNames: studentNames,
+              students: students,
+              onStudentSelected: onStudentSelected,
             ),
           ],
         ),

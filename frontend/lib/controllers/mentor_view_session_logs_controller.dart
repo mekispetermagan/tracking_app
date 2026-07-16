@@ -2,24 +2,29 @@ import 'package:flutter/foundation.dart';
 
 import '../api/api.dart';
 import '../models/models.dart';
+import 'student_record_controller.dart';
 
-enum MentorViewSessionLogsView { list, detail }
+enum MentorViewSessionLogsView { list, detail, studentRecord }
 
 class MentorViewSessionLogsController extends ChangeNotifier {
   final MentorSessionLogApi _sessionLogApi;
   final SharedCourseApi _courseApi;
   final SharedStudentApi _studentApi;
   final SharedCourseMentorsApi _mentorApi;
+  final StudentRecordController studentRecordController;
 
   MentorViewSessionLogsController({
     MentorSessionLogApi? sessionLogApi,
     SharedCourseApi? courseApi,
     SharedStudentApi? studentApi,
     SharedCourseMentorsApi? mentorApi,
+    StudentRecordController? studentRecordController,
   }) : _sessionLogApi = sessionLogApi ?? MentorSessionLogApi(),
        _courseApi = courseApi ?? SharedCourseApi(),
        _studentApi = studentApi ?? SharedStudentApi(),
-       _mentorApi = mentorApi ?? SharedCourseMentorsApi();
+       _mentorApi = mentorApi ?? SharedCourseMentorsApi(),
+       studentRecordController =
+           studentRecordController ?? StudentRecordController();
 
   List<SessionLog> _sessionLogs = [];
   List<Course> _courses = [];
@@ -88,6 +93,12 @@ class MentorViewSessionLogsController extends ChangeNotifier {
   }
 
   bool get canView => selectedSessionLog != null && !_isLoading;
+
+  @override
+  void dispose() {
+    studentRecordController.dispose();
+    super.dispose();
+  }
 
   String courseNameFor(SessionLog sessionLog) {
     for (final course in _courses) {
@@ -265,6 +276,55 @@ class MentorViewSessionLogsController extends ChangeNotifier {
     notifyListeners();
   }
 
+  List<Student> studentsFor(SessionLog sessionLog) {
+    final studentIds = sessionLog.studentIds.toSet();
+
+    final result = _students
+        .where((student) => studentIds.contains(student.id))
+        .toList();
+
+    result.sort((a, b) {
+      final firstNameComparison = a.firstName.compareTo(b.firstName);
+
+      if (firstNameComparison != 0) {
+        return firstNameComparison;
+      }
+
+      return a.lastName.compareTo(b.lastName);
+    });
+
+    return result;
+  }
+
+  Future<void> openStudentRecord({
+    required String accessToken,
+    required int studentId,
+  }) async {
+    final sessionLog = selectedSessionLog;
+
+    if (sessionLog == null || !sessionLog.studentIds.contains(studentId)) {
+      _message = 'Student not available.';
+      notifyListeners();
+      return;
+    }
+
+    _view = MentorViewSessionLogsView.studentRecord;
+    _message = null;
+    notifyListeners();
+
+    await studentRecordController.load(
+      accessToken: accessToken,
+      studentId: studentId,
+    );
+  }
+
+  void closeStudentRecord() {
+    _view = MentorViewSessionLogsView.detail;
+    studentRecordController.reset();
+    _message = null;
+    notifyListeners();
+  }
+
   void clearFilters() {
     if (_courseIdFilter == null && _projectTypeFilter == null) {
       return;
@@ -295,6 +355,7 @@ class MentorViewSessionLogsController extends ChangeNotifier {
     _projectTypeFilter = null;
     _isLoading = false;
     _message = null;
+    studentRecordController.reset();
     notifyListeners();
   }
 

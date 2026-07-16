@@ -9,3 +9,4 @@ export 'admin_session_log_api.dart';
 export 'shared_course_mentors_api.dart';
 export 'mentor_session_photo_api.dart';
 export 'shared_session_photo_api.dart';
+export 'shared_student_record_api.dart';

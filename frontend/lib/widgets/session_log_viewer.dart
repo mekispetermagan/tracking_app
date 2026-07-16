@@ -8,7 +8,8 @@ class SessionLogViewer extends StatelessWidget {
   final String submittedByMentorName;
   final List<String> teachingMentorNames;
   final List<String> supportingMentorNames;
-  final List<String> studentNames;
+  final List<Student> students;
+  final ValueChanged<int> onStudentSelected;
 
   const SessionLogViewer({
     required this.sessionLog,
@@ -16,7 +17,8 @@ class SessionLogViewer extends StatelessWidget {
     required this.submittedByMentorName,
     required this.teachingMentorNames,
     required this.supportingMentorNames,
-    required this.studentNames,
+    required this.students,
+    required this.onStudentSelected,
     super.key,
   });
 
@@ -34,7 +36,6 @@ class SessionLogViewer extends StatelessWidget {
           style: Theme.of(context).textTheme.headlineSmall,
         ),
         const SizedBox(height: 24),
-
         _Section(
           title: 'Session',
           children: [
@@ -49,7 +50,6 @@ class SessionLogViewer extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 16),
-
         _Section(
           title: 'Mentors',
           children: [
@@ -68,14 +68,25 @@ class SessionLogViewer extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 16),
-
         _Section(
-          title: 'Students (${studentNames.length})',
+          title: 'Students (${students.length})',
           children: [
-            Text(studentNames.isEmpty ? 'None' : studentNames.join('\n')),
+            if (students.isEmpty)
+              const Text('None')
+            else
+              for (final student in students)
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(Icons.person_outline),
+                  title: Text(
+                    '${student.firstName} '
+                    '${student.lastName}',
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => onStudentSelected(student.id),
+                ),
           ],
         ),
-
         if (_hasText(sessionLog.gamesPlayed)) ...[
           const SizedBox(height: 16),
           _Section(
@@ -83,7 +94,6 @@ class SessionLogViewer extends StatelessWidget {
             children: [Text(sessionLog.gamesPlayed!)],
           ),
         ],
-
         const SizedBox(height: 16),
         _Section(
           title: 'Outcome and notes',

@@ -25,6 +25,7 @@ class _AdminAreaState extends State<AdminArea> {
   final _studentManagementController = AdminStudentManagementController();
   final _viewSessionLogsController = AdminViewSessionLogsController();
   final _photoController = SessionPhotoController();
+  final _trackStudentsController = TrackStudentsController();
 
   bool _showSessionPhotos = false;
   bool _showCoursePhotos = false;
@@ -37,6 +38,7 @@ class _AdminAreaState extends State<AdminArea> {
     _studentManagementController.dispose();
     _viewSessionLogsController.dispose();
     _photoController.dispose();
+    _trackStudentsController.dispose();
     super.dispose();
   }
 
@@ -50,6 +52,9 @@ class _AdminAreaState extends State<AdminArea> {
         _studentManagementController,
         _viewSessionLogsController,
         _photoController,
+        _trackStudentsController,
+        _trackStudentsController.recordController,
+        _viewSessionLogsController.studentRecordController,
       ]),
       builder: (_, _) => _buildArea(),
     );
@@ -85,17 +90,29 @@ class _AdminAreaState extends State<AdminArea> {
         }
 
         if (_areaController.screen == AdminScreen.viewSessionLogs &&
-            _viewSessionLogsController.view == AdminSessionLogView.detail) {
-          _viewSessionLogsController.closeDetail();
-          return;
-        }
-
-        if (_areaController.screen == AdminScreen.viewSessionLogs &&
             _showSessionPhotos) {
           _closeSessionPhotos();
           return;
         }
 
+        if (_areaController.screen == AdminScreen.viewSessionLogs &&
+            _viewSessionLogsController.view ==
+                AdminSessionLogView.studentRecord) {
+          _viewSessionLogsController.closeStudentRecord();
+          return;
+        }
+
+        if (_areaController.screen == AdminScreen.viewSessionLogs &&
+            _viewSessionLogsController.view == AdminSessionLogView.detail) {
+          _viewSessionLogsController.closeDetail();
+          return;
+        }
+
+        if (_areaController.screen == AdminScreen.trackStudents &&
+            _trackStudentsController.view == TrackStudentsView.record) {
+          _trackStudentsController.closeRecord();
+          return;
+        }
         if (_areaController.screen == AdminScreen.viewPhotos &&
             _showCoursePhotos) {
           _closeCoursePhotos();
@@ -123,11 +140,7 @@ class _AdminAreaState extends State<AdminArea> {
 
         AdminScreen.viewPhotos => _buildPhotoArea(),
 
-        AdminScreen.trackStudents => PlaceholderTaskScreen(
-          title: 'Track students',
-          onHome: _returnToMenu,
-          onLogout: widget.onLogout,
-        ),
+        AdminScreen.trackStudents => _buildTrackStudentsArea(),
 
         AdminScreen.reportsData => PlaceholderTaskScreen(
           title: 'Reports & data',
@@ -354,11 +367,54 @@ class _AdminAreaState extends State<AdminArea> {
         ),
         supportingMentorNames: _viewSessionLogsController
             .supportingMentorNamesFor(selectedSessionLog),
-        studentNames: _viewSessionLogsController.studentNamesFor(
-          selectedSessionLog,
-        ),
+        students: _viewSessionLogsController.studentsFor(selectedSessionLog),
+        onStudentSelected: (studentId) {
+          _viewSessionLogsController.openStudentRecord(
+            accessToken: widget.accessToken,
+            studentId: studentId,
+          );
+        },
         onViewPhotos: _openSessionPhotos,
         onBack: _viewSessionLogsController.closeDetail,
+      ),
+
+      AdminSessionLogView.studentRecord => StudentRecordScreen(
+        studentRecord:
+            _viewSessionLogsController.studentRecordController.studentRecord,
+        isLoading: _viewSessionLogsController.studentRecordController.isLoading,
+        message: _viewSessionLogsController.studentRecordController.message,
+        clearMessage:
+            _viewSessionLogsController.studentRecordController.clearMessage,
+        onBack: _viewSessionLogsController.closeStudentRecord,
+      ),
+    };
+  }
+
+  Widget _buildTrackStudentsArea() {
+    return switch (_trackStudentsController.view) {
+      TrackStudentsView.list => TrackStudentsScreen(
+        students: _trackStudentsController.students,
+        selectedStudentId: _trackStudentsController.selectedStudentId,
+        canView: _trackStudentsController.canView,
+        isLoading: _trackStudentsController.isLoading,
+        message: _trackStudentsController.message,
+        clearMessage: _trackStudentsController.clearMessage,
+        onSelectStudent: _trackStudentsController.selectStudent,
+        onView: () {
+          _trackStudentsController.openSelectedStudentRecord(
+            accessToken: widget.accessToken,
+          );
+        },
+        onHome: _returnToMenu,
+        onLogout: widget.onLogout,
+      ),
+
+      TrackStudentsView.record => StudentRecordScreen(
+        studentRecord: _trackStudentsController.recordController.studentRecord,
+        isLoading: _trackStudentsController.recordController.isLoading,
+        message: _trackStudentsController.recordController.message,
+        clearMessage: _trackStudentsController.recordController.clearMessage,
+        onBack: _trackStudentsController.closeRecord,
       ),
     };
   }
@@ -398,6 +454,10 @@ class _AdminAreaState extends State<AdminArea> {
       await _photoController.initializeCourseSelection(
         accessToken: widget.accessToken,
       );
+    }
+
+    if (screen == AdminScreen.trackStudents) {
+      await _trackStudentsController.openList(accessToken: widget.accessToken);
     }
   }
 
@@ -526,6 +586,7 @@ class _AdminAreaState extends State<AdminArea> {
     _viewSessionLogsController.reset();
     _areaController.reset();
     _photoController.reset();
+    _trackStudentsController.reset();
 
     setState(() {
       _showSessionPhotos = false;
