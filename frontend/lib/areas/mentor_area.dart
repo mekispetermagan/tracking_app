@@ -24,6 +24,10 @@ class _MentorAreaState extends State<MentorArea> {
   final _profileController = MentorProfileController();
   final _sessionLogController = MentorSessionLogController();
   final _viewSessionLogsController = MentorViewSessionLogsController();
+  final _photoController = SessionPhotoController();
+
+  bool _showSessionPhotos = false;
+  bool _showCoursePhotos = false;
 
   bool _showChangePin = false;
 
@@ -35,6 +39,7 @@ class _MentorAreaState extends State<MentorArea> {
     _profileController.dispose();
     _sessionLogController.dispose();
     _viewSessionLogsController.dispose();
+    _photoController.dispose();
     super.dispose();
   }
 
@@ -48,6 +53,7 @@ class _MentorAreaState extends State<MentorArea> {
         _profileController,
         _sessionLogController,
         _viewSessionLogsController,
+        _photoController,
       ]),
       builder: (_, _) => _buildArea(),
     );
@@ -82,9 +88,21 @@ class _MentorAreaState extends State<MentorArea> {
         }
 
         if (_areaController.screen == MentorScreen.viewSessionLogs &&
+            _showSessionPhotos) {
+          _closeSessionPhotos();
+          return;
+        }
+
+        if (_areaController.screen == MentorScreen.viewSessionLogs &&
             _viewSessionLogsController.view ==
                 MentorViewSessionLogsView.detail) {
           _viewSessionLogsController.closeDetail();
+          return;
+        }
+
+        if (_areaController.screen == MentorScreen.viewPhotos &&
+            _showCoursePhotos) {
+          _closeCoursePhotos();
           return;
         }
 
@@ -107,11 +125,7 @@ class _MentorAreaState extends State<MentorArea> {
 
         MentorScreen.viewSessionLogs => _buildViewSessionLogsArea(),
 
-        MentorScreen.uploadPhotos => PlaceholderTaskScreen(
-          title: 'Upload photos',
-          onHome: _goHome,
-          onLogout: _logout,
-        ),
+        MentorScreen.viewPhotos => _buildPhotoArea(),
 
         MentorScreen.submitInvoice => PlaceholderTaskScreen(
           title: 'Submit invoice',
@@ -293,6 +307,49 @@ class _MentorAreaState extends State<MentorArea> {
   Widget _buildViewSessionLogsArea() {
     final selectedSessionLog = _viewSessionLogsController.selectedSessionLog;
 
+    if (_showSessionPhotos) {
+      final sessionLog = selectedSessionLog!;
+      final mentorProfileId = _profileController.mentor?.id;
+
+      final participated =
+          mentorProfileId != null &&
+          (sessionLog.teachingMentorIds.contains(mentorProfileId) ||
+              sessionLog.supportingMentorIds.contains(mentorProfileId));
+
+      final alreadySubmitted =
+          mentorProfileId != null &&
+          _photoController.hasSubmissionForMentor(mentorProfileId);
+
+      return SessionPhotosScreen(
+        title: '${sessionLog.projectTitle} photos',
+        photos: _photoController.photos,
+        selectedPhotos: _photoController.selectedPhotos,
+        isLoading: _photoController.isLoading,
+        isSelecting: _photoController.isSelecting,
+        isUploading: _photoController.isUploading,
+        showUploadControls: participated,
+        alreadySubmitted: alreadySubmitted,
+        canUpload:
+            participated && !alreadySubmitted && _photoController.canUpload,
+        message: _photoController.message,
+        clearMessage: _photoController.clearMessage,
+        onSelectPhotos: _photoController.selectPhotos,
+        onClearSelection: _photoController.clearSelection,
+        onUpload: () async {
+          if (mentorProfileId == null) {
+            return;
+          }
+
+          await _photoController.uploadPhotos(
+            accessToken: widget.accessToken,
+            sessionLogId: sessionLog.id,
+            mentorProfileId: mentorProfileId,
+          );
+        },
+        onBack: _closeSessionPhotos,
+      );
+    }
+
     return switch (_viewSessionLogsController.view) {
       MentorViewSessionLogsView.list => MentorViewSessionLogsScreen(
         sessionLogs: _viewSessionLogsController.visibleSessionLogs,
@@ -332,9 +389,87 @@ class _MentorAreaState extends State<MentorArea> {
         studentNames: _viewSessionLogsController.studentNamesFor(
           selectedSessionLog,
         ),
+        onViewPhotos: _openSessionPhotos,
         onBack: _viewSessionLogsController.closeDetail,
       ),
     };
+  }
+
+  Widget _buildPhotoArea() {
+    if (_showCoursePhotos) {
+      return CoursePhotosScreen(
+        courseName: _photoController.selectedCourse!.name,
+        photos: _photoController.photos,
+        isLoading: _photoController.isLoading,
+        message: _photoController.message,
+        clearMessage: _photoController.clearMessage,
+        onBack: _closeCoursePhotos,
+      );
+    }
+
+    return PhotoCourseSelectionScreen(
+      courses: _photoController.courses,
+      selectedCourseId: _photoController.selectedCourseId,
+      canView: _photoController.canViewCourse,
+      isLoading: _photoController.isLoading,
+      message: _photoController.message,
+      clearMessage: _photoController.clearMessage,
+      onSelectCourse: _photoController.selectCourse,
+      onView: _openSelectedCoursePhotos,
+      onHome: _goHome,
+      onLogout: _logout,
+    );
+  }
+
+  Future<void> _openSessionPhotos() async {
+    final sessionLog = _viewSessionLogsController.selectedSessionLog;
+
+    if (sessionLog == null) {
+      return;
+    }
+
+    setState(() {
+      _showSessionPhotos = true;
+    });
+
+    await Future.wait([
+      _photoController.loadSessionPhotos(
+        accessToken: widget.accessToken,
+        sessionLogId: sessionLog.id,
+      ),
+      if (_profileController.mentor == null)
+        _profileController.loadProfile(accessToken: widget.accessToken),
+    ]);
+  }
+
+  void _closeSessionPhotos() {
+    _photoController.closeGallery();
+
+    setState(() {
+      _showSessionPhotos = false;
+    });
+  }
+
+  Future<void> _openSelectedCoursePhotos() async {
+    if (!_photoController.canViewCourse) {
+      return;
+    }
+
+    setState(() {
+      _showCoursePhotos = true;
+    });
+
+    await _photoController.loadSelectedCoursePhotos(
+      accessToken: widget.accessToken,
+    );
+  }
+
+  void _closeCoursePhotos() {
+    _photoController.closeGallery();
+
+    setState(() {
+      _showCoursePhotos = false;
+    });
   }
 
   void _finishSessionLogSubmission() {
@@ -394,6 +529,16 @@ class _MentorAreaState extends State<MentorArea> {
     if (screen == MentorScreen.viewSessionLogs) {
       _viewSessionLogsController.openList(accessToken: widget.accessToken);
     }
+
+    if (screen == MentorScreen.viewPhotos) {
+      setState(() {
+        _showCoursePhotos = false;
+      });
+
+      _photoController.initializeCourseSelection(
+        accessToken: widget.accessToken,
+      );
+    }
   }
 
   void _openProfile() {
@@ -412,6 +557,12 @@ class _MentorAreaState extends State<MentorArea> {
     _studentController.reset();
     _sessionLogController.reset();
     _viewSessionLogsController.reset();
+    _photoController.reset();
+
+    setState(() {
+      _showSessionPhotos = false;
+      _showCoursePhotos = false;
+    });
   }
 
   Future<void> _logout() async {
@@ -425,6 +576,12 @@ class _MentorAreaState extends State<MentorArea> {
     _studentController.reset();
     _sessionLogController.reset();
     _viewSessionLogsController.reset();
+    _photoController.reset();
+
+    setState(() {
+      _showSessionPhotos = false;
+      _showCoursePhotos = false;
+    });
 
     await widget.onLogout();
   }

@@ -17,6 +17,7 @@ from models import (
     SessionLog,
     SessionLogMentor,
     SessionLogMentorRole,
+    SessionPhoto,
     Student,
 )
 
@@ -25,6 +26,12 @@ random = Random(20260714)
 
 SESSION_START = date(2026, 5, 10)
 SESSION_END = date(2026, 7, 10)
+
+PHOTO_FILENAMES = (
+    "01_20260510_01_01_538223.jpg",
+    "01_20260510_01_02_184906.jpg",
+    "01_20260510_01_03_772451.jpg",
+)
 
 SKILL_GAMES = (
     "Mixed letters",
@@ -288,6 +295,8 @@ def add_session_logs(db, course, mentors, projects):
         CompletionStatus.NOT_COMPLETED,
     )
 
+    session_logs = []
+
     for index, (project_type, project_title) in enumerate(
         projects,
     ):
@@ -300,34 +309,71 @@ def add_session_logs(db, course, mentors, projects):
             session_mentor_data(index, mentors)
         )
 
+        session_log = SessionLog(
+            submitted_by=submitted_by,
+            mentor_participations=mentor_participations,
+            course=course,
+            date=dates[index],
+            project_title=project_title,
+            project_type=project_type,
+            other_project_type=None,
+            games_played=SKILL_GAMES[
+                index % len(SKILL_GAMES)
+            ],
+            completion_status=statuses[
+                index % len(statuses)
+            ],
+            what_worked=WHAT_WORKED[
+                index % len(WHAT_WORKED)
+            ],
+            challenges=CHALLENGES[
+                index % len(CHALLENGES)
+            ],
+            next_step=NEXT_STEPS[
+                index % len(NEXT_STEPS)
+            ],
+            students=random.sample(
+                students,
+                attendance_count,
+            ),
+        )
+
+        db.add(session_log)
+        session_logs.append(session_log)
+
+    return session_logs
+
+
+def add_photo_submission(
+    db,
+    session_log,
+    mentor,
+    filenames,
+):
+    if len(filenames) != 3:
+        raise ValueError(
+            "Photo submission must contain exactly three photos.",
+        )
+
+    if not any(
+        participation.mentor is mentor
+        for participation in session_log.mentor_participations
+    ):
+        raise ValueError(
+            "Photo uploader must be a participating mentor.",
+        )
+
+    for photo_number, filename in enumerate(
+        filenames,
+        start=1,
+    ):
         db.add(
-            SessionLog(
-                submitted_by=submitted_by,
-                mentor_participations=mentor_participations,
-                course=course,
-                date=dates[index],
-                project_title=project_title,
-                project_type=project_type,
-                other_project_type=None,
-                games_played=SKILL_GAMES[
-                    index % len(SKILL_GAMES)
-                ],
-                completion_status=statuses[
-                    index % len(statuses)
-                ],
-                what_worked=WHAT_WORKED[
-                    index % len(WHAT_WORKED)
-                ],
-                challenges=CHALLENGES[
-                    index % len(CHALLENGES)
-                ],
-                next_step=NEXT_STEPS[
-                    index % len(NEXT_STEPS)
-                ],
-                students=random.sample(
-                    students,
-                    attendance_count,
-                ),
+            SessionPhoto(
+                session_log=session_log,
+                mentor=mentor,
+                photo_number=photo_number,
+                original_path=f"original_photos/{filename}",
+                compressed_path=f"compressed_photos/{filename}",
             )
         )
 
@@ -532,7 +578,7 @@ def main():
 
         db.flush()
 
-        add_session_logs(
+        hillside_logs = add_session_logs(
             db,
             hillside,
             shared_mentors,
@@ -614,6 +660,13 @@ def main():
                     "Translator app",
                 ),
             ],
+        )
+
+        add_photo_submission(
+            db,
+            session_log=hillside_logs[0],
+            mentor=abdallah,
+            filenames=PHOTO_FILENAMES,
         )
 
         db.commit()

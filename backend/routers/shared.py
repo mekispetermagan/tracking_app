@@ -8,7 +8,15 @@ from sqlalchemy.orm import Session
 
 from config import settings
 from database import get_db
-from models import Account, AdminProfile, Course, MentorProfile, Student
+from models import (
+    Account,
+    AdminProfile,
+    Course,
+    MentorProfile,
+    Student,
+    SessionLog,
+    SessionPhoto,
+)
 from routers._management import (
     apply_student_courses_as_admin,
     apply_student_courses_as_mentor,
@@ -31,6 +39,9 @@ from schemas.management import (
     StudentOut,
     StudentUpdateRequest,
 )
+from routers._photos import photo_to_out
+from schemas.photos import SessionPhotoOut
+
 
 router = APIRouter()
 bearer = HTTPBearer()
@@ -446,3 +457,104 @@ def update_student(
     db.refresh(student)
 
     return student_to_actor_out(student, actor)
+
+
+@router.get(
+    "/session-logs/{session_log_id}/photos",
+    response_model=list[SessionPhotoOut],
+)
+def get_session_photos(
+    session_log_id: int,
+    actor: Actor = Depends(get_current_actor),
+):
+    db = actor.db
+    session_log = db.get(
+        SessionLog,
+        session_log_id,
+    )
+
+    if not session_log:
+        raise HTTPException(
+            status_code=404,
+            detail="Session log not found",
+        )
+
+    if (
+        actor.role == "mentor"
+        and not course_visible_to_mentor(
+            session_log.course,
+            actor.profile,
+        )
+    ):
+        raise HTTPException(
+            status_code=403,
+            detail="Session log not available",
+        )
+
+    photos = (
+        db.query(SessionPhoto)
+        .filter(
+            SessionPhoto.session_log_id
+            == session_log.id,
+        )
+        .order_by(
+            SessionPhoto.mentor_profile_id,
+            SessionPhoto.photo_number,
+        )
+        .all()
+    )
+
+    return [
+        photo_to_out(photo)
+        for photo in photos
+    ]
+
+
+@router.get(
+    "/courses/{course_id}/photos",
+    response_model=list[SessionPhotoOut],
+)
+def get_course_photos(
+    course_id: int,
+    actor: Actor = Depends(get_current_actor),
+):
+    db = actor.db
+    course = db.get(Course, course_id)
+
+    if not course:
+        raise HTTPException(
+            status_code=404,
+            detail="Course not found",
+        )
+
+    if (
+        actor.role == "mentor"
+        and not course_visible_to_mentor(
+            course,
+            actor.profile,
+        )
+    ):
+        raise HTTPException(
+            status_code=403,
+            detail="Course not available",
+        )
+
+    photos = (
+        db.query(SessionPhoto)
+        .join(SessionLog)
+        .filter(
+            SessionLog.course_id == course.id,
+        )
+        .order_by(
+            SessionLog.date.desc(),
+            SessionPhoto.session_log_id.desc(),
+            SessionPhoto.mentor_profile_id,
+            SessionPhoto.photo_number,
+        )
+        .all()
+    )
+
+    return [
+        photo_to_out(photo)
+        for photo in photos
+    ]

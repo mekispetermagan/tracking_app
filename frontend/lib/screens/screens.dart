@@ -1,11 +1,14 @@
 export 'splash_screen.dart';
 export 'start_screen.dart';
-export 'admin_menu_screen.dart';
+
 export 'admin_login_screen.dart';
+export 'admin_setup_password_screen.dart';
+export 'admin_menu_screen.dart';
+
 export 'mentor_login_screen.dart';
 export 'mentor_setup_pin_screen.dart';
-export 'admin_setup_password_screen.dart';
 export 'mentor_menu_screen.dart';
+
 export 'mentor_profile_screen.dart';
 export 'mentor_change_pin_screen.dart';
 export 'mentor_course_management_screen.dart';
@@ -15,6 +18,7 @@ export 'mentor_session_log_form_screen.dart';
 export 'mentor_student_form_screen.dart';
 export 'mentor_view_session_logs_screen.dart';
 export 'mentor_view_session_log_screen.dart';
+
 export 'admin_mentor_management_screen.dart';
 export 'admin_mentor_form_screen.dart';
 export 'admin_mentor_reset_pin_screen.dart';
@@ -26,4 +30,9 @@ export 'admin_student_form_screen.dart';
 export 'admin_student_course_assignment_screen.dart';
 export 'admin_view_session_logs_screen.dart';
 export 'admin_view_session_log_screen.dart';
+
+export 'session_photos_screen.dart';
+export 'course_photos_screen.dart';
+export 'photo_course_selection_screen.dart';
+
 export 'placeholder_task_screen.dart';

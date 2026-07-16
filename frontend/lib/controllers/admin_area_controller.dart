@@ -6,6 +6,7 @@ enum AdminScreen {
   manageCourses,
   manageStudents,
   viewSessionLogs,
+  viewPhotos,
   trackStudents,
   reportsData,
 }
@@ -30,12 +31,16 @@ class AdminAreaController extends ChangeNotifier {
       screen: AdminScreen.viewSessionLogs,
       label: 'View session logs',
     ),
+    AdminMenuItem(screen: AdminScreen.viewPhotos, label: 'View photos'),
     AdminMenuItem(screen: AdminScreen.trackStudents, label: 'Track students'),
     AdminMenuItem(screen: AdminScreen.reportsData, label: 'Reports & data'),
   ];
 
   void select(AdminScreen screen) {
-    if (_screen == screen) return;
+    if (_screen == screen) {
+      return;
+    }
+
     _screen = screen;
     notifyListeners();
   }

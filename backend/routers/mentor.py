@@ -4,6 +4,8 @@ from fastapi import (
     HTTPException,
     Response,
     status,
+    File,
+    UploadFile,
 )
 
 from dependencies import MentorAuth, get_current_mentor
@@ -12,6 +14,7 @@ from models import (
     SessionLog,
     SessionLogMentor,
     SessionLogMentorRole,
+    SessionPhoto,
 )
 from routers._management import (
     course_visible_to_mentor,
@@ -29,6 +32,12 @@ from schemas.session_logs import (
     SessionLogCreateRequest,
     SessionLogOut,
 )
+from routers._photos import (
+    delete_photo_files,
+    photo_to_out,
+    store_photo,
+)
+from schemas.photos import SessionPhotoOut
 from security import hash_secret, verify_secret
 
 router = APIRouter()
@@ -249,4 +258,117 @@ def get_available_session_logs(
     return [
         session_log_to_out(session_log)
         for session_log in session_logs
+    ]
+
+
+@router.post(
+    "/session-logs/{session_log_id}/photos",
+    response_model=list[SessionPhotoOut],
+    status_code=status.HTTP_201_CREATED,
+)
+async def submit_session_photos(
+    session_log_id: int,
+    files: list[UploadFile] = File(...),
+    auth: MentorAuth = Depends(get_current_mentor),
+):
+    if len(files) != 3:
+        raise HTTPException(
+            status_code=400,
+            detail="Exactly three photos are required",
+        )
+
+    db = auth.db
+    session_log = db.get(
+        SessionLog,
+        session_log_id,
+    )
+
+    if not session_log:
+        raise HTTPException(
+            status_code=404,
+            detail="Session log not found",
+        )
+
+    is_participant = any(
+        participation.mentor_profile_id
+        == auth.profile.id
+        for participation
+        in session_log.mentor_participations
+    )
+
+    if not is_participant:
+        raise HTTPException(
+            status_code=403,
+            detail=(
+                "Only participating mentors may "
+                "submit photos"
+            ),
+        )
+
+    existing_photo = (
+        db.query(SessionPhoto)
+        .filter(
+            SessionPhoto.session_log_id
+            == session_log.id,
+            SessionPhoto.mentor_profile_id
+            == auth.profile.id,
+        )
+        .first()
+    )
+
+    if existing_photo:
+        raise HTTPException(
+            status_code=409,
+            detail=(
+                "Photos have already been submitted "
+                "for this session"
+            ),
+        )
+
+    created_files = []
+    photos = []
+
+    try:
+        for photo_number, upload in enumerate(
+            files,
+            start=1,
+        ):
+            (
+                original_path,
+                compressed_path,
+                file_paths,
+            ) = await store_photo(
+                upload=upload,
+                course_id=session_log.course_id,
+                session_date=session_log.date,
+                mentor_profile_id=auth.profile.id,
+                photo_number=photo_number,
+            )
+
+            created_files.extend(file_paths)
+
+            photos.append(
+                SessionPhoto(
+                    session_log=session_log,
+                    mentor=auth.profile,
+                    photo_number=photo_number,
+                    original_path=original_path,
+                    compressed_path=compressed_path,
+                )
+            )
+
+        db.add_all(photos)
+        db.commit()
+
+        for photo in photos:
+            db.refresh(photo)
+
+    except Exception:
+        db.rollback()
+        delete_photo_files(created_files)
+        raise
+
+    return [
+        photo_to_out(photo)
+        for photo in photos
     ]

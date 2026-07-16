@@ -24,6 +24,10 @@ class _AdminAreaState extends State<AdminArea> {
   final _courseManagementController = AdminCourseManagementController();
   final _studentManagementController = AdminStudentManagementController();
   final _viewSessionLogsController = AdminViewSessionLogsController();
+  final _photoController = SessionPhotoController();
+
+  bool _showSessionPhotos = false;
+  bool _showCoursePhotos = false;
 
   @override
   void dispose() {
@@ -32,6 +36,7 @@ class _AdminAreaState extends State<AdminArea> {
     _courseManagementController.dispose();
     _studentManagementController.dispose();
     _viewSessionLogsController.dispose();
+    _photoController.dispose();
     super.dispose();
   }
 
@@ -44,6 +49,7 @@ class _AdminAreaState extends State<AdminArea> {
         _courseManagementController,
         _studentManagementController,
         _viewSessionLogsController,
+        _photoController,
       ]),
       builder: (_, _) => _buildArea(),
     );
@@ -84,6 +90,18 @@ class _AdminAreaState extends State<AdminArea> {
           return;
         }
 
+        if (_areaController.screen == AdminScreen.viewSessionLogs &&
+            _showSessionPhotos) {
+          _closeSessionPhotos();
+          return;
+        }
+
+        if (_areaController.screen == AdminScreen.viewPhotos &&
+            _showCoursePhotos) {
+          _closeCoursePhotos();
+          return;
+        }
+
         if (_areaController.screen != AdminScreen.menu) {
           _returnToMenu();
         }
@@ -102,6 +120,8 @@ class _AdminAreaState extends State<AdminArea> {
         AdminScreen.manageStudents => _buildStudentManagementArea(),
 
         AdminScreen.viewSessionLogs => _buildViewSessionLogsArea(),
+
+        AdminScreen.viewPhotos => _buildPhotoArea(),
 
         AdminScreen.trackStudents => PlaceholderTaskScreen(
           title: 'Track students',
@@ -275,6 +295,26 @@ class _AdminAreaState extends State<AdminArea> {
   Widget _buildViewSessionLogsArea() {
     final selectedSessionLog = _viewSessionLogsController.selectedSessionLog;
 
+    if (_showSessionPhotos) {
+      return SessionPhotosScreen(
+        title: '${selectedSessionLog!.projectTitle} photos',
+        photos: _photoController.photos,
+        selectedPhotos: const [],
+        isLoading: _photoController.isLoading,
+        isSelecting: false,
+        isUploading: false,
+        showUploadControls: false,
+        alreadySubmitted: false,
+        canUpload: false,
+        message: _photoController.message,
+        clearMessage: _photoController.clearMessage,
+        onSelectPhotos: () async {},
+        onClearSelection: () {},
+        onUpload: () async {},
+        onBack: _closeSessionPhotos,
+      );
+    }
+
     return switch (_viewSessionLogsController.view) {
       AdminSessionLogView.list => AdminViewSessionLogsScreen(
         sessionLogs: _viewSessionLogsController.visibleSessionLogs,
@@ -317,6 +357,7 @@ class _AdminAreaState extends State<AdminArea> {
         studentNames: _viewSessionLogsController.studentNamesFor(
           selectedSessionLog,
         ),
+        onViewPhotos: _openSessionPhotos,
         onBack: _viewSessionLogsController.closeDetail,
       ),
     };
@@ -345,6 +386,16 @@ class _AdminAreaState extends State<AdminArea> {
 
     if (screen == AdminScreen.viewSessionLogs) {
       await _viewSessionLogsController.openList(
+        accessToken: widget.accessToken,
+      );
+    }
+
+    if (screen == AdminScreen.viewPhotos) {
+      setState(() {
+        _showCoursePhotos = false;
+      });
+
+      await _photoController.initializeCourseSelection(
         accessToken: widget.accessToken,
       );
     }
@@ -474,5 +525,84 @@ class _AdminAreaState extends State<AdminArea> {
     _studentManagementController.cancelTaskScreen();
     _viewSessionLogsController.reset();
     _areaController.reset();
+    _photoController.reset();
+
+    setState(() {
+      _showSessionPhotos = false;
+      _showCoursePhotos = false;
+    });
+  }
+
+  Widget _buildPhotoArea() {
+    if (_showCoursePhotos) {
+      return CoursePhotosScreen(
+        courseName: _photoController.selectedCourse!.name,
+        photos: _photoController.photos,
+        isLoading: _photoController.isLoading,
+        message: _photoController.message,
+        clearMessage: _photoController.clearMessage,
+        onBack: _closeCoursePhotos,
+      );
+    }
+
+    return PhotoCourseSelectionScreen(
+      courses: _photoController.courses,
+      selectedCourseId: _photoController.selectedCourseId,
+      canView: _photoController.canViewCourse,
+      isLoading: _photoController.isLoading,
+      message: _photoController.message,
+      clearMessage: _photoController.clearMessage,
+      onSelectCourse: _photoController.selectCourse,
+      onView: _openSelectedCoursePhotos,
+      onHome: _returnToMenu,
+      onLogout: widget.onLogout,
+    );
+  }
+
+  Future<void> _openSessionPhotos() async {
+    final sessionLog = _viewSessionLogsController.selectedSessionLog;
+
+    if (sessionLog == null) {
+      return;
+    }
+
+    setState(() {
+      _showSessionPhotos = true;
+    });
+
+    await _photoController.loadSessionPhotos(
+      accessToken: widget.accessToken,
+      sessionLogId: sessionLog.id,
+    );
+  }
+
+  void _closeSessionPhotos() {
+    _photoController.closeGallery();
+
+    setState(() {
+      _showSessionPhotos = false;
+    });
+  }
+
+  Future<void> _openSelectedCoursePhotos() async {
+    if (!_photoController.canViewCourse) {
+      return;
+    }
+
+    setState(() {
+      _showCoursePhotos = true;
+    });
+
+    await _photoController.loadSelectedCoursePhotos(
+      accessToken: widget.accessToken,
+    );
+  }
+
+  void _closeCoursePhotos() {
+    _photoController.closeGallery();
+
+    setState(() {
+      _showCoursePhotos = false;
+    });
   }
 }

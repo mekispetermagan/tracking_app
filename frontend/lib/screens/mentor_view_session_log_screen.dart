@@ -10,6 +10,7 @@ class MentorViewSessionLogScreen extends StatelessWidget {
   final List<String> teachingMentorNames;
   final List<String> supportingMentorNames;
   final List<String> studentNames;
+  final VoidCallback onViewPhotos;
   final VoidCallback onBack;
 
   const MentorViewSessionLogScreen({
@@ -19,6 +20,7 @@ class MentorViewSessionLogScreen extends StatelessWidget {
     required this.teachingMentorNames,
     required this.supportingMentorNames,
     required this.studentNames,
+    required this.onViewPhotos,
     required this.onBack,
     super.key,
   });
@@ -43,6 +45,16 @@ class MentorViewSessionLogScreen extends StatelessWidget {
               studentNames: studentNames,
             ),
           ],
+        ),
+      ),
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: FilledButton.icon(
+            onPressed: onViewPhotos,
+            icon: const Icon(Icons.photo_library_outlined),
+            label: const Text('View or upload photos'),
+          ),
         ),
       ),
     );

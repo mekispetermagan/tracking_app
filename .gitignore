@@ -15,3 +15,6 @@ frontend/.flutter-plugins-dependencies
 .vscode/
 .idea/
 .DS_Store
+
+backend/original_photos/
+backend/compressed_photos/

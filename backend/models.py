@@ -13,6 +13,7 @@ from sqlalchemy import (
     String,
     Text,
     Time,
+    UniqueConstraint,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -108,6 +109,10 @@ class MentorProfile(Base):
     courses: Mapped[list[Course]] = relationship(
         secondary="mentor_courses",
         back_populates="mentors",
+    )
+
+    uploaded_session_photos: Mapped[list[SessionPhoto]] = relationship(
+        back_populates="mentor",
     )
 
     submitted_session_logs: Mapped[list[SessionLog]] = relationship(
@@ -396,4 +401,68 @@ class SessionLog(Base):
     students: Mapped[list[Student]] = relationship(
         secondary="session_log_students",
         back_populates="session_logs",
+    )
+
+    photos: Mapped[list[SessionPhoto]] = relationship(
+        back_populates="session_log",
+        cascade="all, delete-orphan",
+    )
+
+
+class SessionPhoto(Base):
+    __tablename__ = "session_photos"
+    __table_args__ = (
+        CheckConstraint(
+            "photo_number BETWEEN 1 AND 3",
+            name="ck_session_photos_photo_number",
+        ),
+        UniqueConstraint(
+            "session_log_id",
+            "mentor_profile_id",
+            "photo_number",
+            name="uq_session_photos_log_mentor_number",
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+
+    session_log_id: Mapped[int] = mapped_column(
+        ForeignKey("session_logs.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+
+    mentor_profile_id: Mapped[int] = mapped_column(
+        ForeignKey("mentor_profiles.id"),
+        nullable=False,
+    )
+
+    photo_number: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+    )
+
+    original_path: Mapped[str] = mapped_column(
+        String(500),
+        unique=True,
+        nullable=False,
+    )
+
+    compressed_path: Mapped[str] = mapped_column(
+        String(500),
+        unique=True,
+        nullable=False,
+    )
+
+    uploaded_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(UTC),
+        nullable=False,
+    )
+
+    session_log: Mapped[SessionLog] = relationship(
+        back_populates="photos",
+    )
+
+    mentor: Mapped[MentorProfile] = relationship(
+        back_populates="uploaded_session_photos",
     )
