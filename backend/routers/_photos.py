@@ -33,6 +33,11 @@ def photo_to_out(photo: SessionPhoto) -> SessionPhotoOut:
         id=photo.id,
         session_log_id=photo.session_log_id,
         mentor_profile_id=photo.mentor_profile_id,
+        mentor_name=(
+            f"{photo.mentor.account.first_name} "
+            f"{photo.mentor.account.last_name}"
+        ),
+        session_date=photo.session_log.date,
         photo_number=photo.photo_number,
         url=f"/{photo.compressed_path}",
         uploaded_at=photo.uploaded_at,

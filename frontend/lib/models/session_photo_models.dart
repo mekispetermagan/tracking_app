@@ -2,6 +2,8 @@ class SessionPhoto {
   final int id;
   final int sessionLogId;
   final int mentorProfileId;
+  final String mentorName;
+  final DateTime sessionDate;
   final int photoNumber;
   final String url;
   final DateTime uploadedAt;
@@ -10,6 +12,8 @@ class SessionPhoto {
     required this.id,
     required this.sessionLogId,
     required this.mentorProfileId,
+    required this.mentorName,
+    required this.sessionDate,
     required this.photoNumber,
     required this.url,
     required this.uploadedAt,
@@ -20,6 +24,8 @@ class SessionPhoto {
       id: json['id'] as int,
       sessionLogId: json['session_log_id'] as int,
       mentorProfileId: json['mentor_profile_id'] as int,
+      mentorName: json['mentor_name'] as String,
+      sessionDate: DateTime.parse(json['session_date'] as String),
       photoNumber: json['photo_number'] as int,
       url: json['url'] as String,
       uploadedAt: DateTime.parse(json['uploaded_at'] as String),
