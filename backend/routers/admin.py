@@ -1,10 +1,18 @@
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.exc import IntegrityError
 
 from config import settings
 from dependencies import AdminAuth, get_current_admin
-from models import Account, Course, MentorProfile, SessionLog
+from models import (
+    Account,
+    Course,
+    MentorProfile,
+    SessionLog,
+    Story,
+    StoryOfMonth,
+)
 from routers._management import (
     course_to_out,
     ensure_country_exists,
@@ -26,6 +34,19 @@ from security import hash_secret
 
 from routers._session_logs import session_log_to_out
 from schemas.session_logs import SessionLogOut
+
+from routers._stories import (
+    admin_story_to_out,
+    current_month,
+    normalize_month,
+    story_winner_to_out,
+)
+from schemas.stories import (
+    AdminStoryOut,
+    StoryUpdateRequest,
+    StoryWinnerOut,
+    StoryWinnerRequest,
+)
 
 router = APIRouter()
 
@@ -252,3 +273,252 @@ def get_session_logs(
         session_log_to_out(session_log)
         for session_log in session_logs
     ]
+
+
+@router.get(
+    "/stories",
+    response_model=list[AdminStoryOut],
+)
+def get_stories_for_admin(
+    month: date | None = None,
+    active_only: bool = True,
+    auth: AdminAuth = Depends(
+        get_current_admin,
+    ),
+):
+    selected_month = (
+        normalize_month(month)
+        if month is not None
+        else current_month()
+    )
+
+    query = auth.db.query(Story).filter(
+        Story.submission_month
+        == selected_month,
+    )
+
+    if active_only:
+        query = query.filter(
+            Story.active.is_(True),
+        )
+
+    stories = query.order_by(
+        Story.created_at.desc(),
+        Story.id.desc(),
+    ).all()
+
+    return [
+        admin_story_to_out(story)
+        for story in stories
+    ]
+
+
+@router.put(
+    "/stories/{story_id}",
+    response_model=AdminStoryOut,
+)
+def update_story(
+    story_id: int,
+    data: StoryUpdateRequest,
+    auth: AdminAuth = Depends(
+        get_current_admin,
+    ),
+):
+    db = auth.db
+    story = db.get(
+        Story,
+        story_id,
+    )
+
+    if not story:
+        raise HTTPException(
+            status_code=404,
+            detail="Story not found",
+        )
+
+    story.text = data.text
+
+    db.commit()
+    db.refresh(story)
+
+    return admin_story_to_out(story)
+
+
+@router.post(
+    "/stories/{story_id}/deactivate",
+    response_model=AdminStoryOut,
+)
+def deactivate_story(
+    story_id: int,
+    auth: AdminAuth = Depends(
+        get_current_admin,
+    ),
+):
+    db = auth.db
+    story = db.get(
+        Story,
+        story_id,
+    )
+
+    if not story:
+        raise HTTPException(
+            status_code=404,
+            detail="Story not found",
+        )
+
+    story.active = False
+
+    if story.story_of_month is not None:
+        db.delete(
+            story.story_of_month,
+        )
+
+    db.commit()
+    db.refresh(story)
+
+    return admin_story_to_out(story)
+
+
+@router.put(
+    "/story-winners/{month}",
+    response_model=StoryWinnerOut,
+)
+def select_story_winner(
+    month: date,
+    data: StoryWinnerRequest,
+    auth: AdminAuth = Depends(
+        get_current_admin,
+    ),
+):
+    db = auth.db
+    selected_month = normalize_month(
+        month,
+    )
+
+    if selected_month >= current_month():
+        raise HTTPException(
+            status_code=409,
+            detail=(
+                "A winner can only be selected "
+                "after the month has ended"
+            ),
+        )
+
+    story = db.get(
+        Story,
+        data.story_id,
+    )
+
+    if not story or not story.active:
+        raise HTTPException(
+            status_code=404,
+            detail="Story not found",
+        )
+
+    if (
+        story.submission_month
+        != selected_month
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "Story does not belong "
+                "to this month"
+            ),
+        )
+
+    winner = (
+        db.query(StoryOfMonth)
+        .filter(
+            StoryOfMonth.month
+            == selected_month,
+        )
+        .first()
+    )
+
+    selected_at = datetime.now(UTC)
+
+    if winner:
+        winner.story = story
+        winner.selected_by = auth.profile
+        winner.selected_at = selected_at
+    else:
+        winner = StoryOfMonth(
+            month=selected_month,
+            story=story,
+            selected_by=auth.profile,
+            selected_at=selected_at,
+        )
+        db.add(winner)
+
+    db.commit()
+    db.refresh(winner)
+
+    return story_winner_to_out(
+        winner,
+    )
+
+@router.post(
+    "/stories/{story_id}/activate",
+    response_model=AdminStoryOut,
+)
+def activate_story(
+    story_id: int,
+    auth: AdminAuth = Depends(
+        get_current_admin,
+    ),
+):
+    db = auth.db
+    story = db.get(
+        Story,
+        story_id,
+    )
+
+    if not story:
+        raise HTTPException(
+            status_code=404,
+            detail="Story not found",
+        )
+
+    if story.active:
+        return admin_story_to_out(story)
+
+    replacement = (
+        db.query(Story)
+        .filter(
+            Story.submitted_by_mentor_profile_id
+            == story.submitted_by_mentor_profile_id,
+            Story.submission_month
+            == story.submission_month,
+            Story.active.is_(True),
+            Story.id != story.id,
+        )
+        .first()
+    )
+
+    if replacement:
+        raise HTTPException(
+            status_code=409,
+            detail=(
+                "The mentor already has another active "
+                "story for this month"
+            ),
+        )
+
+    story.active = True
+
+    try:
+        db.commit()
+        db.refresh(story)
+    except IntegrityError:
+        db.rollback()
+
+        raise HTTPException(
+            status_code=409,
+            detail=(
+                "The mentor already has another active "
+                "story for this month"
+            ),
+        )
+
+    return admin_story_to_out(story)

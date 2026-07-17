@@ -10,7 +10,9 @@ enum MentorScreen {
   viewPhotos,
   trackStudents,
   submitInvoice,
-  storyOfTheMonth,
+  stories,
+  submitStory,
+  storyWinnerArchive,
 }
 
 class MentorMenuItem {
@@ -42,11 +44,8 @@ class MentorAreaController extends ChangeNotifier {
     ),
     MentorMenuItem(screen: MentorScreen.trackStudents, label: 'Track students'),
     MentorMenuItem(screen: MentorScreen.viewPhotos, label: 'View photos'),
+    MentorMenuItem(screen: MentorScreen.stories, label: 'Stories'),
     MentorMenuItem(screen: MentorScreen.submitInvoice, label: 'Submit invoice'),
-    MentorMenuItem(
-      screen: MentorScreen.storyOfTheMonth,
-      label: 'Story of the month',
-    ),
   ];
 
   void select(MentorScreen screen) {
@@ -56,6 +55,22 @@ class MentorAreaController extends ChangeNotifier {
 
     _screen = screen;
     notifyListeners();
+  }
+
+  void openStoryForm() {
+    select(MentorScreen.submitStory);
+  }
+
+  void closeStoryForm() {
+    select(MentorScreen.stories);
+  }
+
+  void openStoryWinnerArchive() {
+    select(MentorScreen.storyWinnerArchive);
+  }
+
+  void closeStoryWinnerArchive() {
+    select(MentorScreen.stories);
   }
 
   void reset() {

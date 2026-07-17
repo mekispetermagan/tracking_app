@@ -22,3 +22,11 @@ app.mount(
     ),
     name="compressed_photos",
 )
+
+app.mount(
+    "/compressed_story_photos",
+    StaticFiles(
+        directory="compressed_story_photos",
+    ),
+    name="compressed_story_photos",
+)

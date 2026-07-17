@@ -26,9 +26,27 @@ class _AdminAreaState extends State<AdminArea> {
   final _viewSessionLogsController = AdminViewSessionLogsController();
   final _photoController = SessionPhotoController();
   final _trackStudentsController = TrackStudentsController();
+  final _storyController = AdminStoryController();
+  final _storyWinnerArchiveController = StoryWinnerArchiveController();
 
   bool _showSessionPhotos = false;
   bool _showCoursePhotos = false;
+
+  AdminStory? get _selectedStory {
+    final storyId = _areaController.selectedStoryId;
+
+    if (storyId == null) {
+      return null;
+    }
+
+    for (final story in _storyController.stories) {
+      if (story.id == storyId) {
+        return story;
+      }
+    }
+
+    return null;
+  }
 
   @override
   void dispose() {
@@ -39,6 +57,8 @@ class _AdminAreaState extends State<AdminArea> {
     _viewSessionLogsController.dispose();
     _photoController.dispose();
     _trackStudentsController.dispose();
+    _storyController.dispose();
+    _storyWinnerArchiveController.dispose();
     super.dispose();
   }
 
@@ -55,6 +75,8 @@ class _AdminAreaState extends State<AdminArea> {
         _trackStudentsController,
         _trackStudentsController.recordController,
         _viewSessionLogsController.studentRecordController,
+        _storyController,
+        _storyWinnerArchiveController,
       ]),
       builder: (_, _) => _buildArea(),
     );
@@ -119,6 +141,16 @@ class _AdminAreaState extends State<AdminArea> {
           return;
         }
 
+        if (_areaController.screen == AdminScreen.editStory) {
+          _areaController.closeStoryEdit();
+          return;
+        }
+
+        if (_areaController.screen == AdminScreen.storyWinnerArchive) {
+          _areaController.closeStoryWinnerArchive();
+          return;
+        }
+
         if (_areaController.screen != AdminScreen.menu) {
           _returnToMenu();
         }
@@ -141,6 +173,12 @@ class _AdminAreaState extends State<AdminArea> {
         AdminScreen.viewPhotos => _buildPhotoArea(),
 
         AdminScreen.trackStudents => _buildTrackStudentsArea(),
+
+        AdminScreen.stories => _buildStoriesArea(),
+
+        AdminScreen.editStory => _buildStoryEditArea(),
+
+        AdminScreen.storyWinnerArchive => _buildStoryWinnerArchive(),
 
         AdminScreen.reportsData => PlaceholderTaskScreen(
           title: 'Reports & data',
@@ -419,6 +457,94 @@ class _AdminAreaState extends State<AdminArea> {
     };
   }
 
+  Widget _buildStoriesArea() {
+    return AdminStoriesScreen(
+      stories: _storyController.stories,
+      selectedMonth: _storyController.selectedMonth,
+      activeOnly: _storyController.activeOnly,
+      isLoading: _storyController.isLoading,
+      savingStoryId: _storyController.savingStoryId,
+      isSelectingWinner: _storyController.isSelectingWinner,
+      message: _storyController.message,
+      clearMessage: _storyController.clearMessage,
+      onMonthChanged: (month) {
+        return _storyController.loadMonth(
+          accessToken: widget.accessToken,
+          month: month,
+        );
+      },
+      onActiveOnlyChanged: (value) {
+        return _storyController.setActiveOnly(
+          accessToken: widget.accessToken,
+          value: value,
+        );
+      },
+      onEditStory: (story) {
+        _areaController.openStoryEdit(story.id);
+      },
+      onDeactivateStory: (storyId) {
+        return _storyController.deactivateStory(
+          accessToken: widget.accessToken,
+          storyId: storyId,
+        );
+      },
+      onActivateStory: (storyId) {
+        return _storyController.activateStory(
+          accessToken: widget.accessToken,
+          storyId: storyId,
+        );
+      },
+      onSelectWinner: (storyId) {
+        return _storyController.selectWinner(
+          accessToken: widget.accessToken,
+          storyId: storyId,
+        );
+      },
+      onViewWinners: _openStoryWinnerArchive,
+      onBack: _returnToMenu,
+    );
+  }
+
+  Widget _buildStoryEditArea() {
+    final story = _selectedStory;
+
+    if (story == null) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Edit story'),
+          leading: BackButton(onPressed: _areaController.closeStoryEdit),
+        ),
+        body: const Center(child: Text('Story not found.')),
+      );
+    }
+
+    return AdminStoryEditScreen(
+      story: story,
+      isSaving: _storyController.savingStoryId == story.id,
+      message: _storyController.message,
+      clearMessage: _storyController.clearMessage,
+      onSave: (text) {
+        return _storyController.updateStory(
+          accessToken: widget.accessToken,
+          storyId: story.id,
+          text: text,
+        );
+      },
+      onSaved: _finishStoryEdit,
+      onCancel: _areaController.closeStoryEdit,
+    );
+  }
+
+  Widget _buildStoryWinnerArchive() {
+    return StoryWinnerArchiveScreen(
+      winners: _storyWinnerArchiveController.winners,
+      isLoading: _storyWinnerArchiveController.isLoading,
+      message: _storyWinnerArchiveController.message,
+      clearMessage: _storyWinnerArchiveController.clearMessage,
+      onBack: _areaController.closeStoryWinnerArchive,
+    );
+  }
+
   Future<void> _selectScreen(AdminScreen screen) async {
     _areaController.select(screen);
 
@@ -458,6 +584,10 @@ class _AdminAreaState extends State<AdminArea> {
 
     if (screen == AdminScreen.trackStudents) {
       await _trackStudentsController.openList(accessToken: widget.accessToken);
+    }
+
+    if (screen == AdminScreen.stories) {
+      await _storyController.initialize(accessToken: widget.accessToken);
     }
   }
 
@@ -579,21 +709,6 @@ class _AdminAreaState extends State<AdminArea> {
     return true;
   }
 
-  void _returnToMenu() {
-    _mentorManagementController.cancelTaskScreen();
-    _courseManagementController.cancelTaskScreen();
-    _studentManagementController.cancelTaskScreen();
-    _viewSessionLogsController.reset();
-    _areaController.reset();
-    _photoController.reset();
-    _trackStudentsController.reset();
-
-    setState(() {
-      _showSessionPhotos = false;
-      _showCoursePhotos = false;
-    });
-  }
-
   Widget _buildPhotoArea() {
     if (_showCoursePhotos) {
       return CoursePhotosScreen(
@@ -663,6 +778,37 @@ class _AdminAreaState extends State<AdminArea> {
     _photoController.closeGallery();
 
     setState(() {
+      _showCoursePhotos = false;
+    });
+  }
+
+  void _finishStoryEdit() {
+    _areaController.closeStoryEdit();
+
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(const SnackBar(content: Text('Story updated.')));
+  }
+
+  void _openStoryWinnerArchive() {
+    _areaController.openStoryWinnerArchive();
+
+    _storyWinnerArchiveController.load(accessToken: widget.accessToken);
+  }
+
+  void _returnToMenu() {
+    _mentorManagementController.cancelTaskScreen();
+    _courseManagementController.cancelTaskScreen();
+    _studentManagementController.cancelTaskScreen();
+    _viewSessionLogsController.reset();
+    _areaController.reset();
+    _photoController.reset();
+    _trackStudentsController.reset();
+    _storyController.reset();
+    _storyWinnerArchiveController.reset();
+
+    setState(() {
+      _showSessionPhotos = false;
       _showCoursePhotos = false;
     });
   }

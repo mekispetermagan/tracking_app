@@ -16,6 +16,8 @@ from models import (
     Student,
     SessionLog,
     SessionPhoto,
+    Story,
+    StoryOfMonth,
 )
 from routers._management import (
     apply_student_courses_as_admin,
@@ -44,6 +46,9 @@ from schemas.photos import SessionPhotoOut
 
 from routers._student_records import build_student_record
 from schemas.student_records import StudentRecordOut
+
+from routers._stories import story_winner_to_out
+from schemas.stories import StoryWinnerOut
 
 router = APIRouter()
 bearer = HTTPBearer()
@@ -592,4 +597,30 @@ def get_course_photos(
     return [
         photo_to_out(photo)
         for photo in photos
+    ]
+
+@router.get(
+    "/story-winners",
+    response_model=list[StoryWinnerOut],
+)
+def get_story_winner_archive(
+    actor: Actor = Depends(
+        get_current_actor,
+    ),
+):
+    winners = (
+        actor.db.query(StoryOfMonth)
+        .join(Story)
+        .filter(
+            Story.active.is_(True),
+        )
+        .order_by(
+            StoryOfMonth.month.desc(),
+        )
+        .all()
+    )
+
+    return [
+        story_winner_to_out(winner)
+        for winner in winners
     ]

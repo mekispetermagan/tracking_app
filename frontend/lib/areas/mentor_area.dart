@@ -26,11 +26,39 @@ class _MentorAreaState extends State<MentorArea> {
   final _viewSessionLogsController = MentorViewSessionLogsController();
   final _photoController = SessionPhotoController();
   final _trackStudentsController = TrackStudentsController();
+  final _storyController = MentorStoryController();
+  final _storyWinnerArchiveController = StoryWinnerArchiveController();
 
   bool _showSessionPhotos = false;
   bool _showCoursePhotos = false;
 
   bool _showChangePin = false;
+
+  String? get _profileCountryName {
+    final countryId = _profileController.mentor?.countryId;
+
+    if (countryId == null) {
+      return null;
+    }
+
+    return 'ID $countryId';
+  }
+
+  List<String> get _profileCourseNames {
+    final mentor = _profileController.mentor;
+
+    if (mentor == null) {
+      return const [];
+    }
+
+    final namesById = {
+      for (final course in _courseController.courses) course.id: course.name,
+    };
+
+    return mentor.courseIds
+        .map((courseId) => namesById[courseId] ?? 'Course #$courseId')
+        .toList();
+  }
 
   @override
   void dispose() {
@@ -42,6 +70,8 @@ class _MentorAreaState extends State<MentorArea> {
     _viewSessionLogsController.dispose();
     _photoController.dispose();
     _trackStudentsController.dispose();
+    _storyController.dispose();
+    _storyWinnerArchiveController.dispose();
     super.dispose();
   }
 
@@ -59,6 +89,8 @@ class _MentorAreaState extends State<MentorArea> {
         _trackStudentsController,
         _trackStudentsController.recordController,
         _viewSessionLogsController.studentRecordController,
+        _storyController,
+        _storyWinnerArchiveController,
       ]),
       builder: (_, _) => _buildArea(),
     );
@@ -124,6 +156,16 @@ class _MentorAreaState extends State<MentorArea> {
           return;
         }
 
+        if (_areaController.screen == MentorScreen.submitStory) {
+          _closeStoryForm();
+          return;
+        }
+
+        if (_areaController.screen == MentorScreen.storyWinnerArchive) {
+          _areaController.closeStoryWinnerArchive();
+          return;
+        }
+
         _goHome();
       },
       child: switch (_areaController.screen) {
@@ -153,11 +195,11 @@ class _MentorAreaState extends State<MentorArea> {
           onLogout: _logout,
         ),
 
-        MentorScreen.storyOfTheMonth => PlaceholderTaskScreen(
-          title: 'Story of the month',
-          onHome: _goHome,
-          onLogout: _logout,
-        ),
+        MentorScreen.stories => _buildStoriesArea(),
+
+        MentorScreen.submitStory => _buildStoryForm(),
+
+        MentorScreen.storyWinnerArchive => _buildStoryWinnerArchive(),
       },
     );
   }
@@ -484,6 +526,72 @@ class _MentorAreaState extends State<MentorArea> {
     };
   }
 
+  Widget _buildStoriesArea() {
+    final mentorProfileId = _profileController.mentor?.id ?? -1;
+
+    return MentorStoriesScreen(
+      stories: _storyController.stories,
+      selectedMonth: _storyController.selectedMonth,
+      mentorProfileId: mentorProfileId,
+      isCurrentMonth: _storyController.isCurrentMonth,
+      hasSubmittedThisMonth: _storyController.hasSubmittedThisMonth,
+      isLoading: _storyController.isLoading || _profileController.isLoading,
+      ratingStoryId: _storyController.ratingStoryId,
+      message: _storyController.message ?? _profileController.message,
+      clearMessage: _clearStoryMessages,
+      onMonthChanged: (month) {
+        return _storyController.loadMonth(
+          accessToken: widget.accessToken,
+          month: month,
+        );
+      },
+      onRateStory: (storyId, rating) {
+        return _storyController.rateStory(
+          accessToken: widget.accessToken,
+          storyId: storyId,
+          rating: rating,
+        );
+      },
+      onSubmitStory: _areaController.openStoryForm,
+      onViewWinners: _openStoryWinnerArchive,
+      onBack: _goHome,
+    );
+  }
+
+  Widget _buildStoryForm() {
+    return MentorStoryFormScreen(
+      courses: _storyController.courses,
+      selectedCourseId: _storyController.selectedCourseId,
+      selectedPhoto: _storyController.selectedPhoto,
+      isLoading: _storyController.isLoading,
+      isSelectingPhoto: _storyController.isSelectingPhoto,
+      isSubmitting: _storyController.isSubmitting,
+      message: _storyController.message,
+      clearMessage: _storyController.clearMessage,
+      onCourseSelected: _storyController.selectCourse,
+      onSelectPhoto: _storyController.selectPhoto,
+      onClearPhoto: _storyController.clearPhoto,
+      onSubmit: (text) {
+        return _storyController.submit(
+          accessToken: widget.accessToken,
+          text: text,
+        );
+      },
+      onSubmitted: _finishStorySubmission,
+      onCancel: _closeStoryForm,
+    );
+  }
+
+  Widget _buildStoryWinnerArchive() {
+    return StoryWinnerArchiveScreen(
+      winners: _storyWinnerArchiveController.winners,
+      isLoading: _storyWinnerArchiveController.isLoading,
+      message: _storyWinnerArchiveController.message,
+      clearMessage: _storyWinnerArchiveController.clearMessage,
+      onBack: _areaController.closeStoryWinnerArchive,
+    );
+  }
+
   Future<void> _openSessionPhotos() async {
     final sessionLog = _viewSessionLogsController.selectedSessionLog;
 
@@ -544,30 +652,45 @@ class _MentorAreaState extends State<MentorArea> {
       ..showSnackBar(const SnackBar(content: Text('Session log submitted.')));
   }
 
-  String? get _profileCountryName {
-    final countryId = _profileController.mentor?.countryId;
-
-    if (countryId == null) {
-      return null;
+  Future<void> _openStories() async {
+    if (_profileController.mentor == null) {
+      await _profileController.loadProfile(accessToken: widget.accessToken);
     }
 
-    return 'ID $countryId';
-  }
-
-  List<String> get _profileCourseNames {
     final mentor = _profileController.mentor;
 
     if (mentor == null) {
-      return const [];
+      return;
     }
 
-    final namesById = {
-      for (final course in _courseController.courses) course.id: course.name,
-    };
+    await _storyController.initialize(
+      accessToken: widget.accessToken,
+      mentorProfileId: mentor.id,
+    );
+  }
 
-    return mentor.courseIds
-        .map((courseId) => namesById[courseId] ?? 'Course #$courseId')
-        .toList();
+  void _closeStoryForm() {
+    _storyController.clearPhoto();
+    _areaController.closeStoryForm();
+  }
+
+  void _finishStorySubmission() {
+    _areaController.closeStoryForm();
+
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(const SnackBar(content: Text('Story submitted.')));
+  }
+
+  void _openStoryWinnerArchive() {
+    _areaController.openStoryWinnerArchive();
+
+    _storyWinnerArchiveController.load(accessToken: widget.accessToken);
+  }
+
+  void _clearStoryMessages() {
+    _storyController.clearMessage();
+    _profileController.clearMessage();
   }
 
   void _selectScreen(MentorScreen screen) {
@@ -606,6 +729,10 @@ class _MentorAreaState extends State<MentorArea> {
     if (screen == MentorScreen.trackStudents) {
       _trackStudentsController.openList(accessToken: widget.accessToken);
     }
+
+    if (screen == MentorScreen.stories) {
+      _openStories();
+    }
   }
 
   void _openProfile() {
@@ -626,6 +753,8 @@ class _MentorAreaState extends State<MentorArea> {
     _viewSessionLogsController.reset();
     _photoController.reset();
     _trackStudentsController.reset();
+    _storyController.reset();
+    _storyWinnerArchiveController.reset();
 
     setState(() {
       _showSessionPhotos = false;
@@ -646,6 +775,8 @@ class _MentorAreaState extends State<MentorArea> {
     _viewSessionLogsController.reset();
     _photoController.reset();
     _trackStudentsController.reset();
+    _storyController.reset();
+    _storyWinnerArchiveController.reset();
 
     setState(() {
       _showSessionPhotos = false;

@@ -9,11 +9,13 @@ from sqlalchemy import (
     DateTime,
     Enum as SqlEnum,
     ForeignKey,
+    Index,
     Integer,
     String,
     Text,
     Time,
     UniqueConstraint,
+    text,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -124,6 +126,16 @@ class MentorProfile(Base):
         back_populates="mentor",
     )
 
+    submitted_stories: Mapped[list[Story]] = relationship(
+        back_populates="submitted_by",
+        foreign_keys="Story.submitted_by_mentor_profile_id",
+    )
+
+    story_ratings: Mapped[list[StoryMentorRating]] = relationship(
+        back_populates="mentor",
+        cascade="all, delete-orphan",
+    )
+
 
 class AdminProfile(Base):
     __tablename__ = "admin_profiles"
@@ -146,6 +158,9 @@ class AdminProfile(Base):
 
     account: Mapped[Account] = relationship(back_populates="admin_profile")
 
+    selected_stories_of_month: Mapped[list[StoryOfMonth]] = relationship(
+        back_populates="selected_by",
+    )
 
 class Student(Base):
     __tablename__ = "students"
@@ -222,6 +237,10 @@ class Course(Base):
     )
 
     session_logs: Mapped[list[SessionLog]] = relationship(
+        back_populates="course",
+    )
+
+    stories: Mapped[list[Story]] = relationship(
         back_populates="course",
     )
 
@@ -465,4 +484,208 @@ class SessionPhoto(Base):
 
     mentor: Mapped[MentorProfile] = relationship(
         back_populates="uploaded_session_photos",
+    )
+
+
+class Story(Base):
+    __tablename__ = "stories"
+    __table_args__ = (
+        Index(
+            "uq_stories_active_submitter_month",
+            "submitted_by_mentor_profile_id",
+            "submission_month",
+            unique=True,
+            sqlite_where=text("active = 1"),
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+
+    submitted_by_mentor_profile_id: Mapped[int] = mapped_column(
+        ForeignKey("mentor_profiles.id"),
+        nullable=False,
+    )
+
+    course_id: Mapped[int] = mapped_column(
+        ForeignKey("courses.id"),
+        nullable=False,
+    )
+
+    text: Mapped[str] = mapped_column(
+        Text,
+        nullable=False,
+    )
+
+    submission_month: Mapped[date] = mapped_column(
+        Date,
+        nullable=False,
+    )
+
+    active: Mapped[bool] = mapped_column(
+        Boolean,
+        default=True,
+        nullable=False,
+    )
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(UTC),
+        nullable=False,
+    )
+
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(UTC),
+        onupdate=lambda: datetime.now(UTC),
+        nullable=False,
+    )
+
+    submitted_by: Mapped[MentorProfile] = relationship(
+        back_populates="submitted_stories",
+        foreign_keys=[submitted_by_mentor_profile_id],
+    )
+
+    course: Mapped[Course] = relationship(
+        back_populates="stories",
+    )
+
+    photo: Mapped[StoryPhoto | None] = relationship(
+        back_populates="story",
+        cascade="all, delete-orphan",
+        uselist=False,
+    )
+
+    ratings: Mapped[list[StoryMentorRating]] = relationship(
+        back_populates="story",
+        cascade="all, delete-orphan",
+    )
+
+    story_of_month: Mapped[StoryOfMonth | None] = relationship(
+        back_populates="story",
+        cascade="all, delete-orphan",
+        uselist=False,
+    )
+
+
+class StoryPhoto(Base):
+    __tablename__ = "story_photos"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+
+    story_id: Mapped[int] = mapped_column(
+        ForeignKey("stories.id", ondelete="CASCADE"),
+        unique=True,
+        nullable=False,
+    )
+
+    original_path: Mapped[str] = mapped_column(
+        String(500),
+        unique=True,
+        nullable=False,
+    )
+
+    compressed_path: Mapped[str] = mapped_column(
+        String(500),
+        unique=True,
+        nullable=False,
+    )
+
+    uploaded_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(UTC),
+        nullable=False,
+    )
+
+    story: Mapped[Story] = relationship(
+        back_populates="photo",
+    )
+
+
+class StoryMentorRating(Base):
+    __tablename__ = "story_mentor_ratings"
+    __table_args__ = (
+        CheckConstraint(
+            "rating BETWEEN 1 AND 5",
+            name="ck_story_mentor_ratings_rating",
+        ),
+        UniqueConstraint(
+            "story_id",
+            "mentor_profile_id",
+            name="uq_story_mentor_ratings_story_mentor",
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+
+    story_id: Mapped[int] = mapped_column(
+        ForeignKey("stories.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+
+    mentor_profile_id: Mapped[int] = mapped_column(
+        ForeignKey("mentor_profiles.id"),
+        nullable=False,
+    )
+
+    rating: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+    )
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(UTC),
+        nullable=False,
+    )
+
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(UTC),
+        onupdate=lambda: datetime.now(UTC),
+        nullable=False,
+    )
+
+    story: Mapped[Story] = relationship(
+        back_populates="ratings",
+    )
+
+    mentor: Mapped[MentorProfile] = relationship(
+        back_populates="story_ratings",
+    )
+
+
+class StoryOfMonth(Base):
+    __tablename__ = "stories_of_month"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+
+    month: Mapped[date] = mapped_column(
+        Date,
+        unique=True,
+        nullable=False,
+    )
+
+    story_id: Mapped[int] = mapped_column(
+        ForeignKey("stories.id", ondelete="CASCADE"),
+        unique=True,
+        nullable=False,
+    )
+
+    selected_by_admin_profile_id: Mapped[int] = mapped_column(
+        ForeignKey("admin_profiles.id"),
+        nullable=False,
+    )
+
+    selected_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(UTC),
+        nullable=False,
+    )
+
+    story: Mapped[Story] = relationship(
+        back_populates="story_of_month",
+    )
+
+    selected_by: Mapped[AdminProfile] = relationship(
+        back_populates="selected_stories_of_month",
     )

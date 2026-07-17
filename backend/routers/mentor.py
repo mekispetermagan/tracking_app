@@ -1,12 +1,15 @@
 from fastapi import (
     APIRouter,
     Depends,
+    File,
+    Form,
     HTTPException,
     Response,
     status,
-    File,
     UploadFile,
 )
+from datetime import UTC, date, datetime
+from sqlalchemy.exc import IntegrityError
 
 from dependencies import MentorAuth, get_current_mentor
 from models import (
@@ -15,6 +18,9 @@ from models import (
     SessionLogMentor,
     SessionLogMentorRole,
     SessionPhoto,
+    Story,
+    StoryMentorRating,
+    StoryPhoto,
 )
 from routers._management import (
     course_visible_to_mentor,
@@ -36,8 +42,21 @@ from routers._photos import (
     delete_photo_files,
     photo_to_out,
     store_photo,
+    store_story_photo,
 )
 from schemas.photos import SessionPhotoOut
+
+from routers._stories import (
+    current_month,
+    mentor_has_active_course,
+    mentor_story_to_out,
+    normalize_month,
+)
+from schemas.stories import (
+    MentorStoryOut,
+    StoryRatingRequest,
+)
+
 from security import hash_secret, verify_secret
 
 router = APIRouter()
@@ -372,3 +391,271 @@ async def submit_session_photos(
         photo_to_out(photo)
         for photo in photos
     ]
+
+
+@router.get(
+    "/stories",
+    response_model=list[MentorStoryOut],
+)
+def get_stories_for_mentor(
+    month: date | None = None,
+    auth: MentorAuth = Depends(
+        get_current_mentor,
+    ),
+):
+    selected_month = (
+        normalize_month(month)
+        if month is not None
+        else current_month()
+    )
+
+    stories = (
+        auth.db.query(Story)
+        .filter(
+            Story.submission_month
+            == selected_month,
+            Story.active.is_(True),
+        )
+        .order_by(
+            Story.created_at.desc(),
+            Story.id.desc(),
+        )
+        .all()
+    )
+
+    return [
+        mentor_story_to_out(
+            story,
+            auth.profile,
+        )
+        for story in stories
+    ]
+
+
+@router.post(
+    "/stories",
+    response_model=MentorStoryOut,
+    status_code=status.HTTP_201_CREATED,
+)
+async def submit_story(
+    course_id: int = Form(...),
+    text: str = Form(...),
+    photo: UploadFile = File(...),
+    auth: MentorAuth = Depends(
+        get_current_mentor,
+    ),
+):
+    story_text = text.strip()
+
+    if not story_text:
+        raise HTTPException(
+            status_code=422,
+            detail="Story text is required",
+        )
+
+    db = auth.db
+    course = db.get(
+        Course,
+        course_id,
+    )
+
+    if not course:
+        raise HTTPException(
+            status_code=404,
+            detail="Course not found",
+        )
+
+    if not course.active:
+        raise HTTPException(
+            status_code=400,
+            detail="Course is inactive",
+        )
+
+    if not course_visible_to_mentor(
+        course,
+        auth.profile,
+    ):
+        raise HTTPException(
+            status_code=403,
+            detail="Course not available",
+        )
+
+    submitted_at = datetime.now(UTC)
+
+    submission_month = (
+        submitted_at.date().replace(day=1)
+    )
+
+    existing_story = (
+        db.query(Story)
+        .filter(
+            Story.submitted_by_mentor_profile_id
+            == auth.profile.id,
+            Story.submission_month
+            == submission_month,
+            Story.active.is_(True),
+        )
+        .first()
+    )
+
+    if existing_story:
+        raise HTTPException(
+            status_code=409,
+            detail=(
+                "You have already submitted "
+                "a story this month"
+            ),
+        )
+
+    story = Story(
+        submitted_by=auth.profile,
+        course=course,
+        text=story_text,
+        submission_month=submission_month,
+        created_at=submitted_at,
+        updated_at=submitted_at,
+    )
+
+    created_files = []
+
+    try:
+        db.add(story)
+        db.flush()
+
+        (
+            original_path,
+            compressed_path,
+            file_paths,
+        ) = await store_story_photo(
+            upload=photo,
+            story_id=story.id,
+            submission_date=(
+                submitted_at.date()
+            ),
+            mentor_profile_id=(
+                auth.profile.id
+            ),
+        )
+
+        created_files.extend(
+            file_paths,
+        )
+
+        story.photo = StoryPhoto(
+            original_path=original_path,
+            compressed_path=compressed_path,
+            uploaded_at=submitted_at,
+        )
+
+        db.commit()
+        db.refresh(story)
+
+    except IntegrityError:
+        db.rollback()
+        delete_photo_files(
+            created_files,
+        )
+
+        raise HTTPException(
+            status_code=409,
+            detail=(
+                "You have already submitted "
+                "a story this month"
+            ),
+        )
+
+    except Exception:
+        db.rollback()
+        delete_photo_files(
+            created_files,
+        )
+        raise
+
+    return mentor_story_to_out(
+        story,
+        auth.profile,
+    )
+
+
+@router.put(
+    "/stories/{story_id}/rating",
+    response_model=MentorStoryOut,
+)
+def rate_story(
+    story_id: int,
+    data: StoryRatingRequest,
+    auth: MentorAuth = Depends(
+        get_current_mentor,
+    ),
+):
+    db = auth.db
+    story = db.get(
+        Story,
+        story_id,
+    )
+
+    if not story or not story.active:
+        raise HTTPException(
+            status_code=404,
+            detail="Story not found",
+        )
+
+    if (
+        story.submitted_by_mentor_profile_id
+        == auth.profile.id
+    ):
+        raise HTTPException(
+            status_code=403,
+            detail=(
+                "You cannot rate your own story"
+            ),
+        )
+
+    if not mentor_has_active_course(
+        auth.profile,
+    ):
+        raise HTTPException(
+            status_code=403,
+            detail=(
+                "Only mentors assigned to an "
+                "active course may rate stories"
+            ),
+        )
+
+    if (
+        story.submission_month
+        != current_month()
+    ):
+        raise HTTPException(
+            status_code=409,
+            detail="Rating period is closed",
+        )
+
+    rating = (
+        db.query(StoryMentorRating)
+        .filter(
+            StoryMentorRating.story_id
+            == story.id,
+            StoryMentorRating.mentor_profile_id
+            == auth.profile.id,
+        )
+        .first()
+    )
+
+    if rating:
+        rating.rating = data.rating
+    else:
+        rating = StoryMentorRating(
+            story=story,
+            mentor=auth.profile,
+            rating=data.rating,
+        )
+        db.add(rating)
+
+    db.commit()
+    db.refresh(story)
+
+    return mentor_story_to_out(
+        story,
+        auth.profile,
+    )

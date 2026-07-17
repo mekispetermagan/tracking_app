@@ -18,6 +18,10 @@ from models import (
     SessionLogMentor,
     SessionLogMentorRole,
     SessionPhoto,
+    Story,
+    StoryMentorRating,
+    StoryOfMonth,
+    StoryPhoto,
     Student,
 )
 
@@ -31,6 +35,12 @@ PHOTO_FILENAMES = (
     "01_20260510_01_01_538223.jpg",
     "01_20260510_01_02_184906.jpg",
     "01_20260510_01_03_772451.jpg",
+)
+
+STORY_PHOTO_FILENAMES = (
+    "01_20260607_01_538223.jpg",
+    "02_20260614_02_184906.jpg",
+    "03_20260621_03_772451.jpg",
 )
 
 SKILL_GAMES = (
@@ -128,6 +138,8 @@ def add_account(
                 temporary_password_expires_at=expiry,
             )
         )
+
+    db.flush()
 
     return account
 
@@ -378,6 +390,51 @@ def add_photo_submission(
         )
 
 
+def get_admin_profile(db, first_name, last_name):
+    return (
+        db.query(AdminProfile)
+        .join(Account)
+        .filter(
+            Account.first_name == first_name,
+            Account.last_name == last_name,
+        )
+        .one()
+    )
+
+
+def add_story(
+    db,
+    course,
+    mentor,
+    story_text,
+    submitted_at,
+    filename,
+):
+    if mentor not in course.mentors:
+        raise ValueError(
+            "Story submitter must be assigned to the course.",
+        )
+
+    story = Story(
+        submitted_by=mentor,
+        course=course,
+        text=story_text,
+        submission_month=submitted_at.date().replace(day=1),
+        created_at=submitted_at,
+        updated_at=submitted_at,
+    )
+    db.add(story)
+    db.flush()
+
+    story.photo = StoryPhoto(
+        original_path=f"original_story_photos/{filename}",
+        compressed_path=f"compressed_story_photos/{filename}",
+        uploaded_at=submitted_at,
+    )
+
+    return story
+
+
 def main():
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
@@ -406,6 +463,14 @@ def main():
         )
         add_account(
             db,
+            "Stephen",
+            "Juuko",
+            "0123456789",
+            uganda.id,
+            mentor_pin="123456",
+        )
+        add_account(
+            db,
             "Peter",
             "Mekis",
             "0781653508",
@@ -424,7 +489,20 @@ def main():
             "Nakalema",
         )
 
-        shared_mentors = [abdallah, margret]
+        stephen = get_mentor_profile(
+            db,
+            "Stephen",
+            "Juuko",
+        )
+
+        peter_admin = get_admin_profile(
+            db,
+            "Peter",
+            "Mekis",
+        )
+
+        hillside_mentors = [abdallah, margret]
+        cdi_mentors = [abdallah, margret, stephen]
 
         hillside = add_course_with_students(
             db=db,
@@ -436,7 +514,7 @@ def main():
             country_id=uganda.id,
             day_of_week=6,
             start_time=time(14, 0),
-            mentors=shared_mentors,
+            mentors=hillside_mentors,
             students=[
                 {
                     "first_name": "Aisha",
@@ -511,7 +589,7 @@ def main():
             country_id=uganda.id,
             day_of_week=5,
             start_time=time(10, 0),
-            mentors=shared_mentors,
+            mentors=cdi_mentors,
             students=[
                 {
                     "first_name": "Faith",
@@ -581,7 +659,7 @@ def main():
         hillside_logs = add_session_logs(
             db,
             hillside,
-            shared_mentors,
+            hillside_mentors,
             [
                 (
                     ProjectType.SCRATCH,
@@ -625,7 +703,7 @@ def main():
         add_session_logs(
             db,
             cdi,
-            shared_mentors,
+            cdi_mentors,
             [
                 (
                     ProjectType.SCRATCH,
@@ -668,6 +746,122 @@ def main():
             mentor=abdallah,
             filenames=PHOTO_FILENAMES,
         )
+
+        story_1 = add_story(
+            db,
+            course=hillside,
+            mentor=abdallah,
+            story_text=(
+                "Mom came to the session to take her son home. "
+                "She saw us laughing and singing, forgot why she "
+                "came, and stayed to watch us thrive."
+            ),
+            submitted_at=datetime(
+                2026,
+                6,
+                7,
+                16,
+                30,
+                tzinfo=UTC,
+            ),
+            filename=STORY_PHOTO_FILENAMES[0],
+        )
+
+        story_2 = add_story(
+            db,
+            course=hillside,
+            mentor=margret,
+            story_text=(
+                "We had no electricity. I brought Scratch blocks "
+                "cut from coloured paper; we built code and "
+                "role-played an animation."
+            ),
+            submitted_at=datetime(
+                2026,
+                6,
+                14,
+                16,
+                45,
+                tzinfo=UTC,
+            ),
+            filename=STORY_PHOTO_FILENAMES[1],
+        )
+
+        story_3 = add_story(
+            db,
+            course=cdi,
+            mentor=stephen,
+            story_text=(
+                "A girl brought her five-year-old sister. No one "
+                "realized that while we were building our robots, "
+                "she had built a beautiful airplane from the "
+                "remaining pieces."
+            ),
+            submitted_at=datetime(
+                2026,
+                6,
+                21,
+                12,
+                15,
+                tzinfo=UTC,
+            ),
+            filename=STORY_PHOTO_FILENAMES[2],
+        )
+
+        db.add_all(
+            [
+                StoryMentorRating(
+                    story=story_1,
+                    mentor=margret,
+                    rating=5,
+                ),
+                StoryMentorRating(
+                    story=story_1,
+                    mentor=stephen,
+                    rating=4,
+                ),
+                StoryMentorRating(
+                    story=story_2,
+                    mentor=abdallah,
+                    rating=4,
+                ),
+                StoryMentorRating(
+                    story=story_2,
+                    mentor=stephen,
+                    rating=5,
+                ),
+                StoryMentorRating(
+                    story=story_3,
+                    mentor=abdallah,
+                    rating=5,
+                ),
+                StoryMentorRating(
+                    story=story_3,
+                    mentor=margret,
+                    rating=5,
+                ),
+            ]
+        )
+
+        db.add(
+            StoryOfMonth(
+                month=date(2026, 6, 1),
+                story=story_3,
+                selected_by=peter_admin,
+                selected_at=datetime(
+                    2026,
+                    7,
+                    1,
+                    9,
+                    0,
+                    tzinfo=UTC,
+                ),
+            )
+        )
+
+
+
+
 
         db.commit()
     finally:

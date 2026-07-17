@@ -3,7 +3,11 @@ from pathlib import Path
 from secrets import randbelow
 
 from fastapi import HTTPException, UploadFile
-from PIL import Image, ImageOps, UnidentifiedImageError
+from PIL import (
+    Image,
+    ImageOps,
+    UnidentifiedImageError,
+)
 
 from models import SessionPhoto
 from schemas.photos import SessionPhotoOut
@@ -11,11 +15,30 @@ from schemas.photos import SessionPhotoOut
 
 BACKEND_DIR = Path(__file__).resolve().parents[1]
 
-ORIGINAL_PHOTO_DIR = BACKEND_DIR / "original_photos"
-COMPRESSED_PHOTO_DIR = BACKEND_DIR / "compressed_photos"
+ORIGINAL_PHOTO_DIR = (
+    BACKEND_DIR / "original_photos"
+)
+COMPRESSED_PHOTO_DIR = (
+    BACKEND_DIR / "compressed_photos"
+)
 
-ORIGINAL_PHOTO_DIR.mkdir(parents=True, exist_ok=True)
-COMPRESSED_PHOTO_DIR.mkdir(parents=True, exist_ok=True)
+ORIGINAL_STORY_PHOTO_DIR = (
+    BACKEND_DIR / "original_story_photos"
+)
+COMPRESSED_STORY_PHOTO_DIR = (
+    BACKEND_DIR / "compressed_story_photos"
+)
+
+for directory in (
+    ORIGINAL_PHOTO_DIR,
+    COMPRESSED_PHOTO_DIR,
+    ORIGINAL_STORY_PHOTO_DIR,
+    COMPRESSED_STORY_PHOTO_DIR,
+):
+    directory.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
 
 MAX_PHOTO_SIZE = 12 * 1024 * 1024
 COMPRESSED_MAX_SIZE = (720, 480)
@@ -28,7 +51,9 @@ EXTENSIONS = {
 }
 
 
-def photo_to_out(photo: SessionPhoto) -> SessionPhotoOut:
+def photo_to_out(
+    photo: SessionPhoto,
+) -> SessionPhotoOut:
     return SessionPhotoOut(
         id=photo.id,
         session_log_id=photo.session_log_id,
@@ -44,14 +69,19 @@ def photo_to_out(photo: SessionPhoto) -> SessionPhotoOut:
     )
 
 
-def delete_photo_files(paths: list[Path]):
+def delete_photo_files(
+    paths: list[Path],
+):
     for path in paths:
         path.unlink(missing_ok=True)
 
 
-def _convert_to_rgb(image: Image.Image) -> Image.Image:
+def _convert_to_rgb(
+    image: Image.Image,
+) -> Image.Image:
     if image.mode in ("RGBA", "LA"):
         rgba = image.convert("RGBA")
+
         background = Image.new(
             "RGB",
             rgba.size,
@@ -61,44 +91,18 @@ def _convert_to_rgb(image: Image.Image) -> Image.Image:
             rgba,
             mask=rgba.getchannel("A"),
         )
+
         return background
 
     return image.convert("RGB")
 
 
-def _create_filename_stem(
-    course_id: int,
-    session_date,
-    mentor_profile_id: int,
-    photo_number: int,
-) -> str:
-    while True:
-        random_number = randbelow(1_000_000)
-
-        stem = (
-            f"{course_id:02d}_"
-            f"{session_date:%Y%m%d}_"
-            f"{mentor_profile_id:02d}_"
-            f"{photo_number:02d}_"
-            f"{random_number:06d}"
-        )
-
-        if not any(
-            ORIGINAL_PHOTO_DIR.glob(f"{stem}.*")
-        ) and not any(
-            COMPRESSED_PHOTO_DIR.glob(f"{stem}.*")
-        ):
-            return stem
-
-
-async def store_photo(
+async def _read_photo(
     upload: UploadFile,
-    course_id: int,
-    session_date,
-    mentor_profile_id: int,
-    photo_number: int,
-) -> tuple[str, str, list[Path]]:
-    data = await upload.read(MAX_PHOTO_SIZE + 1)
+) -> tuple[bytes, str, Image.Image]:
+    data = await upload.read(
+        MAX_PHOTO_SIZE + 1,
+    )
 
     if not data:
         raise HTTPException(
@@ -113,20 +117,26 @@ async def store_photo(
         )
 
     try:
-        with Image.open(BytesIO(data)) as source:
+        with Image.open(
+            BytesIO(data),
+        ) as source:
             image_format = source.format
 
             if image_format not in EXTENSIONS:
                 raise HTTPException(
                     status_code=400,
-                    detail="Unsupported photo format",
+                    detail=(
+                        "Unsupported photo format"
+                    ),
                 )
 
             source.load()
 
-            compressed_image = ImageOps.exif_transpose(
-                source,
-            ).copy()
+            compressed_image = (
+                ImageOps.exif_transpose(
+                    source,
+                ).copy()
+            )
 
     except HTTPException:
         raise
@@ -145,34 +155,123 @@ async def store_photo(
         COMPRESSED_MAX_SIZE,
         Image.Resampling.LANCZOS,
     )
+
     compressed_image = _convert_to_rgb(
         compressed_image,
     )
 
-    stem = _create_filename_stem(
-        course_id=course_id,
-        session_date=session_date,
-        mentor_profile_id=mentor_profile_id,
-        photo_number=photo_number,
+    return (
+        data,
+        image_format,
+        compressed_image,
     )
 
+
+def _filename_available(
+    stem: str,
+    original_directory: Path,
+    compressed_directory: Path,
+) -> bool:
+    return (
+        not any(
+            original_directory.glob(
+                f"{stem}.*",
+            )
+        )
+        and not any(
+            compressed_directory.glob(
+                f"{stem}.*",
+            )
+        )
+    )
+
+
+def _create_session_filename_stem(
+    course_id: int,
+    session_date,
+    mentor_profile_id: int,
+    photo_number: int,
+) -> str:
+    while True:
+        random_number = randbelow(
+            1_000_000,
+        )
+
+        stem = (
+            f"{course_id:02d}_"
+            f"{session_date:%Y%m%d}_"
+            f"{mentor_profile_id:02d}_"
+            f"{photo_number:02d}_"
+            f"{random_number:06d}"
+        )
+
+        if _filename_available(
+            stem,
+            ORIGINAL_PHOTO_DIR,
+            COMPRESSED_PHOTO_DIR,
+        ):
+            return stem
+
+
+def _create_story_filename_stem(
+    story_id: int,
+    submission_date,
+    mentor_profile_id: int,
+) -> str:
+    while True:
+        random_number = randbelow(
+            1_000_000,
+        )
+
+        stem = (
+            f"{story_id:02d}_"
+            f"{submission_date:%Y%m%d}_"
+            f"{mentor_profile_id:02d}_"
+            f"{random_number:06d}"
+        )
+
+        if _filename_available(
+            stem,
+            ORIGINAL_STORY_PHOTO_DIR,
+            COMPRESSED_STORY_PHOTO_DIR,
+        ):
+            return stem
+
+
+def _write_photo(
+    *,
+    data: bytes,
+    image_format: str,
+    compressed_image: Image.Image,
+    stem: str,
+    original_directory: Path,
+    compressed_directory: Path,
+    original_relative_directory: str,
+    compressed_relative_directory: str,
+) -> tuple[str, str, list[Path]]:
     original_filename = (
         f"{stem}{EXTENSIONS[image_format]}"
     )
     compressed_filename = f"{stem}.jpg"
 
     original_absolute_path = (
-        ORIGINAL_PHOTO_DIR / original_filename
+        original_directory
+        / original_filename
     )
     compressed_absolute_path = (
-        COMPRESSED_PHOTO_DIR / compressed_filename
+        compressed_directory
+        / compressed_filename
     )
 
     try:
-        with original_absolute_path.open("xb") as file:
+        with original_absolute_path.open(
+            "xb",
+        ) as file:
             file.write(data)
 
-        with compressed_absolute_path.open("xb") as file:
+        with compressed_absolute_path.open(
+            "xb",
+        ) as file:
             compressed_image.save(
                 file,
                 format="JPEG",
@@ -181,15 +280,107 @@ async def store_photo(
             )
 
     except Exception:
-        original_absolute_path.unlink(missing_ok=True)
-        compressed_absolute_path.unlink(missing_ok=True)
+        original_absolute_path.unlink(
+            missing_ok=True,
+        )
+        compressed_absolute_path.unlink(
+            missing_ok=True,
+        )
         raise
 
     return (
-        f"original_photos/{original_filename}",
-        f"compressed_photos/{compressed_filename}",
+        (
+            f"{original_relative_directory}/"
+            f"{original_filename}"
+        ),
+        (
+            f"{compressed_relative_directory}/"
+            f"{compressed_filename}"
+        ),
         [
             original_absolute_path,
             compressed_absolute_path,
         ],
+    )
+
+
+async def store_photo(
+    upload: UploadFile,
+    course_id: int,
+    session_date,
+    mentor_profile_id: int,
+    photo_number: int,
+) -> tuple[str, str, list[Path]]:
+    (
+        data,
+        image_format,
+        compressed_image,
+    ) = await _read_photo(upload)
+
+    stem = _create_session_filename_stem(
+        course_id=course_id,
+        session_date=session_date,
+        mentor_profile_id=(
+            mentor_profile_id
+        ),
+        photo_number=photo_number,
+    )
+
+    return _write_photo(
+        data=data,
+        image_format=image_format,
+        compressed_image=compressed_image,
+        stem=stem,
+        original_directory=(
+            ORIGINAL_PHOTO_DIR
+        ),
+        compressed_directory=(
+            COMPRESSED_PHOTO_DIR
+        ),
+        original_relative_directory=(
+            "original_photos"
+        ),
+        compressed_relative_directory=(
+            "compressed_photos"
+        ),
+    )
+
+
+async def store_story_photo(
+    upload: UploadFile,
+    story_id: int,
+    submission_date,
+    mentor_profile_id: int,
+) -> tuple[str, str, list[Path]]:
+    (
+        data,
+        image_format,
+        compressed_image,
+    ) = await _read_photo(upload)
+
+    stem = _create_story_filename_stem(
+        story_id=story_id,
+        submission_date=submission_date,
+        mentor_profile_id=(
+            mentor_profile_id
+        ),
+    )
+
+    return _write_photo(
+        data=data,
+        image_format=image_format,
+        compressed_image=compressed_image,
+        stem=stem,
+        original_directory=(
+            ORIGINAL_STORY_PHOTO_DIR
+        ),
+        compressed_directory=(
+            COMPRESSED_STORY_PHOTO_DIR
+        ),
+        original_relative_directory=(
+            "original_story_photos"
+        ),
+        compressed_relative_directory=(
+            "compressed_story_photos"
+        ),
     )
