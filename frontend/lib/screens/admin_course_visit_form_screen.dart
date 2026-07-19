@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../controllers/controllers.dart';
 import '../models/models.dart';
-
-enum _VisitMentorState { teaching, supporting, absent }
 
 class AdminCourseVisitFormScreen extends StatefulWidget {
   final List<Course> courses;
@@ -43,130 +42,29 @@ class AdminCourseVisitFormScreen extends StatefulWidget {
 class _AdminCourseVisitFormScreenState
     extends State<AdminCourseVisitFormScreen> {
   final _formKey = GlobalKey<FormState>();
-
-  final _whatHappenedController = TextEditingController();
-  final _mainStrengthController = TextEditingController();
-  final _mainProblemController = TextEditingController();
-  final _supportProvidedController = TextEditingController();
-  final _safeguardingNoteController = TextEditingController();
-
-  int? _selectedCourseId;
-
-  DateTime _date = DateUtils.dateOnly(DateTime.now());
-
-  CourseVisitSessionStatus _sessionStatus = CourseVisitSessionStatus.fullyHeld;
-
-  CourseVisitAnswer _teachingTookPlace = CourseVisitAnswer.yes;
-
-  CourseVisitAnswer _sessionFollowedPlan = CourseVisitAnswer.yes;
-
-  CourseVisitLearnerEngagement _learnerEngagement =
-      CourseVisitLearnerEngagement.most;
-
-  CourseVisitAnswer _equipmentAdequate = CourseVisitAnswer.yes;
-
-  CourseVisitEnvironmentStatus _environmentStatus =
-      CourseVisitEnvironmentStatus.safeAndRespectful;
-
-  int _courseHealthRating = 3;
-  bool _safeguardingConcern = false;
-
-  final Map<int, _VisitMentorState> _mentorStates = {};
-
-  final Map<int, int> _mentorRatings = {};
-
-  final Set<int> _presentStudentIds = {};
-  final Set<int> _interviewedStudentIds = {};
-
-  final Map<int, CourseVisitStudentEnjoyment> _studentEnjoyment = {};
-
-  final Map<int, CourseVisitStudentLearning> _studentLearning = {};
-
-  final Map<int, CourseVisitStudentSafety> _studentSafety = {};
-
-  final Map<int, TextEditingController> _studentNoteControllers = {};
-
-  final List<_ActionDraft> _actions = [];
+  late final AdminCourseVisitFormController _controller;
 
   @override
   void initState() {
     super.initState();
-    _selectedCourseId = widget.initialCourseId;
+    _controller = AdminCourseVisitFormController(
+      courses: widget.courses,
+      mentors: widget.mentors,
+      students: widget.students,
+      selectedCourseId: widget.initialCourseId,
+    )..addListener(_rebuild);
   }
 
   @override
   void dispose() {
-    _whatHappenedController.dispose();
-    _mainStrengthController.dispose();
-    _mainProblemController.dispose();
-    _supportProvidedController.dispose();
-    _safeguardingNoteController.dispose();
-
-    for (final controller in _studentNoteControllers.values) {
-      controller.dispose();
-    }
-
-    for (final action in _actions) {
-      action.dispose();
-    }
-
+    _controller
+      ..removeListener(_rebuild)
+      ..dispose();
     super.dispose();
   }
 
-  Course? get _selectedCourse {
-    final courseId = _selectedCourseId;
-
-    if (courseId == null) {
-      return null;
-    }
-
-    for (final course in widget.courses) {
-      if (course.id == courseId) {
-        return course;
-      }
-    }
-
-    return null;
-  }
-
-  List<Mentor> get _courseMentors {
-    final course = _selectedCourse;
-
-    if (course == null) {
-      return [];
-    }
-
-    final mentorIds = course.mentorIds.toSet();
-
-    final mentors = widget.mentors
-        .where((mentor) => mentorIds.contains(mentor.id))
-        .toList();
-
-    mentors.sort((first, second) => first.fullName.compareTo(second.fullName));
-
-    return mentors;
-  }
-
-  List<Student> get _courseStudents {
-    final course = _selectedCourse;
-
-    if (course == null) {
-      return [];
-    }
-
-    final studentIds = course.studentIds.toSet();
-
-    final students = widget.students
-        .where((student) => studentIds.contains(student.id))
-        .toList();
-
-    students.sort((first, second) => first.fullName.compareTo(second.fullName));
-
-    return students;
-  }
-
-  bool get _sessionWasHeld {
-    return _sessionStatus != CourseVisitSessionStatus.notHeld;
+  void _rebuild() {
+    if (mounted) setState(() {});
   }
 
   @override
@@ -264,8 +162,8 @@ class _AdminCourseVisitFormScreenState
     }
 
     return DropdownButtonFormField<int>(
-      key: ValueKey(_selectedCourseId),
-      initialValue: _selectedCourseId,
+      key: ValueKey(_controller.selectedCourseId),
+      initialValue: _controller.selectedCourseId,
       decoration: const InputDecoration(labelText: 'Course'),
       items: widget.courses.map((course) {
         return DropdownMenuItem(value: course.id, child: Text(course.name));
@@ -280,10 +178,7 @@ class _AdminCourseVisitFormScreenState
                 return;
               }
 
-              setState(() {
-                _selectedCourseId = courseId;
-                _clearParticipantState();
-              });
+              _controller.selectCourse(courseId);
             },
     );
   }
@@ -296,7 +191,7 @@ class _AdminCourseVisitFormScreenState
           labelText: 'Visit date',
           suffixIcon: Icon(Icons.calendar_today),
         ),
-        child: Text(_formatDate(_date)),
+        child: Text(_formatDate(_controller.date)),
       ),
     );
   }
@@ -306,7 +201,7 @@ class _AdminCourseVisitFormScreenState
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         DropdownButtonFormField<CourseVisitSessionStatus>(
-          initialValue: _sessionStatus,
+          initialValue: _controller.sessionStatus,
           decoration: const InputDecoration(labelText: 'Was the session held?'),
           items: CourseVisitSessionStatus.values.map((status) {
             return DropdownMenuItem(value: status, child: Text(status.label));
@@ -318,24 +213,16 @@ class _AdminCourseVisitFormScreenState
                     return;
                   }
 
-                  setState(() {
-                    _sessionStatus = value;
-
-                    if (!_sessionWasHeld) {
-                      _teachingTookPlace = CourseVisitAnswer.no;
-                    }
-                  });
+                  _controller.setSessionStatus(value);
                 },
         ),
         const SizedBox(height: 20),
-        if (_sessionWasHeld) ...[
+        if (_controller.sessionWasHeld) ...[
           _answerField(
             label: 'Did teaching take place?',
-            value: _teachingTookPlace,
+            value: _controller.teachingTookPlace,
             onChanged: (value) {
-              setState(() {
-                _teachingTookPlace = value;
-              });
+              _controller.setTeachingTookPlace(value);
             },
           ),
           const SizedBox(height: 20),
@@ -343,16 +230,14 @@ class _AdminCourseVisitFormScreenState
             label:
                 'Did the session follow '
                 'a clear plan?',
-            value: _sessionFollowedPlan,
+            value: _controller.sessionFollowedPlan,
             onChanged: (value) {
-              setState(() {
-                _sessionFollowedPlan = value;
-              });
+              _controller.setSessionFollowedPlan(value);
             },
           ),
           const SizedBox(height: 20),
           DropdownButtonFormField<CourseVisitLearnerEngagement>(
-            initialValue: _learnerEngagement,
+            initialValue: _controller.learnerEngagement,
             decoration: const InputDecoration(labelText: 'Learner engagement'),
             items: CourseVisitLearnerEngagement.values.map((engagement) {
               return DropdownMenuItem(
@@ -367,9 +252,7 @@ class _AdminCourseVisitFormScreenState
                       return;
                     }
 
-                    setState(() {
-                      _learnerEngagement = value;
-                    });
+                    _controller.setLearnerEngagement(value);
                   },
           ),
           const SizedBox(height: 20),
@@ -377,16 +260,14 @@ class _AdminCourseVisitFormScreenState
             label:
                 'Were equipment and '
                 'materials adequate?',
-            value: _equipmentAdequate,
+            value: _controller.equipmentAdequate,
             onChanged: (value) {
-              setState(() {
-                _equipmentAdequate = value;
-              });
+              _controller.setEquipmentAdequate(value);
             },
           ),
           const SizedBox(height: 20),
           DropdownButtonFormField<CourseVisitEnvironmentStatus>(
-            initialValue: _environmentStatus,
+            initialValue: _controller.environmentStatus,
             decoration: const InputDecoration(
               labelText: 'Learning environment',
             ),
@@ -400,9 +281,7 @@ class _AdminCourseVisitFormScreenState
                       return;
                     }
 
-                    setState(() {
-                      _environmentStatus = value;
-                    });
+                    _controller.setEnvironmentStatus(value);
                   },
           ),
         ] else
@@ -437,14 +316,14 @@ class _AdminCourseVisitFormScreenState
   }
 
   Widget _buildMentorSection() {
-    if (_selectedCourse == null) {
+    if (_controller.selectedCourse == null) {
       return const Text(
         'Select a course to show '
         'its mentors.',
       );
     }
 
-    final mentors = _courseMentors;
+    final mentors = _controller.courseMentors;
 
     if (mentors.isEmpty) {
       return const Text(
@@ -455,7 +334,7 @@ class _AdminCourseVisitFormScreenState
 
     return Column(
       children: mentors.map((mentor) {
-        final state = _mentorStates[mentor.id] ?? _VisitMentorState.absent;
+        final state = _controller.mentorState(mentor.id);
 
         return Card.outlined(
           margin: const EdgeInsets.only(bottom: 12),
@@ -469,21 +348,21 @@ class _AdminCourseVisitFormScreenState
                   style: Theme.of(context).textTheme.titleSmall,
                 ),
                 const SizedBox(height: 12),
-                DropdownButtonFormField<_VisitMentorState>(
+                DropdownButtonFormField<CourseVisitMentorState>(
                   key: ValueKey((mentor.id, state)),
                   initialValue: state,
                   decoration: const InputDecoration(labelText: 'Role'),
                   items: const [
                     DropdownMenuItem(
-                      value: _VisitMentorState.teaching,
+                      value: CourseVisitMentorState.teaching,
                       child: Text('Teaching'),
                     ),
                     DropdownMenuItem(
-                      value: _VisitMentorState.supporting,
+                      value: CourseVisitMentorState.supporting,
                       child: Text('Supporting'),
                     ),
                     DropdownMenuItem(
-                      value: _VisitMentorState.absent,
+                      value: CourseVisitMentorState.absent,
                       child: Text('Absent'),
                     ),
                   ],
@@ -494,22 +373,17 @@ class _AdminCourseVisitFormScreenState
                             return;
                           }
 
-                          setState(() {
-                            _mentorStates[mentor.id] = value;
-
-                            if (value == _VisitMentorState.absent) {
-                              _mentorRatings.remove(mentor.id);
-                            } else {
-                              _mentorRatings.putIfAbsent(mentor.id, () => 3);
-                            }
-                          });
+                          _controller.setMentorState(mentor.id, value);
                         },
                 ),
-                if (state != _VisitMentorState.absent) ...[
+                if (state != CourseVisitMentorState.absent) ...[
                   const SizedBox(height: 12),
                   DropdownButtonFormField<int>(
-                    key: ValueKey((mentor.id, _mentorRatings[mentor.id])),
-                    initialValue: _mentorRatings[mentor.id] ?? 3,
+                    key: ValueKey((
+                      mentor.id,
+                      _controller.mentorRating(mentor.id),
+                    )),
+                    initialValue: _controller.mentorRating(mentor.id),
                     decoration: const InputDecoration(labelText: 'Performance'),
                     items: List.generate(5, (index) {
                       final rating = index + 1;
@@ -529,9 +403,7 @@ class _AdminCourseVisitFormScreenState
                               return;
                             }
 
-                            setState(() {
-                              _mentorRatings[mentor.id] = value;
-                            });
+                            _controller.setMentorRating(mentor.id, value);
                           },
                   ),
                 ],
@@ -544,14 +416,14 @@ class _AdminCourseVisitFormScreenState
   }
 
   Widget _buildStudentSection() {
-    if (_selectedCourse == null) {
+    if (_controller.selectedCourse == null) {
       return const Text(
         'Select a course to show '
         'its students.',
       );
     }
 
-    final students = _courseStudents;
+    final students = _controller.courseStudents;
 
     if (students.isEmpty) {
       return const Text(
@@ -569,29 +441,24 @@ class _AdminCourseVisitFormScreenState
               onPressed: widget.isSaving
                   ? null
                   : () {
-                      setState(() {
-                        _presentStudentIds.addAll(
-                          students.map((student) => student.id),
-                        );
-                      });
+                      _controller.selectAllStudentsPresent();
                     },
               child: const Text('Select all present'),
             ),
             TextButton(
-              onPressed: widget.isSaving ? null : _clearStudents,
+              onPressed: widget.isSaving ? null : _controller.clearStudents,
               child: const Text('Clear'),
             ),
             const Spacer(),
             Text(
-              '${_presentStudentIds.length}'
+              '${_controller.presentStudentCount}'
               '/${students.length}',
             ),
           ],
         ),
         ...students.map((student) {
-          final present = _presentStudentIds.contains(student.id);
-
-          final interviewed = _interviewedStudentIds.contains(student.id);
+          final present = _controller.isStudentPresent(student.id);
+          final interviewed = _controller.isStudentInterviewed(student.id);
 
           return Card.outlined(
             margin: const EdgeInsets.only(bottom: 10),
@@ -604,7 +471,10 @@ class _AdminCourseVisitFormScreenState
                   onChanged: widget.isSaving
                       ? null
                       : (value) {
-                          _setStudentPresent(student.id, value ?? false);
+                          _controller.setStudentPresent(
+                            student.id,
+                            value ?? false,
+                          );
                         },
                 ),
                 if (present) ...[
@@ -615,7 +485,10 @@ class _AdminCourseVisitFormScreenState
                     onChanged: widget.isSaving
                         ? null
                         : (value) {
-                            _setStudentInterviewed(student.id, value ?? false);
+                            _controller.setStudentInterviewed(
+                              student.id,
+                              value ?? false,
+                            );
                           },
                   ),
                   if (interviewed)
@@ -633,16 +506,12 @@ class _AdminCourseVisitFormScreenState
   }
 
   Widget _buildInterviewFields(int studentId) {
-    final noteController = _studentNoteControllers.putIfAbsent(
-      studentId,
-      TextEditingController.new,
-    );
+    final noteController = _controller.noteControllerFor(studentId);
 
     return Column(
       children: [
         DropdownButtonFormField<CourseVisitStudentEnjoyment>(
-          initialValue:
-              _studentEnjoyment[studentId] ?? CourseVisitStudentEnjoyment.yes,
+          initialValue: _controller.enjoymentFor(studentId),
           decoration: const InputDecoration(labelText: 'Enjoys the course'),
           items: CourseVisitStudentEnjoyment.values.map((answer) {
             return DropdownMenuItem(value: answer, child: Text(answer.label));
@@ -651,16 +520,13 @@ class _AdminCourseVisitFormScreenState
               ? null
               : (value) {
                   if (value != null) {
-                    setState(() {
-                      _studentEnjoyment[studentId] = value;
-                    });
+                    _controller.setStudentEnjoyment(studentId, value);
                   }
                 },
         ),
         const SizedBox(height: 12),
         DropdownButtonFormField<CourseVisitStudentLearning>(
-          initialValue:
-              _studentLearning[studentId] ?? CourseVisitStudentLearning.clearly,
+          initialValue: _controller.learningFor(studentId),
           decoration: const InputDecoration(
             labelText: 'Can explain something learned',
           ),
@@ -671,16 +537,13 @@ class _AdminCourseVisitFormScreenState
               ? null
               : (value) {
                   if (value != null) {
-                    setState(() {
-                      _studentLearning[studentId] = value;
-                    });
+                    _controller.setStudentLearning(studentId, value);
                   }
                 },
         ),
         const SizedBox(height: 12),
         DropdownButtonFormField<CourseVisitStudentSafety>(
-          initialValue:
-              _studentSafety[studentId] ?? CourseVisitStudentSafety.yes,
+          initialValue: _controller.safetyFor(studentId),
           decoration: const InputDecoration(
             labelText: 'Feels safe and respected',
           ),
@@ -691,9 +554,7 @@ class _AdminCourseVisitFormScreenState
               ? null
               : (value) {
                   if (value != null) {
-                    setState(() {
-                      _studentSafety[studentId] = value;
-                    });
+                    _controller.setStudentSafety(studentId, value);
                   }
                 },
         ),
@@ -716,7 +577,7 @@ class _AdminCourseVisitFormScreenState
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         DropdownButtonFormField<int>(
-          initialValue: _courseHealthRating,
+          initialValue: _controller.courseHealthRating,
           decoration: const InputDecoration(labelText: 'Course health'),
           items: List.generate(5, (index) {
             final rating = index + 1;
@@ -733,38 +594,36 @@ class _AdminCourseVisitFormScreenState
               ? null
               : (value) {
                   if (value != null) {
-                    setState(() {
-                      _courseHealthRating = value;
-                    });
+                    _controller.setCourseHealthRating(value);
                   }
                 },
         ),
         const SizedBox(height: 20),
         TextFormField(
-          controller: _whatHappenedController,
+          controller: _controller.whatHappenedController,
           enabled: !widget.isSaving,
           decoration: const InputDecoration(labelText: 'What happened?'),
           minLines: 2,
           maxLines: 4,
           maxLength: 500,
           textCapitalization: TextCapitalization.sentences,
-          validator: _required,
+          validator: _controller.requiredText,
         ),
         const SizedBox(height: 20),
         _optionalTextField(
-          controller: _mainStrengthController,
+          controller: _controller.mainStrengthController,
           label: 'Main strength',
         ),
         const SizedBox(height: 20),
         _optionalTextField(
-          controller: _mainProblemController,
+          controller: _controller.mainProblemController,
           label:
               'Main problem or '
               'improvement needed',
         ),
         const SizedBox(height: 20),
         _optionalTextField(
-          controller: _supportProvidedController,
+          controller: _controller.supportProvidedController,
           label:
               'Advice or practical '
               'help provided',
@@ -791,7 +650,7 @@ class _AdminCourseVisitFormScreenState
   Widget _buildActionsSection() {
     return Column(
       children: [
-        ..._actions.asMap().entries.map((entry) {
+        ..._controller.actions.asMap().entries.map((entry) {
           final index = entry.key;
           final action = entry.value;
 
@@ -812,7 +671,7 @@ class _AdminCourseVisitFormScreenState
                       IconButton(
                         onPressed: widget.isSaving
                             ? null
-                            : () => _removeAction(index),
+                            : () => _controller.removeAction(index),
                         icon: const Icon(Icons.delete_outline),
                         tooltip: 'Remove action',
                       ),
@@ -831,9 +690,7 @@ class _AdminCourseVisitFormScreenState
                         ? null
                         : (value) {
                             if (value != null) {
-                              setState(() {
-                                action.category = value;
-                              });
+                              _controller.setActionCategory(index, value);
                             }
                           },
                   ),
@@ -846,7 +703,7 @@ class _AdminCourseVisitFormScreenState
                     ),
                     maxLength: 500,
                     textCapitalization: TextCapitalization.sentences,
-                    validator: _required,
+                    validator: _controller.requiredText,
                   ),
                   const SizedBox(height: 12),
                   TextFormField(
@@ -883,7 +740,7 @@ class _AdminCourseVisitFormScreenState
         Align(
           alignment: Alignment.centerLeft,
           child: OutlinedButton.icon(
-            onPressed: widget.isSaving ? null : _addAction,
+            onPressed: widget.isSaving ? null : _controller.addAction,
             icon: const Icon(Icons.add),
             label: const Text('Add action'),
           ),
@@ -897,23 +754,17 @@ class _AdminCourseVisitFormScreenState
       children: [
         SwitchListTile(
           contentPadding: EdgeInsets.zero,
-          value: _safeguardingConcern,
+          value: _controller.safeguardingConcern,
           title: const Text('Safeguarding concern'),
           onChanged: widget.isSaving
               ? null
               : (value) {
-                  setState(() {
-                    _safeguardingConcern = value;
-
-                    if (!value) {
-                      _safeguardingNoteController.clear();
-                    }
-                  });
+                  _controller.setSafeguardingConcern(value);
                 },
         ),
-        if (_safeguardingConcern)
+        if (_controller.safeguardingConcern)
           TextFormField(
-            controller: _safeguardingNoteController,
+            controller: _controller.safeguardingNoteController,
             enabled: !widget.isSaving,
             decoration: const InputDecoration(
               labelText: 'Restricted safeguarding note',
@@ -922,7 +773,7 @@ class _AdminCourseVisitFormScreenState
             maxLines: 5,
             maxLength: 1000,
             textCapitalization: TextCapitalization.sentences,
-            validator: _required,
+            validator: _controller.requiredText,
           ),
       ],
     );
@@ -931,7 +782,7 @@ class _AdminCourseVisitFormScreenState
   Future<void> _selectDate() async {
     final selected = await showDatePicker(
       context: context,
-      initialDate: _date,
+      initialDate: _controller.date,
       firstDate: DateTime(2020),
       lastDate: DateUtils.dateOnly(DateTime.now()),
     );
@@ -940,121 +791,28 @@ class _AdminCourseVisitFormScreenState
       return;
     }
 
-    setState(() {
-      _date = DateUtils.dateOnly(selected);
-
-      for (final action in _actions) {
-        if (action.targetDate?.isBefore(_date) ?? false) {
-          action.targetDate = null;
-        }
-      }
-    });
+    _controller.setDate(selected);
   }
 
-  Future<void> _selectActionDate(_ActionDraft action) async {
+  Future<void> _selectActionDate(CourseVisitActionDraft action) async {
     final initialDate =
-        action.targetDate == null || action.targetDate!.isBefore(_date)
-        ? _date
+        action.targetDate == null ||
+            action.targetDate!.isBefore(_controller.date)
+        ? _controller.date
         : action.targetDate!;
 
     final selected = await showDatePicker(
       context: context,
       initialDate: initialDate,
-      firstDate: _date,
-      lastDate: DateTime(_date.year + 3, 12, 31),
+      firstDate: _controller.date,
+      lastDate: DateTime(_controller.date.year + 3, 12, 31),
     );
 
     if (selected == null || !mounted) {
       return;
     }
 
-    setState(() {
-      action.targetDate = DateUtils.dateOnly(selected);
-    });
-  }
-
-  void _setStudentPresent(int studentId, bool present) {
-    setState(() {
-      if (present) {
-        _presentStudentIds.add(studentId);
-        return;
-      }
-
-      _presentStudentIds.remove(studentId);
-      _clearStudentInterview(studentId);
-    });
-  }
-
-  void _setStudentInterviewed(int studentId, bool interviewed) {
-    setState(() {
-      if (interviewed) {
-        _interviewedStudentIds.add(studentId);
-
-        _studentEnjoyment[studentId] = CourseVisitStudentEnjoyment.yes;
-
-        _studentLearning[studentId] = CourseVisitStudentLearning.clearly;
-
-        _studentSafety[studentId] = CourseVisitStudentSafety.yes;
-
-        return;
-      }
-
-      _clearStudentInterview(studentId);
-    });
-  }
-
-  void _clearStudentInterview(int studentId) {
-    _interviewedStudentIds.remove(studentId);
-
-    _studentEnjoyment.remove(studentId);
-    _studentLearning.remove(studentId);
-    _studentSafety.remove(studentId);
-
-    _studentNoteControllers.remove(studentId)?.dispose();
-  }
-
-  void _clearStudents() {
-    setState(() {
-      _presentStudentIds.clear();
-
-      for (final controller in _studentNoteControllers.values) {
-        controller.dispose();
-      }
-
-      _interviewedStudentIds.clear();
-      _studentEnjoyment.clear();
-      _studentLearning.clear();
-      _studentSafety.clear();
-      _studentNoteControllers.clear();
-    });
-  }
-
-  void _clearParticipantState() {
-    _mentorStates.clear();
-    _mentorRatings.clear();
-    _presentStudentIds.clear();
-    _interviewedStudentIds.clear();
-    _studentEnjoyment.clear();
-    _studentLearning.clear();
-    _studentSafety.clear();
-
-    for (final controller in _studentNoteControllers.values) {
-      controller.dispose();
-    }
-
-    _studentNoteControllers.clear();
-  }
-
-  void _addAction() {
-    setState(() {
-      _actions.add(_ActionDraft());
-    });
-  }
-
-  void _removeAction(int index) {
-    setState(() {
-      _actions.removeAt(index).dispose();
-    });
+    _controller.setActionDate(action, selected);
   }
 
   Future<void> _submit() async {
@@ -1062,103 +820,13 @@ class _AdminCourseVisitFormScreenState
       return;
     }
 
-    final courseId = _selectedCourseId;
-
-    if (courseId == null) {
-      return;
-    }
-
-    final mentors = _courseMentors
-        .where((mentor) {
-          final state = _mentorStates[mentor.id] ?? _VisitMentorState.absent;
-
-          return state != _VisitMentorState.absent;
-        })
-        .map((mentor) {
-          final state = _mentorStates[mentor.id]!;
-
-          return CourseVisitMentor(
-            mentorId: mentor.id,
-            role: state == _VisitMentorState.teaching
-                ? CourseVisitMentorRole.teaching
-                : CourseVisitMentorRole.supporting,
-            performanceRating: _mentorRatings[mentor.id] ?? 3,
-          );
-        })
-        .toList();
-
-    final studentIds = _presentStudentIds.toList()..sort();
-
-    final students = studentIds.map((studentId) {
-      final interviewed = _interviewedStudentIds.contains(studentId);
-
-      return CourseVisitStudent(
-        studentId: studentId,
-        interviewed: interviewed,
-        enjoyment: interviewed ? _studentEnjoyment[studentId] : null,
-        learning: interviewed ? _studentLearning[studentId] : null,
-        feelsSafe: interviewed ? _studentSafety[studentId] : null,
-        note: interviewed
-            ? _optionalText(_studentNoteControllers[studentId]?.text ?? '')
-            : null,
-      );
-    }).toList();
-
-    final actions = _actions.map((action) {
-      return CourseVisitActionCreateRequest(
-        category: action.category,
-        description: action.descriptionController.text.trim(),
-        responsiblePerson: _optionalText(
-          action.responsiblePersonController.text,
-        ),
-        targetDate: action.targetDate,
-      );
-    }).toList();
-
-    final submitted = await widget.onSubmit(
-      CourseVisitReportCreateRequest(
-        courseId: courseId,
-        date: _date,
-        sessionStatus: _sessionStatus,
-        teachingTookPlace: _sessionWasHeld
-            ? _teachingTookPlace
-            : CourseVisitAnswer.no,
-        sessionFollowedPlan: _sessionWasHeld ? _sessionFollowedPlan : null,
-        learnerEngagement: _sessionWasHeld ? _learnerEngagement : null,
-        equipmentAdequate: _sessionWasHeld ? _equipmentAdequate : null,
-        environmentStatus: _sessionWasHeld ? _environmentStatus : null,
-        whatHappened: _whatHappenedController.text.trim(),
-        mainStrength: _optionalText(_mainStrengthController.text),
-        mainProblem: _optionalText(_mainProblemController.text),
-        supportProvided: _optionalText(_supportProvidedController.text),
-        courseHealthRating: _courseHealthRating,
-        safeguardingConcern: _safeguardingConcern,
-        safeguardingNote: _safeguardingConcern
-            ? _optionalText(_safeguardingNoteController.text)
-            : null,
-        mentors: mentors,
-        students: students,
-        actions: actions,
-      ),
-    );
+    final request = _controller.buildRequest();
+    if (request == null) return;
+    final submitted = await widget.onSubmit(request);
 
     if (submitted && mounted) {
       widget.onSubmitted();
     }
-  }
-
-  String? _required(String? value) {
-    if (value == null || value.trim().isEmpty) {
-      return 'Required';
-    }
-
-    return null;
-  }
-
-  String? _optionalText(String value) {
-    final text = value.trim();
-
-    return text.isEmpty ? null : text;
   }
 
   String _formatDate(DateTime date) {
@@ -1186,20 +854,5 @@ class _AdminCourseVisitFormScreenState
       4 => 'Healthy',
       _ => 'Very strong',
     };
-  }
-}
-
-class _ActionDraft {
-  CourseVisitActionCategory category = CourseVisitActionCategory.mentorCoaching;
-
-  final descriptionController = TextEditingController();
-
-  final responsiblePersonController = TextEditingController();
-
-  DateTime? targetDate;
-
-  void dispose() {
-    descriptionController.dispose();
-    responsiblePersonController.dispose();
   }
 }
