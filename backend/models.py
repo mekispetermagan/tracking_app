@@ -136,6 +136,10 @@ class MentorProfile(Base):
         cascade="all, delete-orphan",
     )
 
+    course_visit_observations: Mapped[list[CourseVisitMentor]] = relationship(
+        back_populates="mentor",
+    )
+
 
 class AdminProfile(Base):
     __tablename__ = "admin_profiles"
@@ -161,6 +165,11 @@ class AdminProfile(Base):
     selected_stories_of_month: Mapped[list[StoryOfMonth]] = relationship(
         back_populates="selected_by",
     )
+
+    course_visit_reports: Mapped[list[CourseVisitReport]] = relationship(
+        back_populates="submitted_by",
+    )
+
 
 class Student(Base):
     __tablename__ = "students"
@@ -195,6 +204,10 @@ class Student(Base):
     session_logs: Mapped[list[SessionLog]] = relationship(
         secondary="session_log_students",
         back_populates="students",
+    )
+
+    course_visit_observations: Mapped[list[CourseVisitStudent]] = relationship(
+        back_populates="student",
     )
 
 
@@ -241,6 +254,10 @@ class Course(Base):
     )
 
     stories: Mapped[list[Story]] = relationship(
+        back_populates="course",
+    )
+
+    visit_reports: Mapped[list[CourseVisitReport]] = relationship(
         back_populates="course",
     )
 
@@ -688,4 +705,420 @@ class StoryOfMonth(Base):
 
     selected_by: Mapped[AdminProfile] = relationship(
         back_populates="selected_stories_of_month",
+    )
+
+
+class CourseVisitSessionStatus(str, Enum):
+    FULLY_HELD = "fully_held"
+    PARTLY_HELD = "partly_held"
+    NOT_HELD = "not_held"
+
+
+class CourseVisitAnswer(str, Enum):
+    YES = "yes"
+    PARTLY = "partly"
+    NO = "no"
+
+
+class CourseVisitLearnerEngagement(str, Enum):
+    ALMOST_ALL = "almost_all"
+    MOST = "most"
+    ABOUT_HALF = "about_half"
+    FEW = "few"
+
+
+class CourseVisitEnvironmentStatus(str, Enum):
+    SAFE_AND_RESPECTFUL = "safe_and_respectful"
+    MINOR_CONCERN = "minor_concern"
+    SERIOUS_CONCERN = "serious_concern"
+
+
+class CourseVisitMentorRole(str, Enum):
+    TEACHING = "teaching"
+    SUPPORTING = "supporting"
+
+
+class CourseVisitStudentEnjoyment(str, Enum):
+    YES = "yes"
+    MIXED = "mixed"
+    NO = "no"
+
+
+class CourseVisitStudentLearning(str, Enum):
+    CLEARLY = "clearly"
+    PARTLY = "partly"
+    NO = "no"
+
+
+class CourseVisitStudentSafety(str, Enum):
+    YES = "yes"
+    UNSURE = "unsure"
+    NO = "no"
+
+
+class CourseVisitActionCategory(str, Enum):
+    MENTOR_COACHING = "mentor_coaching"
+    FOLLOW_UP_VISIT = "follow_up_visit"
+    CURRICULUM_SUPPORT = "curriculum_support"
+    EQUIPMENT = "equipment"
+    ATTENDANCE_RETENTION = "attendance_retention"
+    VENUE_SCHEDULING = "venue_scheduling"
+    STAFFING = "staffing"
+    PARTNER_DISCUSSION = "partner_discussion"
+    SAFEGUARDING = "safeguarding"
+    OTHER = "other"
+
+
+class CourseVisitReport(Base):
+    __tablename__ = "course_visit_reports"
+    __table_args__ = (
+        CheckConstraint(
+            "course_health_rating BETWEEN 1 AND 5",
+            name="ck_course_visit_reports_health_rating",
+        ),
+        Index(
+            "ix_course_visit_reports_course_date",
+            "course_id",
+            "date",
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+
+    submitted_by_admin_profile_id: Mapped[int] = mapped_column(
+        ForeignKey("admin_profiles.id"),
+        nullable=False,
+    )
+
+    course_id: Mapped[int] = mapped_column(
+        ForeignKey("courses.id"),
+        nullable=False,
+    )
+
+    date: Mapped[date] = mapped_column(
+        Date,
+        default=date.today,
+        nullable=False,
+    )
+
+    session_status: Mapped[CourseVisitSessionStatus] = mapped_column(
+        SqlEnum(
+            CourseVisitSessionStatus,
+            name="course_visit_session_statuses",
+            native_enum=False,
+            create_constraint=True,
+            validate_strings=True,
+            values_callable=lambda enum: [item.value for item in enum],
+        ),
+        nullable=False,
+    )
+
+    teaching_took_place: Mapped[CourseVisitAnswer] = mapped_column(
+        SqlEnum(
+            CourseVisitAnswer,
+            name="course_visit_teaching_answers",
+            native_enum=False,
+            create_constraint=True,
+            validate_strings=True,
+            values_callable=lambda enum: [item.value for item in enum],
+        ),
+        nullable=False,
+    )
+
+    session_followed_plan: Mapped[CourseVisitAnswer | None] = mapped_column(
+        SqlEnum(
+            CourseVisitAnswer,
+            name="course_visit_plan_answers",
+            native_enum=False,
+            create_constraint=True,
+            validate_strings=True,
+            values_callable=lambda enum: [item.value for item in enum],
+        ),
+        nullable=True,
+    )
+
+    learner_engagement: Mapped[
+        CourseVisitLearnerEngagement | None
+    ] = mapped_column(
+        SqlEnum(
+            CourseVisitLearnerEngagement,
+            name="course_visit_learner_engagement_levels",
+            native_enum=False,
+            create_constraint=True,
+            validate_strings=True,
+            values_callable=lambda enum: [item.value for item in enum],
+        ),
+        nullable=True,
+    )
+
+    equipment_adequate: Mapped[CourseVisitAnswer | None] = mapped_column(
+        SqlEnum(
+            CourseVisitAnswer,
+            name="course_visit_equipment_answers",
+            native_enum=False,
+            create_constraint=True,
+            validate_strings=True,
+            values_callable=lambda enum: [item.value for item in enum],
+        ),
+        nullable=True,
+    )
+
+    environment_status: Mapped[
+        CourseVisitEnvironmentStatus | None
+    ] = mapped_column(
+        SqlEnum(
+            CourseVisitEnvironmentStatus,
+            name="course_visit_environment_statuses",
+            native_enum=False,
+            create_constraint=True,
+            validate_strings=True,
+            values_callable=lambda enum: [item.value for item in enum],
+        ),
+        nullable=True,
+    )
+
+    what_happened: Mapped[str] = mapped_column(
+        Text,
+        nullable=False,
+    )
+
+    main_strength: Mapped[str | None] = mapped_column(
+        Text,
+        nullable=True,
+    )
+
+    main_problem: Mapped[str | None] = mapped_column(
+        Text,
+        nullable=True,
+    )
+
+    support_provided: Mapped[str | None] = mapped_column(
+        Text,
+        nullable=True,
+    )
+
+    course_health_rating: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+    )
+
+    safeguarding_concern: Mapped[bool] = mapped_column(
+        Boolean,
+        default=False,
+        nullable=False,
+    )
+
+    safeguarding_note: Mapped[str | None] = mapped_column(
+        Text,
+        nullable=True,
+    )
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(UTC),
+        nullable=False,
+    )
+
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(UTC),
+        onupdate=lambda: datetime.now(UTC),
+        nullable=False,
+    )
+
+    submitted_by: Mapped[AdminProfile] = relationship(
+        back_populates="course_visit_reports",
+    )
+
+    course: Mapped[Course] = relationship(
+        back_populates="visit_reports",
+    )
+
+    mentors: Mapped[list[CourseVisitMentor]] = relationship(
+        back_populates="visit_report",
+        cascade="all, delete-orphan",
+    )
+
+    students: Mapped[list[CourseVisitStudent]] = relationship(
+        back_populates="visit_report",
+        cascade="all, delete-orphan",
+    )
+
+    actions: Mapped[list[CourseVisitAction]] = relationship(
+        back_populates="visit_report",
+        cascade="all, delete-orphan",
+    )
+
+
+class CourseVisitMentor(Base):
+    __tablename__ = "course_visit_mentors"
+    __table_args__ = (
+        CheckConstraint(
+            "performance_rating IS NULL "
+            "OR performance_rating BETWEEN 1 AND 5",
+            name="ck_course_visit_mentors_performance_rating",
+        ),
+    )
+
+    course_visit_report_id: Mapped[int] = mapped_column(
+        ForeignKey("course_visit_reports.id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+
+    mentor_profile_id: Mapped[int] = mapped_column(
+        ForeignKey("mentor_profiles.id"),
+        primary_key=True,
+    )
+
+    role: Mapped[CourseVisitMentorRole | None] = mapped_column(
+        SqlEnum(
+            CourseVisitMentorRole,
+            name="course_visit_mentor_roles",
+            native_enum=False,
+            create_constraint=True,
+            validate_strings=True,
+            values_callable=lambda enum: [item.value for item in enum],
+        ),
+        nullable=True,
+    )
+
+    performance_rating: Mapped[int | None] = mapped_column(
+        Integer,
+        nullable=True,
+    )
+
+    visit_report: Mapped[CourseVisitReport] = relationship(
+        back_populates="mentors",
+    )
+
+    mentor: Mapped[MentorProfile] = relationship(
+        back_populates="course_visit_observations",
+    )
+
+
+class CourseVisitStudent(Base):
+    __tablename__ = "course_visit_students"
+
+    course_visit_report_id: Mapped[int] = mapped_column(
+        ForeignKey("course_visit_reports.id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+
+    student_id: Mapped[int] = mapped_column(
+        ForeignKey("students.id"),
+        primary_key=True,
+    )
+
+    interviewed: Mapped[bool] = mapped_column(
+        Boolean,
+        default=False,
+        nullable=False,
+    )
+
+    enjoyment: Mapped[
+        CourseVisitStudentEnjoyment | None
+    ] = mapped_column(
+        SqlEnum(
+            CourseVisitStudentEnjoyment,
+            name="course_visit_student_enjoyment_answers",
+            native_enum=False,
+            create_constraint=True,
+            validate_strings=True,
+            values_callable=lambda enum: [item.value for item in enum],
+        ),
+        nullable=True,
+    )
+
+    learning: Mapped[
+        CourseVisitStudentLearning | None
+    ] = mapped_column(
+        SqlEnum(
+            CourseVisitStudentLearning,
+            name="course_visit_student_learning_answers",
+            native_enum=False,
+            create_constraint=True,
+            validate_strings=True,
+            values_callable=lambda enum: [item.value for item in enum],
+        ),
+        nullable=True,
+    )
+
+    feels_safe: Mapped[
+        CourseVisitStudentSafety | None
+    ] = mapped_column(
+        SqlEnum(
+            CourseVisitStudentSafety,
+            name="course_visit_student_safety_answers",
+            native_enum=False,
+            create_constraint=True,
+            validate_strings=True,
+            values_callable=lambda enum: [item.value for item in enum],
+        ),
+        nullable=True,
+    )
+
+    note: Mapped[str | None] = mapped_column(
+        Text,
+        nullable=True,
+    )
+
+    visit_report: Mapped[CourseVisitReport] = relationship(
+        back_populates="students",
+    )
+
+    student: Mapped[Student] = relationship(
+        back_populates="course_visit_observations",
+    )
+
+
+class CourseVisitAction(Base):
+    __tablename__ = "course_visit_actions"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+
+    course_visit_report_id: Mapped[int] = mapped_column(
+        ForeignKey("course_visit_reports.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+
+    category: Mapped[CourseVisitActionCategory] = mapped_column(
+        SqlEnum(
+            CourseVisitActionCategory,
+            name="course_visit_action_categories",
+            native_enum=False,
+            create_constraint=True,
+            validate_strings=True,
+            values_callable=lambda enum: [item.value for item in enum],
+        ),
+        nullable=False,
+    )
+
+    description: Mapped[str] = mapped_column(
+        Text,
+        nullable=False,
+    )
+
+    responsible_person: Mapped[str | None] = mapped_column(
+        String(100),
+        nullable=True,
+    )
+
+    target_date: Mapped[date | None] = mapped_column(
+        Date,
+        nullable=True,
+    )
+
+    completed: Mapped[bool] = mapped_column(
+        Boolean,
+        default=False,
+        nullable=False,
+    )
+
+    completed_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+
+    visit_report: Mapped[CourseVisitReport] = relationship(
+        back_populates="actions",
     )

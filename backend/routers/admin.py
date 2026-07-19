@@ -1,13 +1,18 @@
 from datetime import UTC, date, datetime, timedelta
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import selectinload
 
 from config import settings
 from dependencies import AdminAuth, get_current_admin
 from models import (
     Account,
     Course,
+    CourseVisitAction,
+    CourseVisitMentor,
+    CourseVisitReport,
+    CourseVisitStudent,
     MentorProfile,
     SessionLog,
     Story,
@@ -46,6 +51,12 @@ from schemas.stories import (
     StoryUpdateRequest,
     StoryWinnerOut,
     StoryWinnerRequest,
+)
+
+from routers._course_visits import course_visit_report_to_out
+from schemas.course_visits import (
+    CourseVisitReportCreateRequest,
+    CourseVisitReportOut,
 )
 
 router = APIRouter()
@@ -522,3 +533,138 @@ def activate_story(
         )
 
     return admin_story_to_out(story)
+
+
+@router.post(
+    "/course-visit-reports",
+    response_model=CourseVisitReportOut,
+    status_code=status.HTTP_201_CREATED,
+)
+def create_course_visit_report(
+    data: CourseVisitReportCreateRequest,
+    auth: AdminAuth = Depends(get_current_admin),
+):
+    db = auth.db
+    course = db.get(Course, data.course_id)
+
+    if not course:
+        raise HTTPException(
+            status_code=404,
+            detail="Course not found",
+        )
+
+    course_mentors = {
+        mentor.id: mentor
+        for mentor in course.mentors
+    }
+    mentor_ids = {
+        mentor.mentor_id
+        for mentor in data.mentors
+    }
+
+    if not mentor_ids.issubset(course_mentors):
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "One or more mentors are not assigned "
+                "to this course"
+            ),
+        )
+
+    course_students = {
+        student.id: student
+        for student in course.students
+    }
+    student_ids = {
+        student.student_id
+        for student in data.students
+    }
+
+    if not student_ids.issubset(course_students):
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "One or more students are not enrolled "
+                "in this course"
+            ),
+        )
+
+    report = CourseVisitReport(
+        submitted_by=auth.profile,
+        course=course,
+        date=data.date,
+        session_status=data.session_status,
+        teaching_took_place=data.teaching_took_place,
+        session_followed_plan=data.session_followed_plan,
+        learner_engagement=data.learner_engagement,
+        equipment_adequate=data.equipment_adequate,
+        environment_status=data.environment_status,
+        what_happened=data.what_happened,
+        main_strength=data.main_strength,
+        main_problem=data.main_problem,
+        support_provided=data.support_provided,
+        course_health_rating=data.course_health_rating,
+        safeguarding_concern=data.safeguarding_concern,
+        safeguarding_note=data.safeguarding_note,
+        mentors=[
+            CourseVisitMentor(
+                mentor=course_mentors[item.mentor_id],
+                role=item.role,
+                performance_rating=item.performance_rating,
+            )
+            for item in data.mentors
+        ],
+        students=[
+            CourseVisitStudent(
+                student=course_students[item.student_id],
+                interviewed=item.interviewed,
+                enjoyment=item.enjoyment,
+                learning=item.learning,
+                feels_safe=item.feels_safe,
+                note=item.note,
+            )
+            for item in data.students
+        ],
+        actions=[
+            CourseVisitAction(
+                category=item.category,
+                description=item.description,
+                responsible_person=item.responsible_person,
+                target_date=item.target_date,
+            )
+            for item in data.actions
+        ],
+    )
+
+    db.add(report)
+    db.commit()
+    db.refresh(report)
+
+    return course_visit_report_to_out(report)
+
+
+@router.get(
+    "/course-visit-reports",
+    response_model=list[CourseVisitReportOut],
+)
+def get_course_visit_reports(
+    auth: AdminAuth = Depends(get_current_admin),
+):
+    reports = (
+        auth.db.query(CourseVisitReport)
+        .options(
+            selectinload(CourseVisitReport.mentors),
+            selectinload(CourseVisitReport.students),
+            selectinload(CourseVisitReport.actions),
+        )
+        .order_by(
+            CourseVisitReport.date.desc(),
+            CourseVisitReport.id.desc(),
+        )
+        .all()
+    )
+
+    return [
+        course_visit_report_to_out(report)
+        for report in reports
+    ]

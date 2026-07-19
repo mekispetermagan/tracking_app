@@ -28,6 +28,7 @@ class _MentorAreaState extends State<MentorArea> {
   final _trackStudentsController = TrackStudentsController();
   final _storyController = MentorStoryController();
   final _storyWinnerArchiveController = StoryWinnerArchiveController();
+  final _curriculumController = CurriculumController();
 
   bool _showSessionPhotos = false;
   bool _showCoursePhotos = false;
@@ -72,6 +73,7 @@ class _MentorAreaState extends State<MentorArea> {
     _trackStudentsController.dispose();
     _storyController.dispose();
     _storyWinnerArchiveController.dispose();
+    _curriculumController.dispose();
     super.dispose();
   }
 
@@ -91,6 +93,7 @@ class _MentorAreaState extends State<MentorArea> {
         _viewSessionLogsController.studentRecordController,
         _storyController,
         _storyWinnerArchiveController,
+        _curriculumController,
       ]),
       builder: (_, _) => _buildArea(),
     );
@@ -166,6 +169,12 @@ class _MentorAreaState extends State<MentorArea> {
           return;
         }
 
+        if (_areaController.screen == MentorScreen.curriculum &&
+            _curriculumController.selectedChapter != null) {
+          _curriculumController.closeChapter();
+          return;
+        }
+
         _goHome();
       },
       child: switch (_areaController.screen) {
@@ -200,6 +209,8 @@ class _MentorAreaState extends State<MentorArea> {
         MentorScreen.submitStory => _buildStoryForm(),
 
         MentorScreen.storyWinnerArchive => _buildStoryWinnerArchive(),
+
+        MentorScreen.curriculum => _buildCurriculumArea(),
       },
     );
   }
@@ -592,6 +603,21 @@ class _MentorAreaState extends State<MentorArea> {
     );
   }
 
+  Widget _buildCurriculumArea() {
+    return CurriculumScreen(
+      categories: _curriculumController.categories,
+      selectedChapter: _curriculumController.selectedChapter,
+      selectedChapterUrl: _curriculumController.selectedChapterUrl,
+      isLoading: _curriculumController.isLoading,
+      message: _curriculumController.message,
+      clearMessage: _curriculumController.clearMessage,
+      onReload: _curriculumController.reload,
+      onSelectChapter: _curriculumController.selectChapter,
+      onCloseChapter: _curriculumController.closeChapter,
+      onBack: _goHome,
+    );
+  }
+
   Future<void> _openSessionPhotos() async {
     final sessionLog = _viewSessionLogsController.selectedSessionLog;
 
@@ -733,6 +759,10 @@ class _MentorAreaState extends State<MentorArea> {
     if (screen == MentorScreen.stories) {
       _openStories();
     }
+
+    if (screen == MentorScreen.curriculum) {
+      _curriculumController.initialize();
+    }
   }
 
   void _openProfile() {
@@ -755,6 +785,7 @@ class _MentorAreaState extends State<MentorArea> {
     _trackStudentsController.reset();
     _storyController.reset();
     _storyWinnerArchiveController.reset();
+    _curriculumController.reset();
 
     setState(() {
       _showSessionPhotos = false;
@@ -777,6 +808,7 @@ class _MentorAreaState extends State<MentorArea> {
     _trackStudentsController.reset();
     _storyController.reset();
     _storyWinnerArchiveController.reset();
+    _curriculumController.reset();
 
     setState(() {
       _showSessionPhotos = false;

@@ -13,6 +13,7 @@ enum MentorScreen {
   stories,
   submitStory,
   storyWinnerArchive,
+  curriculum,
 }
 
 class MentorMenuItem {
@@ -46,6 +47,7 @@ class MentorAreaController extends ChangeNotifier {
     MentorMenuItem(screen: MentorScreen.viewPhotos, label: 'View photos'),
     MentorMenuItem(screen: MentorScreen.stories, label: 'Stories'),
     MentorMenuItem(screen: MentorScreen.submitInvoice, label: 'Submit invoice'),
+    MentorMenuItem(screen: MentorScreen.curriculum, label: 'Curriculum'),
   ];
 
   void select(MentorScreen screen) {

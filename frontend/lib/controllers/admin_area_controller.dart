@@ -11,6 +11,8 @@ enum AdminScreen {
   stories,
   editStory,
   storyWinnerArchive,
+  courseVisits,
+  courseVisitForm,
   reportsData,
 }
 
@@ -40,6 +42,7 @@ class AdminAreaController extends ChangeNotifier {
     AdminMenuItem(screen: AdminScreen.trackStudents, label: 'Track students'),
     AdminMenuItem(screen: AdminScreen.stories, label: 'Stories'),
     AdminMenuItem(screen: AdminScreen.reportsData, label: 'Reports & data'),
+    AdminMenuItem(screen: AdminScreen.courseVisits, label: 'Course visits'),
   ];
 
   void select(AdminScreen screen) {
@@ -69,6 +72,14 @@ class AdminAreaController extends ChangeNotifier {
 
   void closeStoryWinnerArchive() {
     select(AdminScreen.stories);
+  }
+
+  void openCourseVisitForm() {
+    select(AdminScreen.courseVisitForm);
+  }
+
+  void closeCourseVisitForm() {
+    select(AdminScreen.courseVisits);
   }
 
   void reset() {

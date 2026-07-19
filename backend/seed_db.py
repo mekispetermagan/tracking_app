@@ -12,6 +12,19 @@ from models import (
     CompletionStatus,
     Country,
     Course,
+    CourseVisitAction,
+    CourseVisitActionCategory,
+    CourseVisitAnswer,
+    CourseVisitEnvironmentStatus,
+    CourseVisitLearnerEngagement,
+    CourseVisitMentor,
+    CourseVisitMentorRole,
+    CourseVisitReport,
+    CourseVisitSessionStatus,
+    CourseVisitStudent,
+    CourseVisitStudentEnjoyment,
+    CourseVisitStudentLearning,
+    CourseVisitStudentSafety,
     MentorProfile,
     ProjectType,
     SessionLog,
@@ -860,7 +873,117 @@ def main():
         )
 
 
+        hillside_students = {
+            student.first_name: student
+            for student in hillside.students
+        }
 
+        db.add(
+            CourseVisitReport(
+                submitted_by=peter_admin,
+                course=hillside,
+                date=date(2026, 6, 14),
+                session_status=CourseVisitSessionStatus.FULLY_HELD,
+                teaching_took_place=CourseVisitAnswer.YES,
+                session_followed_plan=CourseVisitAnswer.PARTLY,
+                learner_engagement=CourseVisitLearnerEngagement.MOST,
+                equipment_adequate=CourseVisitAnswer.PARTLY,
+                environment_status=(
+                    CourseVisitEnvironmentStatus.SAFE_AND_RESPECTFUL
+                ),
+                what_happened=(
+                    "Students worked in pairs to build and program "
+                    "an advanced humanoid robot."
+                ),
+                main_strength=(
+                    "Most students were engaged and mentors gave "
+                    "effective individual support."
+                ),
+                main_problem=(
+                    "The opening explanation was too long and two "
+                    "laptops had unreliable batteries."
+                ),
+                support_provided=(
+                    "We reorganized the pairs and agreed to use "
+                    "shorter demonstrations followed by practice."
+                ),
+                course_health_rating=4,
+                safeguarding_concern=False,
+                mentors=[
+                    CourseVisitMentor(
+                        mentor=margret,
+                        role=CourseVisitMentorRole.TEACHING,
+                        performance_rating=4,
+                    ),
+                    CourseVisitMentor(
+                        mentor=abdallah,
+                        role=CourseVisitMentorRole.SUPPORTING,
+                        performance_rating=3,
+                    ),
+                ],
+                students=[
+                    CourseVisitStudent(
+                        student=hillside_students["Aisha"],
+                        interviewed=True,
+                        enjoyment=CourseVisitStudentEnjoyment.YES,
+                        learning=CourseVisitStudentLearning.CLEARLY,
+                        feels_safe=CourseVisitStudentSafety.YES,
+                        note=(
+                            "She liked building the robot and could "
+                            "explain how its movement was programmed."
+                        ),
+                    ),
+                    CourseVisitStudent(
+                        student=hillside_students["Brenda"],
+                        interviewed=True,
+                        enjoyment=CourseVisitStudentEnjoyment.MIXED,
+                        learning=CourseVisitStudentLearning.PARTLY,
+                        feels_safe=CourseVisitStudentSafety.YES,
+                        note=(
+                            "She enjoyed working with her partner but "
+                            "wanted more time to finish the robot."
+                        ),
+                    ),
+                    CourseVisitStudent(
+                        student=hillside_students["Brian"],
+                        interviewed=True,
+                        enjoyment=CourseVisitStudentEnjoyment.YES,
+                        learning=CourseVisitStudentLearning.PARTLY,
+                        feels_safe=CourseVisitStudentSafety.YES,
+                        note=(
+                            "He enjoyed programming the movement but "
+                            "needed help explaining the sequence."
+                        ),
+                    ),
+                    CourseVisitStudent(
+                        student=hillside_students["Claire"],
+                    ),
+                    CourseVisitStudent(
+                        student=hillside_students["Doreen"],
+                    ),
+                    CourseVisitStudent(
+                        student=hillside_students["Daniel"],
+                    ),
+                    CourseVisitStudent(
+                        student=hillside_students["Emmanuel"],
+                    ),
+                    CourseVisitStudent(
+                        student=hillside_students["Isaac"],
+                    ),
+                ],
+                actions=[
+                    CourseVisitAction(
+                        category=CourseVisitActionCategory.EQUIPMENT,
+                        description=(
+                            "Replace or repair the two laptop "
+                            "batteries that failed during the session."
+                        ),
+                        responsible_person="Peter Mekis",
+                        target_date=date(2026, 6, 21),
+                    ),
+                ],
+            )
+        )
 
 
         db.commit()

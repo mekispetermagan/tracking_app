@@ -28,6 +28,7 @@ class _AdminAreaState extends State<AdminArea> {
   final _trackStudentsController = TrackStudentsController();
   final _storyController = AdminStoryController();
   final _storyWinnerArchiveController = StoryWinnerArchiveController();
+  final _courseVisitController = AdminCourseVisitController();
 
   bool _showSessionPhotos = false;
   bool _showCoursePhotos = false;
@@ -59,6 +60,7 @@ class _AdminAreaState extends State<AdminArea> {
     _trackStudentsController.dispose();
     _storyController.dispose();
     _storyWinnerArchiveController.dispose();
+    _courseVisitController.dispose();
     super.dispose();
   }
 
@@ -77,6 +79,7 @@ class _AdminAreaState extends State<AdminArea> {
         _viewSessionLogsController.studentRecordController,
         _storyController,
         _storyWinnerArchiveController,
+        _courseVisitController,
       ]),
       builder: (_, _) => _buildArea(),
     );
@@ -151,6 +154,11 @@ class _AdminAreaState extends State<AdminArea> {
           return;
         }
 
+        if (_areaController.screen == AdminScreen.courseVisitForm) {
+          _areaController.closeCourseVisitForm();
+          return;
+        }
+
         if (_areaController.screen != AdminScreen.menu) {
           _returnToMenu();
         }
@@ -179,6 +187,10 @@ class _AdminAreaState extends State<AdminArea> {
         AdminScreen.editStory => _buildStoryEditArea(),
 
         AdminScreen.storyWinnerArchive => _buildStoryWinnerArchive(),
+
+        AdminScreen.courseVisits => _buildCourseVisitsArea(),
+
+        AdminScreen.courseVisitForm => _buildCourseVisitFormArea(),
 
         AdminScreen.reportsData => PlaceholderTaskScreen(
           title: 'Reports & data',
@@ -545,6 +557,50 @@ class _AdminAreaState extends State<AdminArea> {
     );
   }
 
+  Widget _buildCourseVisitsArea() {
+    return AdminCourseVisitsScreen(
+      reports: _courseVisitController.filteredReports,
+      courses: _courseVisitController.filterCourses,
+      selectedCourseId: _courseVisitController.selectedCourseId,
+      expandedReportId: _courseVisitController.expandedReportId,
+      isLoading: _courseVisitController.isLoading,
+      message: _courseVisitController.message,
+      courseNameFor: _courseVisitController.courseNameFor,
+      mentorNameFor: _courseVisitController.mentorNameFor,
+      studentNameFor: _courseVisitController.studentNameFor,
+      clearMessage: _courseVisitController.clearMessage,
+      onCourseFilterChanged: _courseVisitController.setCourseFilter,
+      onToggleReport: _courseVisitController.toggleReport,
+      onRefresh: () {
+        return _courseVisitController.refresh(accessToken: widget.accessToken);
+      },
+      onSubmitReport: _areaController.openCourseVisitForm,
+      onHome: _returnToMenu,
+      onLogout: widget.onLogout,
+    );
+  }
+
+  Widget _buildCourseVisitFormArea() {
+    return AdminCourseVisitFormScreen(
+      courses: _courseVisitController.activeCourses,
+      mentors: _courseVisitController.activeMentors,
+      students: _courseVisitController.activeStudents,
+      initialCourseId: _courseVisitController.formInitialCourseId,
+      isLoading: _courseVisitController.isLoading,
+      isSaving: _courseVisitController.isSubmitting,
+      message: _courseVisitController.message,
+      clearMessage: _courseVisitController.clearMessage,
+      onSubmit: (request) {
+        return _courseVisitController.submitReport(
+          accessToken: widget.accessToken,
+          request: request,
+        );
+      },
+      onSubmitted: _finishCourseVisitSubmission,
+      onCancel: _areaController.closeCourseVisitForm,
+    );
+  }
+
   Future<void> _selectScreen(AdminScreen screen) async {
     _areaController.select(screen);
 
@@ -588,6 +644,10 @@ class _AdminAreaState extends State<AdminArea> {
 
     if (screen == AdminScreen.stories) {
       await _storyController.initialize(accessToken: widget.accessToken);
+    }
+
+    if (screen == AdminScreen.courseVisits) {
+      await _courseVisitController.initialize(accessToken: widget.accessToken);
     }
   }
 
@@ -806,10 +866,21 @@ class _AdminAreaState extends State<AdminArea> {
     _trackStudentsController.reset();
     _storyController.reset();
     _storyWinnerArchiveController.reset();
+    _courseVisitController.reset();
 
     setState(() {
       _showSessionPhotos = false;
       _showCoursePhotos = false;
     });
+  }
+
+  void _finishCourseVisitSubmission() {
+    _areaController.closeCourseVisitForm();
+
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        const SnackBar(content: Text('Course visit report submitted.')),
+      );
   }
 }
