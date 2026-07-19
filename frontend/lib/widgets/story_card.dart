@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:photo_view/photo_view.dart';
 
 import '../models/models.dart';
+import 'photo_viewer.dart';
 
 class StoryCard extends StatelessWidget {
   final Story story;
@@ -27,7 +27,21 @@ class StoryCard extends StatelessWidget {
             aspectRatio: 3 / 2,
             child: InkWell(
               onTap: () {
-                _showPhotoViewer(context);
+                showPhotoViewer(
+                  context: context,
+                  items: [
+                    PhotoViewerItem(
+                      imageUrl: story.photo.url,
+                      caption:
+                          '${story.submitterName} · '
+                          '${story.courseName} · '
+                          '${_formatDate(story.createdAt)}',
+                    ),
+                  ],
+                  showCounter: false,
+                  controlIconSize: 32,
+                  captionStyle: const TextStyle(color: Colors.white),
+                );
               },
               child: Stack(
                 fit: StackFit.expand,
@@ -36,12 +50,9 @@ class StoryCard extends StatelessWidget {
                     story.photo.url,
                     fit: BoxFit.cover,
                     loadingBuilder: (context, child, loadingProgress) {
-                      if (loadingProgress == null) {
-                        return child;
-                      }
+                      if (loadingProgress == null) return child;
 
                       final expectedBytes = loadingProgress.expectedTotalBytes;
-
                       final progress = expectedBytes == null
                           ? null
                           : loadingProgress.cumulativeBytesLoaded /
@@ -116,104 +127,9 @@ class StoryCard extends StatelessWidget {
     );
   }
 
-  Future<void> _showPhotoViewer(BuildContext context) {
-    return showDialog<void>(
-      context: context,
-      barrierColor: Colors.black,
-      builder: (context) {
-        return Dialog(
-          insetPadding: EdgeInsets.zero,
-          backgroundColor: Colors.black,
-          child: SizedBox.expand(
-            child: Stack(
-              children: [
-                Positioned.fill(
-                  child: PhotoView(
-                    imageProvider: NetworkImage(story.photo.url),
-                    backgroundDecoration: const BoxDecoration(
-                      color: Colors.black,
-                    ),
-                    initialScale: PhotoViewComputedScale.contained,
-                    minScale: PhotoViewComputedScale.contained,
-                    maxScale: PhotoViewComputedScale.covered * 4,
-                    errorBuilder: (context, error, stackTrace) {
-                      return const Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.broken_image_outlined,
-                              color: Colors.white,
-                              size: 48,
-                            ),
-                            SizedBox(height: 12),
-                            Text(
-                              'Photo unavailable',
-                              style: TextStyle(color: Colors.white),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-                ),
-                Positioned(
-                  top: 8,
-                  right: 8,
-                  child: SafeArea(
-                    child: Material(
-                      color: Colors.black54,
-                      shape: const CircleBorder(),
-                      child: IconButton(
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        },
-                        icon: const Icon(Icons.close),
-                        color: Colors.white,
-                        iconSize: 32,
-                        tooltip: 'Close',
-                      ),
-                    ),
-                  ),
-                ),
-                Positioned(
-                  left: 16,
-                  right: 16,
-                  bottom: 16,
-                  child: SafeArea(
-                    child: Center(
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 10,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.black54,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          '${story.submitterName} · '
-                          '${story.courseName} · '
-                          '${_formatDate(story.createdAt)}',
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(color: Colors.white),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
   String _formatDate(DateTime date) {
     final day = date.day.toString().padLeft(2, '0');
     final month = date.month.toString().padLeft(2, '0');
-
     return '$day-$month-${date.year}';
   }
 }
