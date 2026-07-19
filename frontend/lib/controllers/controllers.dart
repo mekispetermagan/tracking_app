@@ -9,6 +9,7 @@ export 'mentor_profile_controller.dart';
 export 'mentor_course_management_controller.dart';
 export 'mentor_student_management_controller.dart';
 export 'mentor_session_log_controller.dart';
+export 'mentor_session_log_form_controller.dart';
 export 'mentor_view_session_logs_controller.dart';
 export 'mentor_story_controller.dart';
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../controllers/controllers.dart';
 import '../models/models.dart';
 
 enum _MentorRole { teaching, supporting, absent }
@@ -66,47 +67,25 @@ class MentorSessionLogFormScreen extends StatefulWidget {
 
 class _MentorSessionLogFormScreenState
     extends State<MentorSessionLogFormScreen> {
-  static const _skillGames = [
-    'Mixed letters',
-    'Missing letters',
-    'Reading game',
-    'Bible game',
-    'Shopping game',
-    'Logic game',
-    'Math train',
-    'Number swarm',
-    'Guess the operator',
-    'Even odd game',
-    'Balance game',
-    'Word card memory',
-    'Number card memory',
-  ];
-
   final _formKey = GlobalKey<FormState>();
+  late final MentorSessionLogFormController _controller;
 
-  final _projectTitleController = TextEditingController();
-  final _otherProjectTypeController = TextEditingController();
-  final _whatWorkedController = TextEditingController();
-  final _challengesController = TextEditingController();
-  final _nextStepController = TextEditingController();
-
-  DateTime _date = DateUtils.dateOnly(DateTime.now());
-  ProjectType _projectType = ProjectType.scratch;
-  CompletionStatus _completionStatus = CompletionStatus.completed;
-
-  final Set<String> _selectedGames = {};
-
-  String? _mentorError;
-  String? _attendanceError;
+  @override
+  void initState() {
+    super.initState();
+    _controller = MentorSessionLogFormController()..addListener(_rebuild);
+  }
 
   @override
   void dispose() {
-    _projectTitleController.dispose();
-    _otherProjectTypeController.dispose();
-    _whatWorkedController.dispose();
-    _challengesController.dispose();
-    _nextStepController.dispose();
+    _controller
+      ..removeListener(_rebuild)
+      ..dispose();
     super.dispose();
+  }
+
+  void _rebuild() {
+    if (mounted) setState(() {});
   }
 
   @override
@@ -153,16 +132,16 @@ class _MentorSessionLogFormScreenState
               const Text('Project name'),
               const SizedBox(height: 8),
               TextFormField(
-                controller: _projectTitleController,
+                controller: _controller.projectTitleController,
                 enabled: !widget.isSaving,
                 textInputAction: TextInputAction.next,
-                validator: _required,
+                validator: _controller.requiredText,
               ),
               const SizedBox(height: 20),
               const Text('Project type'),
               const SizedBox(height: 8),
               DropdownButtonFormField<ProjectType>(
-                initialValue: _projectType,
+                initialValue: _controller.projectType,
                 items: ProjectType.values.map((type) {
                   return DropdownMenuItem(value: type, child: Text(type.label));
                 }).toList(),
@@ -173,24 +152,18 @@ class _MentorSessionLogFormScreenState
                           return;
                         }
 
-                        setState(() {
-                          _projectType = value;
-
-                          if (value != ProjectType.other) {
-                            _otherProjectTypeController.clear();
-                          }
-                        });
+                        _controller.setProjectType(value);
                       },
               ),
-              if (_projectType == ProjectType.other) ...[
+              if (_controller.projectType == ProjectType.other) ...[
                 const SizedBox(height: 20),
                 const Text('Specify project type'),
                 const SizedBox(height: 8),
                 TextFormField(
-                  controller: _otherProjectTypeController,
+                  controller: _controller.otherProjectTypeController,
                   enabled: !widget.isSaving,
                   textInputAction: TextInputAction.next,
-                  validator: _required,
+                  validator: _controller.requiredText,
                 ),
               ],
               const SizedBox(height: 24),
@@ -214,7 +187,7 @@ class _MentorSessionLogFormScreenState
               const Text('Completion'),
               const SizedBox(height: 8),
               DropdownButtonFormField<CompletionStatus>(
-                initialValue: _completionStatus,
+                initialValue: _controller.completionStatus,
                 items: CompletionStatus.values.map((status) {
                   return DropdownMenuItem(
                     value: status,
@@ -228,16 +201,14 @@ class _MentorSessionLogFormScreenState
                           return;
                         }
 
-                        setState(() {
-                          _completionStatus = value;
-                        });
+                        _controller.setCompletionStatus(value);
                       },
               ),
               const SizedBox(height: 20),
               const Text('What worked?'),
               const SizedBox(height: 8),
               TextFormField(
-                controller: _whatWorkedController,
+                controller: _controller.whatWorkedController,
                 enabled: !widget.isSaving,
                 minLines: 2,
                 maxLines: 4,
@@ -247,7 +218,7 @@ class _MentorSessionLogFormScreenState
               const Text('Challenges'),
               const SizedBox(height: 8),
               TextFormField(
-                controller: _challengesController,
+                controller: _controller.challengesController,
                 enabled: !widget.isSaving,
                 minLines: 2,
                 maxLines: 4,
@@ -257,7 +228,7 @@ class _MentorSessionLogFormScreenState
               const Text('Next step'),
               const SizedBox(height: 8),
               TextFormField(
-                controller: _nextStepController,
+                controller: _controller.nextStepController,
                 enabled: !widget.isSaving,
                 minLines: 2,
                 maxLines: 4,
@@ -311,10 +282,7 @@ class _MentorSessionLogFormScreenState
                     return;
                   }
 
-                  setState(() {
-                    _mentorError = null;
-                    _attendanceError = null;
-                  });
+                  _controller.clearParticipantErrors();
 
                   await widget.onCourseSelected(courseId);
                 },
@@ -335,7 +303,7 @@ class _MentorSessionLogFormScreenState
             decoration: const InputDecoration(
               suffixIcon: Icon(Icons.calendar_today),
             ),
-            child: Text(_formatDate(_date)),
+            child: Text(_formatDate(_controller.date)),
           ),
         ),
       ],
@@ -372,9 +340,7 @@ class _MentorSessionLogFormScreenState
               onPressed: widget.isSaving
                   ? null
                   : () {
-                      setState(() {
-                        _mentorError = null;
-                      });
+                      _controller.clearMentorError();
                       widget.onClearMentors();
                     },
               child: const Text('Mark all absent'),
@@ -388,11 +354,11 @@ class _MentorSessionLogFormScreenState
             ),
           ],
         ),
-        if (_mentorError != null)
+        if (_controller.mentorError != null)
           Padding(
             padding: const EdgeInsets.only(bottom: 8),
             child: Text(
-              _mentorError!,
+              _controller.mentorError!,
               style: TextStyle(color: Theme.of(context).colorScheme.error),
             ),
           ),
@@ -463,9 +429,7 @@ class _MentorSessionLogFormScreenState
       return;
     }
 
-    setState(() {
-      _mentorError = null;
-    });
+    _controller.clearMentorError();
 
     if (role == _MentorRole.teaching) {
       widget.onToggleTeachingMentor(mentorId);
@@ -488,20 +452,14 @@ class _MentorSessionLogFormScreenState
     return Wrap(
       spacing: 8,
       runSpacing: 8,
-      children: _skillGames.map((game) {
+      children: MentorSessionLogFormController.skillGames.map((game) {
         return FilterChip(
           label: Text(game),
-          selected: _selectedGames.contains(game),
+          selected: _controller.isGameSelected(game),
           onSelected: widget.isSaving
               ? null
               : (selected) {
-                  setState(() {
-                    if (selected) {
-                      _selectedGames.add(game);
-                    } else {
-                      _selectedGames.remove(game);
-                    }
-                  });
+                  _controller.setGameSelected(game, selected);
                 },
         );
       }).toList(),
@@ -533,9 +491,7 @@ class _MentorSessionLogFormScreenState
               onPressed: widget.isSaving
                   ? null
                   : () {
-                      setState(() {
-                        _attendanceError = null;
-                      });
+                      _controller.clearAttendanceError();
                       widget.onSelectAllStudents();
                     },
               child: const Text('Select all'),
@@ -551,11 +507,11 @@ class _MentorSessionLogFormScreenState
             ),
           ],
         ),
-        if (_attendanceError != null)
+        if (_controller.attendanceError != null)
           Padding(
             padding: const EdgeInsets.only(bottom: 8),
             child: Text(
-              _attendanceError!,
+              _controller.attendanceError!,
               style: TextStyle(color: Theme.of(context).colorScheme.error),
             ),
           ),
@@ -572,9 +528,7 @@ class _MentorSessionLogFormScreenState
             onChanged: widget.isSaving
                 ? null
                 : (_) {
-                    setState(() {
-                      _attendanceError = null;
-                    });
+                    _controller.clearAttendanceError();
                     widget.onToggleStudent(student.id);
                   },
           );
@@ -586,7 +540,7 @@ class _MentorSessionLogFormScreenState
   Future<void> _selectDate(BuildContext context) async {
     final selected = await showDatePicker(
       context: context,
-      initialDate: _date,
+      initialDate: _controller.date,
       firstDate: DateTime(2020),
       lastDate: DateUtils.dateOnly(DateTime.now()),
     );
@@ -595,9 +549,7 @@ class _MentorSessionLogFormScreenState
       return;
     }
 
-    setState(() {
-      _date = DateUtils.dateOnly(selected);
-    });
+    _controller.setDate(selected);
   }
 
   Future<void> _submit() async {
@@ -605,71 +557,18 @@ class _MentorSessionLogFormScreenState
       return;
     }
 
-    final courseId = widget.selectedCourseId;
-
-    if (courseId == null) {
-      return;
-    }
-
-    if (widget.selectedTeachingMentorIds.isEmpty) {
-      setState(() {
-        _mentorError = 'Select at least one teaching mentor.';
-      });
-      return;
-    }
-
-    if (widget.selectedStudentIds.isEmpty) {
-      setState(() {
-        _attendanceError = 'Select at least one student.';
-      });
-      return;
-    }
-
-    final teachingMentorIds = widget.selectedTeachingMentorIds.toList()..sort();
-
-    final supportingMentorIds = widget.selectedSupportingMentorIds.toList()
-      ..sort();
-
-    final studentIds = widget.selectedStudentIds.toList()..sort();
-
-    final games = _selectedGames.toList()..sort();
-
-    final submitted = await widget.onSubmit(
-      SessionLogCreateRequest(
-        courseId: courseId,
-        date: _date,
-        projectTitle: _projectTitleController.text.trim(),
-        projectType: _projectType,
-        otherProjectType: _projectType == ProjectType.other
-            ? _otherProjectTypeController.text.trim()
-            : null,
-        gamesPlayed: games.isEmpty ? null : games.join(', '),
-        completionStatus: _completionStatus,
-        whatWorked: _optionalText(_whatWorkedController.text),
-        challenges: _optionalText(_challengesController.text),
-        nextStep: _optionalText(_nextStepController.text),
-        teachingMentorIds: teachingMentorIds,
-        supportingMentorIds: supportingMentorIds,
-        studentIds: studentIds,
-      ),
+    final request = _controller.buildRequest(
+      courseId: widget.selectedCourseId,
+      teachingMentorIds: widget.selectedTeachingMentorIds,
+      supportingMentorIds: widget.selectedSupportingMentorIds,
+      studentIds: widget.selectedStudentIds,
     );
+    if (request == null) return;
+    final submitted = await widget.onSubmit(request);
 
     if (submitted && mounted) {
       widget.onSubmitted();
     }
-  }
-
-  String? _required(String? value) {
-    if (value == null || value.trim().isEmpty) {
-      return 'Required';
-    }
-
-    return null;
-  }
-
-  String? _optionalText(String value) {
-    final text = value.trim();
-    return text.isEmpty ? null : text;
   }
 
   String _formatDate(DateTime date) {
