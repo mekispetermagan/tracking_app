@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/models.dart';
+import '../widgets/buttons.dart';
 
 class AdminStoryEditScreen extends StatefulWidget {
   final AdminStory story;
@@ -97,7 +98,7 @@ class _AdminStoryEditScreenState extends State<AdminStoryEditScreen> {
                 },
               ),
               const SizedBox(height: 24),
-              FilledButton(
+              LargeFilledButton(
                 onPressed: widget.isSaving ? null : _save,
                 child: Text(widget.isSaving ? 'Saving...' : 'Save changes'),
               ),

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../widgets/buttons.dart';
+
 class AdminSetupPasswordScreen extends StatelessWidget {
   final String password;
   final String confirmPassword;
@@ -32,9 +34,7 @@ class AdminSetupPasswordScreen extends StatelessWidget {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
-          ..showSnackBar(
-            SnackBar(content: Text(message!)),
-          );
+          ..showSnackBar(SnackBar(content: Text(message!)));
         clearMessage();
       });
     }
@@ -50,19 +50,13 @@ class AdminSetupPasswordScreen extends StatelessWidget {
           children: [
             const Text('New password'),
             const SizedBox(height: 8),
-            TextField(
-              obscureText: true,
-              onChanged: onPasswordChanged,
-            ),
+            TextField(obscureText: true, onChanged: onPasswordChanged),
             const SizedBox(height: 24),
             const Text('Confirm new password'),
             const SizedBox(height: 8),
-            TextField(
-              obscureText: true,
-              onChanged: onConfirmPasswordChanged,
-            ),
+            TextField(obscureText: true, onChanged: onConfirmPasswordChanged),
             const SizedBox(height: 32),
-            FilledButton(
+            LargeFilledButton(
               onPressed: canSubmit && !isSubmitting ? onSubmit : null,
               child: Text(isSubmitting ? 'Saving...' : 'Save password'),
             ),

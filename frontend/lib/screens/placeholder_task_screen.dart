@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../widgets/app_bar.dart';
+
 class PlaceholderTaskScreen extends StatelessWidget {
   final String title;
   final VoidCallback onHome;
@@ -15,24 +17,8 @@ class PlaceholderTaskScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(title),
-        actions: [
-          TextButton(
-            onPressed: onHome,
-            child: const Text('Home'),
-          ),
-          TextButton(
-            onPressed: onLogout,
-            child: const Text('Logout'),
-          ),
-        ],
-      ),
-      body: SafeArea(
-        child: Center(
-          child: Text('$title placeholder'),
-        ),
-      ),
+      appBar: AppTopBar(title: Text(title), onHome: onHome, onLogout: onLogout),
+      body: SafeArea(child: Center(child: Text('$title placeholder'))),
     );
   }
 }

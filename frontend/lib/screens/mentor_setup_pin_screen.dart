@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:pinput/pinput.dart';
 
+import '../widgets/buttons.dart';
+
 class MentorSetupPinScreen extends StatelessWidget {
   final String pin;
   final String confirmPin;
@@ -18,7 +20,8 @@ class MentorSetupPinScreen extends StatelessWidget {
     required this.canSubmit,
     required this.isSubmitting,
     required this.message,
-    required this.clearMessage,    required this.onPinChanged,
+    required this.clearMessage,
+    required this.onPinChanged,
     required this.onConfirmPinChanged,
     required this.onSubmit,
     required this.onCancel,
@@ -32,10 +35,7 @@ class MentorSetupPinScreen extends StatelessWidget {
     final pinTheme = PinTheme(
       width: 56,
       height: 64,
-      textStyle: TextStyle(
-        fontSize: 36,
-        color: cs.onSecondaryContainer,
-      ),
+      textStyle: TextStyle(fontSize: 36, color: cs.onSecondaryContainer),
       decoration: BoxDecoration(
         color: cs.secondaryContainer,
         borderRadius: BorderRadius.circular(12),
@@ -46,9 +46,7 @@ class MentorSetupPinScreen extends StatelessWidget {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
-          ..showSnackBar(
-            SnackBar(content: Text(message!)),
-          );
+          ..showSnackBar(SnackBar(content: Text(message!)));
         clearMessage();
       });
     }
@@ -78,7 +76,7 @@ class MentorSetupPinScreen extends StatelessWidget {
               defaultPinTheme: pinTheme,
             ),
             const SizedBox(height: 32),
-            FilledButton(
+            LargeFilledButton(
               onPressed: canSubmit && !isSubmitting ? onSubmit : null,
               child: Text(isSubmitting ? 'Saving...' : 'Save PIN'),
             ),

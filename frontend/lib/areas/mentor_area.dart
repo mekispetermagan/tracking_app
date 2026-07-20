@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../controllers/controllers.dart';
 import '../screens/screens.dart';
+import '../theme/app_theme.dart';
 
 class MentorArea extends StatefulWidget {
   const MentorArea({
@@ -79,23 +80,26 @@ class _MentorAreaState extends State<MentorArea> {
 
   @override
   Widget build(BuildContext context) {
-    return ListenableBuilder(
-      listenable: Listenable.merge([
-        _areaController,
-        _courseController,
-        _studentController,
-        _profileController,
-        _sessionLogController,
-        _viewSessionLogsController,
-        _photoController,
-        _trackStudentsController,
-        _trackStudentsController.recordController,
-        _viewSessionLogsController.studentRecordController,
-        _storyController,
-        _storyWinnerArchiveController,
-        _curriculumController,
-      ]),
-      builder: (_, _) => _buildArea(),
+    return Theme(
+      data: buildMentorTheme(),
+      child: ListenableBuilder(
+        listenable: Listenable.merge([
+          _areaController,
+          _courseController,
+          _studentController,
+          _profileController,
+          _sessionLogController,
+          _viewSessionLogsController,
+          _photoController,
+          _trackStudentsController,
+          _trackStudentsController.recordController,
+          _viewSessionLogsController.studentRecordController,
+          _storyController,
+          _storyWinnerArchiveController,
+          _curriculumController,
+        ]),
+        builder: (_, _) => _buildArea(),
+      ),
     );
   }
 

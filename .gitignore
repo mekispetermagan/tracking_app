@@ -21,3 +21,5 @@ backend/original_photos/
 backend/original_story_photos/
 backend/compressed_photos/
 backend/compressed_story_photos/
+
+count_lines.sh

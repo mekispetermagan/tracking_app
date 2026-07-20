@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+
+import '../widgets/app_bar.dart';
 import '../controllers/admin_area_controller.dart';
+import '../widgets/buttons.dart';
 
 class AdminMenuScreen extends StatelessWidget {
   final List<AdminMenuItem> items;
@@ -16,15 +19,7 @@ class AdminMenuScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Admin menu'),
-        actions: [
-          TextButton(
-            onPressed: onLogout,
-            child: const Text('Logout'),
-          ),
-        ],
-      ),
+      appBar: AppTopBar(title: const Text('Admin menu'), onLogout: onLogout),
       body: SafeArea(
         child: ListView.separated(
           padding: const EdgeInsets.all(24),
@@ -33,9 +28,9 @@ class AdminMenuScreen extends StatelessWidget {
           itemBuilder: (context, index) {
             final item = items[index];
 
-            return FilledButton(
+            return LargeFilledButton(
               onPressed: () => onSelect(item.screen),
-              child: Text(item.label),
+              text: item.label,
             );
           },
         ),

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../widgets/buttons.dart';
+
 class AdminLoginScreen extends StatelessWidget {
   final String phone;
   final String password;
@@ -39,9 +41,7 @@ class AdminLoginScreen extends StatelessWidget {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
-          ..showSnackBar(
-            SnackBar(content: Text(message!)),
-          );
+          ..showSnackBar(SnackBar(content: Text(message!)));
         clearMessage();
       });
     }
@@ -84,7 +84,7 @@ class AdminLoginScreen extends StatelessWidget {
               onChanged: onPasswordChanged,
             ),
             const SizedBox(height: 32),
-            FilledButton(
+            LargeFilledButton(
               onPressed: canSubmit && !isSubmitting ? onSubmit : null,
               child: Text(isSubmitting ? 'Logging in...' : 'Login'),
             ),

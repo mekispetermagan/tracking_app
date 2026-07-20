@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/models.dart';
 import '../validation/credential_validation.dart' show isValidPin;
+import '../widgets/buttons.dart';
 
 class AdminMentorResetPinScreen extends StatefulWidget {
   final Mentor? mentor;
@@ -77,7 +78,7 @@ class _AdminMentorResetPinScreenState extends State<AdminMentorResetPinScreen> {
                 validator: _temporaryPinValidator,
               ),
               const SizedBox(height: 32),
-              FilledButton(
+              LargeFilledButton(
                 onPressed: widget.isSaving ? null : _submit,
                 child: Text(widget.isSaving ? 'Saving...' : 'Reset PIN'),
               ),

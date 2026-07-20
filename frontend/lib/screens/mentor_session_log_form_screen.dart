@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../controllers/controllers.dart';
 import '../models/models.dart';
 import '../widgets/mentor_session_log_form_sections.dart';
+import '../widgets/buttons.dart';
 
 class MentorSessionLogFormScreen extends StatefulWidget {
   final List<Course> courses;
@@ -159,7 +160,7 @@ class _MentorSessionLogFormScreenState
                 isSaving: widget.isSaving,
               ),
               const SizedBox(height: 32),
-              FilledButton(
+              LargeFilledButton(
                 onPressed: widget.isSaving || widget.isLoading ? null : _submit,
                 child: Text(
                   widget.isSaving ? 'Submitting...' : 'Submit session log',

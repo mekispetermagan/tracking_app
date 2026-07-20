@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../widgets/app_bar.dart';
+
 import '../controllers/admin_mentor_management_controller.dart'
     show MentorStatusFilter;
 import '../models/models.dart';
@@ -52,12 +54,10 @@ class AdminMentorManagementScreen extends StatelessWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: AppTopBar(
         title: const Text('Manage mentors'),
-        actions: [
-          TextButton(onPressed: onHome, child: const Text('Home')),
-          TextButton(onPressed: onLogout, child: const Text('Logout')),
-        ],
+        onHome: onHome,
+        onLogout: onLogout,
       ),
       body: SafeArea(
         child: Column(

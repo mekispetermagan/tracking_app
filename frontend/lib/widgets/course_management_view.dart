@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'app_bar.dart';
+
 import '../controllers/admin_course_management_controller.dart'
     show CourseStatusFilter;
 import '../models/models.dart';
@@ -58,13 +60,7 @@ class CourseManagementView extends StatelessWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(title),
-        actions: [
-          TextButton(onPressed: onHome, child: const Text('Home')),
-          TextButton(onPressed: onLogout, child: const Text('Logout')),
-        ],
-      ),
+      appBar: AppTopBar(title: Text(title), onHome: onHome, onLogout: onLogout),
       body: SafeArea(
         child: Column(
           children: [

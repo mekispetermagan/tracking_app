@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/models.dart';
 import '../validation/credential_validation.dart' show isValidPin;
+import '../widgets/buttons.dart';
 
 class MentorChangePinScreen extends StatefulWidget {
   final bool isChangingPin;
@@ -97,7 +98,7 @@ class _MentorChangePinScreenState extends State<MentorChangePinScreen> {
               ),
               const SizedBox(height: 32),
 
-              FilledButton(
+              LargeFilledButton(
                 onPressed: widget.isChangingPin ? null : _submit,
                 child: Text(widget.isChangingPin ? 'Saving...' : 'Change PIN'),
               ),

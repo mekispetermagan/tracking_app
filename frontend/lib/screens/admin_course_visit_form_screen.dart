@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../controllers/controllers.dart';
 import '../models/models.dart';
 import '../widgets/admin_course_visit_form_sections.dart';
+import '../widgets/buttons.dart';
 
 class AdminCourseVisitFormScreen extends StatefulWidget {
   final List<Course> courses;
@@ -135,7 +136,7 @@ class _AdminCourseVisitFormScreenState
               ),
               const SizedBox(height: 32),
 
-              FilledButton(
+              LargeFilledButton(
                 onPressed: widget.isSaving || widget.isLoading ? null : _submit,
                 child: Text(
                   widget.isSaving ? 'Submitting...' : 'Submit report',

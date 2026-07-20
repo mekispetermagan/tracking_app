@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../widgets/app_bar.dart';
+
 import '../models/models.dart';
 
 class PhotoCourseSelectionScreen extends StatelessWidget {
@@ -42,20 +44,10 @@ class PhotoCourseSelectionScreen extends StatelessWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: AppTopBar(
         title: const Text('View photos'),
-        leading: IconButton(
-          onPressed: onHome,
-          icon: const Icon(Icons.home),
-          tooltip: 'Home',
-        ),
-        actions: [
-          IconButton(
-            onPressed: onLogout,
-            icon: const Icon(Icons.logout),
-            tooltip: 'Log out',
-          ),
-        ],
+        onHome: onHome,
+        onLogout: onLogout,
       ),
       body: SafeArea(
         child: isLoading

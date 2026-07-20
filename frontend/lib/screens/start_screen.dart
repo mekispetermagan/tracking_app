@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../widgets/buttons.dart';
+
 class StartScreen extends StatelessWidget {
   final VoidCallback onAdminLogin;
   final VoidCallback onMentorLogin;
@@ -14,25 +16,51 @@ class StartScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(32),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                FilledButton(
-                  onPressed: onMentorLogin,
-                  child: const Text('Mentor login'),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        LayoutBuilder(
+                          builder: (context, constraints) {
+                            final logoWidth = (constraints.maxWidth * 0.67)
+                                .clamp(160.0, 280.0);
+
+                            return Align(
+                              alignment: Alignment.center,
+                              child: Image.asset(
+                                'assets/images/ag_uganda_logo_light_without_background.png',
+                                width: logoWidth,
+                                fit: BoxFit.contain,
+                                semanticLabel: 'Afterschool Geekery Uganda',
+                              ),
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 48),
+                        LargeFilledButton(
+                          onPressed: onMentorLogin,
+                          text: 'Mentor login',
+                        ),
+                        const SizedBox(height: 24),
+                        LargeFilledButton(
+                          onPressed: onAdminLogin,
+                          text: 'Admin login',
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-                const SizedBox(height: 16),
-                FilledButton(
-                  onPressed: onAdminLogin,
-                  child: const Text('Admin login'),
-                ),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         ),
       ),
     );

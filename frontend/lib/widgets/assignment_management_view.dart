@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'buttons.dart';
+
 class AssignmentManagementView<TSubject, TItem, TFilter>
     extends StatefulWidget {
   final String title;
@@ -153,7 +155,7 @@ class _AssignmentManagementViewState<TSubject, TItem, TFilter>
       bottomNavigationBar: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16),
-          child: FilledButton(
+          child: LargeFilledButton(
             onPressed: widget.isLoading || widget.isSaving
                 ? null
                 : widget.onSave,

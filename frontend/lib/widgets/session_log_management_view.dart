@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../models/models.dart';
+import 'app_bar.dart';
+import 'buttons.dart';
 
 class SessionLogManagementView extends StatelessWidget {
   final List<SessionLog> sessionLogs;
@@ -68,20 +70,10 @@ class SessionLogManagementView extends StatelessWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: AppTopBar(
         title: const Text('View session logs'),
-        leading: IconButton(
-          onPressed: onHome,
-          icon: const Icon(Icons.home),
-          tooltip: 'Home',
-        ),
-        actions: [
-          IconButton(
-            onPressed: onLogout,
-            icon: const Icon(Icons.logout),
-            tooltip: 'Log out',
-          ),
-        ],
+        onHome: onHome,
+        onLogout: onLogout,
       ),
       body: SafeArea(
         child: Column(
@@ -95,10 +87,10 @@ class SessionLogManagementView extends StatelessWidget {
       bottomNavigationBar: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16),
-          child: FilledButton.icon(
+          child: LargeFilledButton(
             onPressed: canView ? onView : null,
             icon: const Icon(Icons.visibility),
-            label: const Text('View selected log'),
+            text: 'View selected log',
           ),
         ),
       ),

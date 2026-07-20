@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/models.dart';
+import '../widgets/buttons.dart';
 
 class MentorStudentFormScreen extends StatefulWidget {
   final Student? student;
@@ -175,7 +176,7 @@ class _MentorStudentFormScreenState extends State<MentorStudentFormScreen> {
               const SizedBox(height: 8),
               _buildCourseList(),
               const SizedBox(height: 32),
-              FilledButton(
+              LargeFilledButton(
                 onPressed: widget.isSaving ? null : _submit,
                 child: Text(
                   widget.isSaving

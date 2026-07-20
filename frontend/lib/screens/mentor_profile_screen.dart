@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../widgets/app_bar.dart';
+import '../widgets/buttons.dart';
+
 import '../models/models.dart';
 import '../validation/credential_validation.dart' show isValidPhone;
 
@@ -85,12 +88,10 @@ class _MentorProfileScreenState extends State<MentorProfileScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: AppTopBar(
         title: const Text('My profile'),
-        leading: BackButton(onPressed: widget.onHome),
-        actions: [
-          TextButton(onPressed: widget.onLogout, child: const Text('Logout')),
-        ],
+        onHome: widget.onHome,
+        onLogout: widget.onLogout,
       ),
       body: SafeArea(child: _buildBody()),
     );
@@ -183,7 +184,7 @@ class _MentorProfileScreenState extends State<MentorProfileScreen> {
 
           const SizedBox(height: 32),
 
-          FilledButton(
+          LargeFilledButton(
             onPressed: widget.isSaving ? null : _submit,
             child: Text(widget.isSaving ? 'Saving...' : 'Save changes'),
           ),

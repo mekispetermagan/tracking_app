@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../widgets/app_bar.dart';
+
 import '../models/models.dart';
 
 class TrackStudentsScreen extends StatelessWidget {
@@ -43,20 +45,10 @@ class TrackStudentsScreen extends StatelessWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: AppTopBar(
         title: const Text('Student records'),
-        leading: IconButton(
-          onPressed: onHome,
-          icon: const Icon(Icons.home),
-          tooltip: 'Home',
-        ),
-        actions: [
-          IconButton(
-            onPressed: onLogout,
-            icon: const Icon(Icons.logout),
-            tooltip: 'Log out',
-          ),
-        ],
+        onHome: onHome,
+        onLogout: onLogout,
       ),
       body: SafeArea(child: _buildBody()),
       bottomNavigationBar: SafeArea(

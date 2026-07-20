@@ -1,10 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'areas/areas.dart';
 import 'controllers/controllers.dart';
 import 'screens/screens.dart';
+import 'theme/app_theme.dart';
+import 'theme/font_licenses.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+
+  registerFontLicenses();
   runApp(const ProgressTrackingApp());
 }
 
@@ -15,12 +23,12 @@ class ProgressTrackingApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = ColorScheme.fromSeed(
       seedColor: const Color(0xFF3F7CAC),
-      brightness: Brightness.light,
+      brightness: Brightness.dark,
     );
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(colorScheme: scheme, useMaterial3: true),
+      theme: buildAppTheme(scheme),
       home: const AppRoot(),
     );
   }

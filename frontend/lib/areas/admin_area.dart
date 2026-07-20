@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../controllers/controllers.dart';
 import '../models/models.dart';
 import '../screens/screens.dart';
+import '../theme/app_theme.dart';
 
 class AdminArea extends StatefulWidget {
   const AdminArea({
@@ -66,22 +67,25 @@ class _AdminAreaState extends State<AdminArea> {
 
   @override
   Widget build(BuildContext context) {
-    return ListenableBuilder(
-      listenable: Listenable.merge([
-        _areaController,
-        _mentorManagementController,
-        _courseManagementController,
-        _studentManagementController,
-        _viewSessionLogsController,
-        _photoController,
-        _trackStudentsController,
-        _trackStudentsController.recordController,
-        _viewSessionLogsController.studentRecordController,
-        _storyController,
-        _storyWinnerArchiveController,
-        _courseVisitController,
-      ]),
-      builder: (_, _) => _buildArea(),
+    return Theme(
+      data: buildAdminTheme(),
+      child: ListenableBuilder(
+        listenable: Listenable.merge([
+          _areaController,
+          _mentorManagementController,
+          _courseManagementController,
+          _studentManagementController,
+          _viewSessionLogsController,
+          _photoController,
+          _trackStudentsController,
+          _trackStudentsController.recordController,
+          _viewSessionLogsController.studentRecordController,
+          _storyController,
+          _storyWinnerArchiveController,
+          _courseVisitController,
+        ]),
+        builder: (_, _) => _buildArea(),
+      ),
     );
   }
 

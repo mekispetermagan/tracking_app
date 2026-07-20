@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../widgets/app_bar.dart';
+
 import '../controllers/mentor_area_controller.dart';
+import '../widgets/buttons.dart';
 
 class MentorMenuScreen extends StatelessWidget {
   final List<MentorMenuItem> items;
@@ -17,10 +20,7 @@ class MentorMenuScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Mentor menu'),
-        actions: [TextButton(onPressed: onLogout, child: const Text('Logout'))],
-      ),
+      appBar: AppTopBar(title: const Text('Mentor menu'), onLogout: onLogout),
       body: SafeArea(
         child: ListView.separated(
           padding: const EdgeInsets.all(24),
@@ -29,9 +29,9 @@ class MentorMenuScreen extends StatelessWidget {
           itemBuilder: (context, index) {
             final item = items[index];
 
-            return FilledButton(
+            return LargeFilledButton(
+              text: item.label,
               onPressed: () => onSelect(item.screen),
-              child: Text(item.label),
             );
           },
         ),

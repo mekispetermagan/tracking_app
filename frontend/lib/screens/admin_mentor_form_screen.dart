@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/models.dart';
 import '../validation/credential_validation.dart' show isValidPhone, isValidPin;
+import '../widgets/buttons.dart';
 
 class AdminMentorFormScreen extends StatefulWidget {
   final Mentor? mentor;
@@ -181,7 +182,7 @@ class _AdminMentorFormScreenState extends State<AdminMentorFormScreen> {
               ],
 
               const SizedBox(height: 32),
-              FilledButton(
+              LargeFilledButton(
                 onPressed: widget.isSaving ? null : _submit,
                 child: Text(
                   widget.isSaving

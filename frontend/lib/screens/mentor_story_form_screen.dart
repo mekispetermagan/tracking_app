@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../models/models.dart';
+import '../widgets/buttons.dart';
 
 class MentorStoryFormScreen extends StatefulWidget {
   final List<Course> courses;
@@ -110,7 +111,7 @@ class _MentorStoryFormScreenState extends State<MentorStoryFormScreen> {
               const SizedBox(height: 12),
               _buildPhotoSection(),
               const SizedBox(height: 32),
-              FilledButton(
+              LargeFilledButton(
                 onPressed:
                     widget.isLoading ||
                         widget.isSelectingPhoto ||

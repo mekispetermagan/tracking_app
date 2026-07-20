@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:pinput/pinput.dart';
 
+import '../widgets/buttons.dart';
+
 class MentorLoginScreen extends StatelessWidget {
   final String phone;
   final String pin;
@@ -42,9 +44,7 @@ class MentorLoginScreen extends StatelessWidget {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
-          ..showSnackBar(
-            SnackBar(content: Text(message!)),
-          );
+          ..showSnackBar(SnackBar(content: Text(message!)));
         clearMessage();
       });
     }
@@ -85,9 +85,7 @@ class MentorLoginScreen extends StatelessWidget {
               length: 6,
               enabled: phoneIsValid,
               keyboardType: TextInputType.number,
-              inputFormatters: [
-                FilteringTextInputFormatter.digitsOnly,
-              ],
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               onChanged: onPinChanged,
               defaultPinTheme: PinTheme(
                 width: 56,
@@ -103,10 +101,11 @@ class MentorLoginScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 32),
-            FilledButton(
+            LargeFilledButton(
               onPressed: canSubmit && !isSubmitting ? onSubmit : null,
               child: Text(isSubmitting ? 'Logging in...' : 'Login'),
-            ),          ],
+            ),
+          ],
         ),
       ),
     );

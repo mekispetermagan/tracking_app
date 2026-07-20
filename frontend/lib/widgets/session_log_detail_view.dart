@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../models/models.dart';
-import '../widgets/session_log_viewer.dart';
+import 'session_log_viewer.dart';
+import 'buttons.dart';
 
 class SessionLogDetailView extends StatelessWidget {
   final SessionLog sessionLog;
@@ -56,11 +57,16 @@ class SessionLogDetailView extends StatelessWidget {
       bottomNavigationBar: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16),
-          child: FilledButton.icon(
+          child: LargeFilledButton(
             onPressed: onViewPhotos,
             icon: const Icon(Icons.photo_library_outlined),
-            label: Text(photoButtonLabel),
+            text: photoButtonLabel,
           ),
+          // child: FilledButton.icon(
+          //   onPressed: onViewPhotos,
+          //   icon: const Icon(Icons.photo_library_outlined),
+          //   label: Text(photoButtonLabel),
+          // ),
         ),
       ),
     );
