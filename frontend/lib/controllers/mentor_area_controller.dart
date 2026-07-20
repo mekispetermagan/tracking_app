@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+import 'area_controller.dart';
 
 enum MentorScreen {
   menu,
@@ -16,66 +16,39 @@ enum MentorScreen {
   curriculum,
 }
 
-class MentorMenuItem {
-  final MentorScreen screen;
-  final String label;
+class MentorAreaController extends AreaController<MentorScreen> {
+  MentorAreaController() : super(menuScreen: MentorScreen.menu);
 
-  const MentorMenuItem({required this.screen, required this.label});
-}
-
-class MentorAreaController extends ChangeNotifier {
-  MentorScreen _screen = MentorScreen.menu;
-
-  MentorScreen get screen => _screen;
-
-  List<MentorMenuItem> get menuItems => const [
-    MentorMenuItem(screen: MentorScreen.myProfile, label: 'My profile'),
-    MentorMenuItem(screen: MentorScreen.manageCourses, label: 'Manage courses'),
-    MentorMenuItem(
-      screen: MentorScreen.manageStudents,
-      label: 'Manage students',
-    ),
-    MentorMenuItem(
-      screen: MentorScreen.submitSessionLog,
-      label: 'Log a session',
-    ),
-    MentorMenuItem(
+  @override
+  List<AreaMenuItem<MentorScreen>> get menuItems => const [
+    AreaMenuItem(screen: MentorScreen.myProfile, label: 'My profile'),
+    AreaMenuItem(screen: MentorScreen.manageCourses, label: 'Manage courses'),
+    AreaMenuItem(screen: MentorScreen.manageStudents, label: 'Manage students'),
+    AreaMenuItem(screen: MentorScreen.submitSessionLog, label: 'Log a session'),
+    AreaMenuItem(
       screen: MentorScreen.viewSessionLogs,
       label: 'View session logs',
     ),
-    MentorMenuItem(screen: MentorScreen.trackStudents, label: 'Track students'),
-    MentorMenuItem(screen: MentorScreen.viewPhotos, label: 'View photos'),
-    MentorMenuItem(screen: MentorScreen.stories, label: 'Stories'),
-    MentorMenuItem(screen: MentorScreen.submitInvoice, label: 'Submit invoice'),
-    MentorMenuItem(screen: MentorScreen.curriculum, label: 'Curriculum'),
+    AreaMenuItem(screen: MentorScreen.viewPhotos, label: 'View photos'),
+    AreaMenuItem(screen: MentorScreen.trackStudents, label: 'Track students'),
+    AreaMenuItem(screen: MentorScreen.stories, label: 'Stories'),
+    AreaMenuItem(screen: MentorScreen.submitInvoice, label: 'Submit invoice'),
+    AreaMenuItem(screen: MentorScreen.curriculum, label: 'Curriculum'),
   ];
 
-  void select(MentorScreen screen) {
-    if (_screen == screen) {
-      return;
-    }
-
-    _screen = screen;
-    notifyListeners();
-  }
-
   void openStoryForm() {
-    select(MentorScreen.submitStory);
+    publishIf(updateScreen(MentorScreen.submitStory));
   }
 
   void closeStoryForm() {
-    select(MentorScreen.stories);
+    publishIf(updateScreen(MentorScreen.stories));
   }
 
   void openStoryWinnerArchive() {
-    select(MentorScreen.storyWinnerArchive);
+    publishIf(updateScreen(MentorScreen.storyWinnerArchive));
   }
 
   void closeStoryWinnerArchive() {
-    select(MentorScreen.stories);
-  }
-
-  void reset() {
-    select(MentorScreen.menu);
+    publishIf(updateScreen(MentorScreen.stories));
   }
 }

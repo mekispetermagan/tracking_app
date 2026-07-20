@@ -1,4 +1,5 @@
 export 'area_views.dart';
+export 'area_controller.dart' show AreaMenuItem;
 export 'session_controller.dart';
 export 'mentor_login_controller.dart';
 export 'admin_login_controller.dart';

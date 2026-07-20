@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 
 import '../widgets/app_bar.dart';
 
+import '../controllers/area_controller.dart';
 import '../controllers/mentor_area_controller.dart';
 import '../widgets/buttons.dart';
 
 class MentorMenuScreen extends StatelessWidget {
-  final List<MentorMenuItem> items;
+  final List<AreaMenuItem<MentorScreen>> items;
   final ValueChanged<MentorScreen> onSelect;
   final VoidCallback onLogout;
 

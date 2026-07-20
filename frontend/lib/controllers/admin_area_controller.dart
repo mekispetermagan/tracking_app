@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+import 'area_controller.dart';
 
 enum AdminScreen {
   menu,
@@ -16,75 +16,64 @@ enum AdminScreen {
   reportsData,
 }
 
-class AdminMenuItem {
-  final AdminScreen screen;
-  final String label;
-
-  const AdminMenuItem({required this.screen, required this.label});
-}
-
-class AdminAreaController extends ChangeNotifier {
-  AdminScreen _screen = AdminScreen.menu;
+class AdminAreaController extends AreaController<AdminScreen> {
+  AdminAreaController() : super(menuScreen: AdminScreen.menu);
   int? _selectedStoryId;
 
-  AdminScreen get screen => _screen;
   int? get selectedStoryId => _selectedStoryId;
 
-  List<AdminMenuItem> get menuItems => const [
-    AdminMenuItem(screen: AdminScreen.manageMentors, label: 'Manage mentors'),
-    AdminMenuItem(screen: AdminScreen.manageCourses, label: 'Manage courses'),
-    AdminMenuItem(screen: AdminScreen.manageStudents, label: 'Manage students'),
-    AdminMenuItem(
+  @override
+  List<AreaMenuItem<AdminScreen>> get menuItems => const [
+    AreaMenuItem(screen: AdminScreen.manageMentors, label: 'Manage mentors'),
+    AreaMenuItem(screen: AdminScreen.manageCourses, label: 'Manage courses'),
+    AreaMenuItem(screen: AdminScreen.manageStudents, label: 'Manage students'),
+    AreaMenuItem(
       screen: AdminScreen.viewSessionLogs,
       label: 'View session logs',
     ),
-    AdminMenuItem(screen: AdminScreen.viewPhotos, label: 'View photos'),
-    AdminMenuItem(screen: AdminScreen.trackStudents, label: 'Track students'),
-    AdminMenuItem(screen: AdminScreen.stories, label: 'Stories'),
-    AdminMenuItem(screen: AdminScreen.reportsData, label: 'Reports & data'),
-    AdminMenuItem(screen: AdminScreen.courseVisits, label: 'Course visits'),
+    AreaMenuItem(screen: AdminScreen.viewPhotos, label: 'View photos'),
+    AreaMenuItem(screen: AdminScreen.trackStudents, label: 'Track students'),
+    AreaMenuItem(screen: AdminScreen.stories, label: 'Stories'),
+    AreaMenuItem(screen: AdminScreen.reportsData, label: 'Reports & data'),
+    AreaMenuItem(screen: AdminScreen.courseVisits, label: 'Course visits'),
   ];
 
-  void select(AdminScreen screen) {
-    if (_screen == screen) {
-      return;
-    }
-
-    _screen = screen;
-    notifyListeners();
-  }
-
   void openStoryEdit(int storyId) {
+    final storyChanged = _selectedStoryId != storyId;
     _selectedStoryId = storyId;
-    _screen = AdminScreen.editStory;
-    notifyListeners();
+    final screenChanged = updateScreen(AdminScreen.editStory);
+    publishIf(storyChanged || screenChanged);
   }
 
   void closeStoryEdit() {
-    _selectedStoryId = null;
-    _screen = AdminScreen.stories;
-    notifyListeners();
+    final transientStateChanged = clearTransientState();
+    final screenChanged = updateScreen(AdminScreen.stories);
+    publishIf(transientStateChanged || screenChanged);
   }
 
   void openStoryWinnerArchive() {
-    select(AdminScreen.storyWinnerArchive);
+    publishIf(updateScreen(AdminScreen.storyWinnerArchive));
   }
 
   void closeStoryWinnerArchive() {
-    select(AdminScreen.stories);
+    publishIf(updateScreen(AdminScreen.stories));
   }
 
   void openCourseVisitForm() {
-    select(AdminScreen.courseVisitForm);
+    publishIf(updateScreen(AdminScreen.courseVisitForm));
   }
 
   void closeCourseVisitForm() {
-    select(AdminScreen.courseVisits);
+    publishIf(updateScreen(AdminScreen.courseVisits));
   }
 
-  void reset() {
+  @override
+  bool clearTransientState() {
+    if (_selectedStoryId == null) {
+      return false;
+    }
+
     _selectedStoryId = null;
-    _screen = AdminScreen.menu;
-    notifyListeners();
+    return true;
   }
 }

@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 
 import '../widgets/app_bar.dart';
+import '../controllers/area_controller.dart';
 import '../controllers/admin_area_controller.dart';
 import '../widgets/buttons.dart';
 
 class AdminMenuScreen extends StatelessWidget {
-  final List<AdminMenuItem> items;
+  final List<AreaMenuItem<AdminScreen>> items;
   final ValueChanged<AdminScreen> onSelect;
   final VoidCallback onLogout;
 

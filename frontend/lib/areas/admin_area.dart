@@ -607,7 +607,7 @@ class _AdminAreaState extends State<AdminArea> {
   }
 
   Future<void> _selectScreen(AdminScreen screen) async {
-    _areaController.select(screen);
+    _areaController.selectMenuItem(screen);
 
     if (screen == AdminScreen.manageMentors) {
       await _mentorManagementController.openList(

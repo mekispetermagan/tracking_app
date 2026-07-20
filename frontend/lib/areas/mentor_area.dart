@@ -720,7 +720,7 @@ class _MentorAreaState extends State<MentorArea> {
   }
 
   void _selectScreen(MentorScreen screen) {
-    _areaController.select(screen);
+    _areaController.selectMenuItem(screen);
 
     if (screen == MentorScreen.myProfile) {
       _openProfile();
