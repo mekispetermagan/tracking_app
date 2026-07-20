@@ -31,8 +31,7 @@ class _MentorAreaState extends State<MentorArea> {
   final _storyWinnerArchiveController = StoryWinnerArchiveController();
   final _curriculumController = CurriculumController();
 
-  bool _showSessionPhotos = false;
-  bool _showCoursePhotos = false;
+  CoursePhotoAreaView _coursePhotoView = CoursePhotoAreaView.courseSelection;
 
   bool _showChangePin = false;
 
@@ -133,7 +132,7 @@ class _MentorAreaState extends State<MentorArea> {
 
         if (_areaController.screen == MentorScreen.viewSessionLogs &&
             _viewSessionLogsController.view ==
-                MentorViewSessionLogsView.studentRecord) {
+                SessionLogAreaView.studentRecord) {
           _viewSessionLogsController.closeStudentRecord();
           return;
         }
@@ -145,20 +144,19 @@ class _MentorAreaState extends State<MentorArea> {
         }
 
         if (_areaController.screen == MentorScreen.viewSessionLogs &&
-            _showSessionPhotos) {
+            _viewSessionLogsController.view == SessionLogAreaView.photos) {
           _closeSessionPhotos();
           return;
         }
 
         if (_areaController.screen == MentorScreen.viewSessionLogs &&
-            _viewSessionLogsController.view ==
-                MentorViewSessionLogsView.detail) {
+            _viewSessionLogsController.view == SessionLogAreaView.detail) {
           _viewSessionLogsController.closeDetail();
           return;
         }
 
         if (_areaController.screen == MentorScreen.viewPhotos &&
-            _showCoursePhotos) {
+            _coursePhotoView == CoursePhotoAreaView.courseGallery) {
           _closeCoursePhotos();
           return;
         }
@@ -384,7 +382,7 @@ class _MentorAreaState extends State<MentorArea> {
   Widget _buildViewSessionLogsArea() {
     final selectedSessionLog = _viewSessionLogsController.selectedSessionLog;
 
-    if (_showSessionPhotos) {
+    if (_viewSessionLogsController.view == SessionLogAreaView.photos) {
       final sessionLog = selectedSessionLog!;
       final mentorProfileId = _profileController.mentor?.id;
 
@@ -428,7 +426,7 @@ class _MentorAreaState extends State<MentorArea> {
     }
 
     return switch (_viewSessionLogsController.view) {
-      MentorViewSessionLogsView.list => MentorViewSessionLogsScreen(
+      SessionLogAreaView.list => MentorViewSessionLogsScreen(
         sessionLogs: _viewSessionLogsController.visibleSessionLogs,
         courses: _viewSessionLogsController.filterCourses,
         selectedSessionLogId: _viewSessionLogsController.selectedSessionLogId,
@@ -451,7 +449,7 @@ class _MentorAreaState extends State<MentorArea> {
         onLogout: _logout,
       ),
 
-      MentorViewSessionLogsView.detail => MentorViewSessionLogScreen(
+      SessionLogAreaView.detail => MentorViewSessionLogScreen(
         sessionLog: selectedSessionLog!,
         courseName: _viewSessionLogsController.courseNameFor(
           selectedSessionLog,
@@ -474,7 +472,7 @@ class _MentorAreaState extends State<MentorArea> {
         onBack: _viewSessionLogsController.closeDetail,
       ),
 
-      MentorViewSessionLogsView.studentRecord => StudentRecordScreen(
+      SessionLogAreaView.studentRecord => StudentRecordScreen(
         studentRecord:
             _viewSessionLogsController.studentRecordController.studentRecord,
         isLoading: _viewSessionLogsController.studentRecordController.isLoading,
@@ -483,11 +481,13 @@ class _MentorAreaState extends State<MentorArea> {
             _viewSessionLogsController.studentRecordController.clearMessage,
         onBack: _viewSessionLogsController.closeStudentRecord,
       ),
+
+      SessionLogAreaView.photos => const SizedBox.shrink(),
     };
   }
 
   Widget _buildPhotoArea() {
-    if (_showCoursePhotos) {
+    if (_coursePhotoView == CoursePhotoAreaView.courseGallery) {
       return CoursePhotosScreen(
         courseName: _photoController.selectedCourse!.name,
         photos: _photoController.photos,
@@ -629,9 +629,7 @@ class _MentorAreaState extends State<MentorArea> {
       return;
     }
 
-    setState(() {
-      _showSessionPhotos = true;
-    });
+    _viewSessionLogsController.openPhotos();
 
     await Future.wait([
       _photoController.loadSessionPhotos(
@@ -646,9 +644,7 @@ class _MentorAreaState extends State<MentorArea> {
   void _closeSessionPhotos() {
     _photoController.closeGallery();
 
-    setState(() {
-      _showSessionPhotos = false;
-    });
+    _viewSessionLogsController.closePhotos();
   }
 
   Future<void> _openSelectedCoursePhotos() async {
@@ -657,7 +653,7 @@ class _MentorAreaState extends State<MentorArea> {
     }
 
     setState(() {
-      _showCoursePhotos = true;
+      _coursePhotoView = CoursePhotoAreaView.courseGallery;
     });
 
     await _photoController.loadSelectedCoursePhotos(
@@ -669,7 +665,7 @@ class _MentorAreaState extends State<MentorArea> {
     _photoController.closeGallery();
 
     setState(() {
-      _showCoursePhotos = false;
+      _coursePhotoView = CoursePhotoAreaView.courseSelection;
     });
   }
 
@@ -748,7 +744,7 @@ class _MentorAreaState extends State<MentorArea> {
 
     if (screen == MentorScreen.viewPhotos) {
       setState(() {
-        _showCoursePhotos = false;
+        _coursePhotoView = CoursePhotoAreaView.courseSelection;
       });
 
       _photoController.initializeCourseSelection(
@@ -792,8 +788,7 @@ class _MentorAreaState extends State<MentorArea> {
     _curriculumController.reset();
 
     setState(() {
-      _showSessionPhotos = false;
-      _showCoursePhotos = false;
+      _coursePhotoView = CoursePhotoAreaView.courseSelection;
     });
   }
 
@@ -815,8 +810,7 @@ class _MentorAreaState extends State<MentorArea> {
     _curriculumController.reset();
 
     setState(() {
-      _showSessionPhotos = false;
-      _showCoursePhotos = false;
+      _coursePhotoView = CoursePhotoAreaView.courseSelection;
     });
 
     await widget.onLogout();

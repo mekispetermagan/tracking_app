@@ -2,9 +2,8 @@ import 'package:flutter/foundation.dart';
 
 import '../api/api.dart';
 import '../models/models.dart';
+import 'area_views.dart';
 import 'student_record_controller.dart';
-
-enum MentorViewSessionLogsView { list, detail, studentRecord }
 
 class MentorViewSessionLogsController extends ChangeNotifier {
   final MentorSessionLogApi _sessionLogApi;
@@ -31,7 +30,7 @@ class MentorViewSessionLogsController extends ChangeNotifier {
   List<Student> _students = [];
   List<SharedMentor> _mentors = [];
 
-  MentorViewSessionLogsView _view = MentorViewSessionLogsView.list;
+  SessionLogAreaView _view = SessionLogAreaView.list;
 
   int? _selectedSessionLogId;
   int? _courseIdFilter;
@@ -40,7 +39,7 @@ class MentorViewSessionLogsController extends ChangeNotifier {
   bool _isLoading = false;
   String? _message;
 
-  MentorViewSessionLogsView get view => _view;
+  SessionLogAreaView get view => _view;
 
   int? get selectedSessionLogId => _selectedSessionLogId;
   int? get courseIdFilter => _courseIdFilter;
@@ -141,7 +140,7 @@ class MentorViewSessionLogsController extends ChangeNotifier {
   }
 
   Future<void> openList({required String accessToken}) async {
-    _view = MentorViewSessionLogsView.list;
+    _view = SessionLogAreaView.list;
     _selectedSessionLogId = null;
     _sessionLogs = [];
     _courses = [];
@@ -245,14 +244,32 @@ class MentorViewSessionLogsController extends ChangeNotifier {
       return;
     }
 
-    _view = MentorViewSessionLogsView.detail;
+    _view = SessionLogAreaView.detail;
     _message = null;
     notifyListeners();
   }
 
   void closeDetail() {
-    _view = MentorViewSessionLogsView.list;
+    _view = SessionLogAreaView.list;
     _message = null;
+    notifyListeners();
+  }
+
+  void openPhotos() {
+    if (_view != SessionLogAreaView.detail) {
+      return;
+    }
+
+    _view = SessionLogAreaView.photos;
+    notifyListeners();
+  }
+
+  void closePhotos() {
+    if (_view != SessionLogAreaView.photos) {
+      return;
+    }
+
+    _view = SessionLogAreaView.detail;
     notifyListeners();
   }
 
@@ -308,7 +325,7 @@ class MentorViewSessionLogsController extends ChangeNotifier {
       return;
     }
 
-    _view = MentorViewSessionLogsView.studentRecord;
+    _view = SessionLogAreaView.studentRecord;
     _message = null;
     notifyListeners();
 
@@ -319,7 +336,7 @@ class MentorViewSessionLogsController extends ChangeNotifier {
   }
 
   void closeStudentRecord() {
-    _view = MentorViewSessionLogsView.detail;
+    _view = SessionLogAreaView.detail;
     studentRecordController.reset();
     _message = null;
     notifyListeners();
@@ -349,7 +366,7 @@ class MentorViewSessionLogsController extends ChangeNotifier {
     _courses = [];
     _students = [];
     _mentors = [];
-    _view = MentorViewSessionLogsView.list;
+    _view = SessionLogAreaView.list;
     _selectedSessionLogId = null;
     _courseIdFilter = null;
     _projectTypeFilter = null;

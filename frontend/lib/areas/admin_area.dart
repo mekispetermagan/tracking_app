@@ -31,8 +31,7 @@ class _AdminAreaState extends State<AdminArea> {
   final _storyWinnerArchiveController = StoryWinnerArchiveController();
   final _courseVisitController = AdminCourseVisitController();
 
-  bool _showSessionPhotos = false;
-  bool _showCoursePhotos = false;
+  CoursePhotoAreaView _coursePhotoView = CoursePhotoAreaView.courseSelection;
 
   AdminStory? get _selectedStory {
     final storyId = _areaController.selectedStoryId;
@@ -119,20 +118,20 @@ class _AdminAreaState extends State<AdminArea> {
         }
 
         if (_areaController.screen == AdminScreen.viewSessionLogs &&
-            _showSessionPhotos) {
+            _viewSessionLogsController.view == SessionLogAreaView.photos) {
           _closeSessionPhotos();
           return;
         }
 
         if (_areaController.screen == AdminScreen.viewSessionLogs &&
             _viewSessionLogsController.view ==
-                AdminSessionLogView.studentRecord) {
+                SessionLogAreaView.studentRecord) {
           _viewSessionLogsController.closeStudentRecord();
           return;
         }
 
         if (_areaController.screen == AdminScreen.viewSessionLogs &&
-            _viewSessionLogsController.view == AdminSessionLogView.detail) {
+            _viewSessionLogsController.view == SessionLogAreaView.detail) {
           _viewSessionLogsController.closeDetail();
           return;
         }
@@ -143,7 +142,7 @@ class _AdminAreaState extends State<AdminArea> {
           return;
         }
         if (_areaController.screen == AdminScreen.viewPhotos &&
-            _showCoursePhotos) {
+            _coursePhotoView == CoursePhotoAreaView.courseGallery) {
           _closeCoursePhotos();
           return;
         }
@@ -362,7 +361,7 @@ class _AdminAreaState extends State<AdminArea> {
   Widget _buildViewSessionLogsArea() {
     final selectedSessionLog = _viewSessionLogsController.selectedSessionLog;
 
-    if (_showSessionPhotos) {
+    if (_viewSessionLogsController.view == SessionLogAreaView.photos) {
       return SessionPhotosScreen(
         title: '${selectedSessionLog!.projectTitle} photos',
         photos: _photoController.photos,
@@ -383,7 +382,7 @@ class _AdminAreaState extends State<AdminArea> {
     }
 
     return switch (_viewSessionLogsController.view) {
-      AdminSessionLogView.list => AdminViewSessionLogsScreen(
+      SessionLogAreaView.list => AdminViewSessionLogsScreen(
         sessionLogs: _viewSessionLogsController.visibleSessionLogs,
         courses: _viewSessionLogsController.filterCourses,
         mentors: _viewSessionLogsController.filterMentors,
@@ -409,7 +408,7 @@ class _AdminAreaState extends State<AdminArea> {
         onLogout: widget.onLogout,
       ),
 
-      AdminSessionLogView.detail => AdminViewSessionLogScreen(
+      SessionLogAreaView.detail => AdminViewSessionLogScreen(
         sessionLog: selectedSessionLog!,
         courseName: _viewSessionLogsController.courseNameFor(
           selectedSessionLog,
@@ -432,7 +431,7 @@ class _AdminAreaState extends State<AdminArea> {
         onBack: _viewSessionLogsController.closeDetail,
       ),
 
-      AdminSessionLogView.studentRecord => StudentRecordScreen(
+      SessionLogAreaView.studentRecord => StudentRecordScreen(
         studentRecord:
             _viewSessionLogsController.studentRecordController.studentRecord,
         isLoading: _viewSessionLogsController.studentRecordController.isLoading,
@@ -441,6 +440,8 @@ class _AdminAreaState extends State<AdminArea> {
             _viewSessionLogsController.studentRecordController.clearMessage,
         onBack: _viewSessionLogsController.closeStudentRecord,
       ),
+
+      SessionLogAreaView.photos => const SizedBox.shrink(),
     };
   }
 
@@ -634,7 +635,7 @@ class _AdminAreaState extends State<AdminArea> {
 
     if (screen == AdminScreen.viewPhotos) {
       setState(() {
-        _showCoursePhotos = false;
+        _coursePhotoView = CoursePhotoAreaView.courseSelection;
       });
 
       await _photoController.initializeCourseSelection(
@@ -774,7 +775,7 @@ class _AdminAreaState extends State<AdminArea> {
   }
 
   Widget _buildPhotoArea() {
-    if (_showCoursePhotos) {
+    if (_coursePhotoView == CoursePhotoAreaView.courseGallery) {
       return CoursePhotosScreen(
         courseName: _photoController.selectedCourse!.name,
         photos: _photoController.photos,
@@ -806,9 +807,7 @@ class _AdminAreaState extends State<AdminArea> {
       return;
     }
 
-    setState(() {
-      _showSessionPhotos = true;
-    });
+    _viewSessionLogsController.openPhotos();
 
     await _photoController.loadSessionPhotos(
       accessToken: widget.accessToken,
@@ -819,9 +818,7 @@ class _AdminAreaState extends State<AdminArea> {
   void _closeSessionPhotos() {
     _photoController.closeGallery();
 
-    setState(() {
-      _showSessionPhotos = false;
-    });
+    _viewSessionLogsController.closePhotos();
   }
 
   Future<void> _openSelectedCoursePhotos() async {
@@ -830,7 +827,7 @@ class _AdminAreaState extends State<AdminArea> {
     }
 
     setState(() {
-      _showCoursePhotos = true;
+      _coursePhotoView = CoursePhotoAreaView.courseGallery;
     });
 
     await _photoController.loadSelectedCoursePhotos(
@@ -842,7 +839,7 @@ class _AdminAreaState extends State<AdminArea> {
     _photoController.closeGallery();
 
     setState(() {
-      _showCoursePhotos = false;
+      _coursePhotoView = CoursePhotoAreaView.courseSelection;
     });
   }
 
@@ -873,8 +870,7 @@ class _AdminAreaState extends State<AdminArea> {
     _courseVisitController.reset();
 
     setState(() {
-      _showSessionPhotos = false;
-      _showCoursePhotos = false;
+      _coursePhotoView = CoursePhotoAreaView.courseSelection;
     });
   }
 

@@ -2,9 +2,8 @@ import 'package:flutter/foundation.dart';
 
 import '../api/api.dart';
 import '../models/models.dart';
+import 'area_views.dart';
 import 'student_record_controller.dart';
-
-enum AdminSessionLogView { list, detail, studentRecord }
 
 class AdminViewSessionLogsController extends ChangeNotifier {
   final AdminSessionLogApi _sessionLogApi;
@@ -31,7 +30,7 @@ class AdminViewSessionLogsController extends ChangeNotifier {
   List<Student> _students = [];
   List<Mentor> _mentors = [];
 
-  AdminSessionLogView _view = AdminSessionLogView.list;
+  SessionLogAreaView _view = SessionLogAreaView.list;
 
   int? _selectedSessionLogId;
   int? _courseIdFilter;
@@ -46,7 +45,7 @@ class AdminViewSessionLogsController extends ChangeNotifier {
   List<Student> get students => List.unmodifiable(_students);
   List<Mentor> get mentors => List.unmodifiable(_mentors);
 
-  AdminSessionLogView get view => _view;
+  SessionLogAreaView get view => _view;
 
   int? get selectedSessionLogId => _selectedSessionLogId;
   int? get courseIdFilter => _courseIdFilter;
@@ -186,7 +185,7 @@ class AdminViewSessionLogsController extends ChangeNotifier {
   }
 
   Future<void> openList({required String accessToken}) async {
-    _view = AdminSessionLogView.list;
+    _view = SessionLogAreaView.list;
     _selectedSessionLogId = null;
     _sessionLogs = [];
     _courses = [];
@@ -277,14 +276,32 @@ class AdminViewSessionLogsController extends ChangeNotifier {
       return;
     }
 
-    _view = AdminSessionLogView.detail;
+    _view = SessionLogAreaView.detail;
     _message = null;
     notifyListeners();
   }
 
   void closeDetail() {
-    _view = AdminSessionLogView.list;
+    _view = SessionLogAreaView.list;
     _message = null;
+    notifyListeners();
+  }
+
+  void openPhotos() {
+    if (_view != SessionLogAreaView.detail) {
+      return;
+    }
+
+    _view = SessionLogAreaView.photos;
+    notifyListeners();
+  }
+
+  void closePhotos() {
+    if (_view != SessionLogAreaView.photos) {
+      return;
+    }
+
+    _view = SessionLogAreaView.detail;
     notifyListeners();
   }
 
@@ -330,7 +347,7 @@ class AdminViewSessionLogsController extends ChangeNotifier {
       return;
     }
 
-    _view = AdminSessionLogView.studentRecord;
+    _view = SessionLogAreaView.studentRecord;
     _message = null;
     notifyListeners();
 
@@ -341,7 +358,7 @@ class AdminViewSessionLogsController extends ChangeNotifier {
   }
 
   void closeStudentRecord() {
-    _view = AdminSessionLogView.detail;
+    _view = SessionLogAreaView.detail;
     studentRecordController.reset();
     _message = null;
     notifyListeners();
@@ -394,7 +411,7 @@ class AdminViewSessionLogsController extends ChangeNotifier {
     _courses = [];
     _students = [];
     _mentors = [];
-    _view = AdminSessionLogView.list;
+    _view = SessionLogAreaView.list;
     _selectedSessionLogId = null;
     _courseIdFilter = null;
     _mentorIdFilter = null;
