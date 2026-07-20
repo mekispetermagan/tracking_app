@@ -1,9 +1,9 @@
-import 'package:flutter/foundation.dart';
+import 'feature_controller.dart';
 
 import '../api/api.dart';
 import '../models/models.dart';
 
-class StudentRecordController extends ChangeNotifier {
+class StudentRecordController extends FeatureController {
   final SharedStudentRecordApi _studentRecordApi;
 
   StudentRecordController({SharedStudentRecordApi? studentRecordApi})
@@ -21,6 +21,7 @@ class StudentRecordController extends ChangeNotifier {
     required String accessToken,
     required int studentId,
   }) async {
+    final request = beginRequest();
     _studentRecord = null;
     _isLoading = true;
     _message = null;
@@ -30,6 +31,8 @@ class StudentRecordController extends ChangeNotifier {
       accessToken: accessToken,
       studentId: studentId,
     );
+
+    if (!requestIsCurrent(request)) return false;
 
     if (result.studentRecord != null) {
       _studentRecord = result.studentRecord;
@@ -55,6 +58,7 @@ class StudentRecordController extends ChangeNotifier {
   }
 
   void reset() {
+    invalidateRequests();
     _studentRecord = null;
     _isLoading = false;
     _message = null;

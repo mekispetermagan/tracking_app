@@ -2,15 +2,14 @@ import 'package:flutter/material.dart';
 
 import 'app_bar.dart';
 
-import '../controllers/admin_course_management_controller.dart'
-    show CourseStatusFilter;
+import '../controllers/management_types.dart';
 import '../models/models.dart';
 
 class CourseManagementView extends StatelessWidget {
   final List<Course> courses;
   final String title;
   final String Function(Course course) subtitleFor;
-  final CourseStatusFilter? statusFilter;
+  final ActiveStatusFilter? statusFilter;
   final int? selectedCourseId;
   final bool canEdit;
   final bool canAssignMentors;
@@ -18,7 +17,7 @@ class CourseManagementView extends StatelessWidget {
   final bool isSaving;
   final String? message;
   final VoidCallback clearMessage;
-  final ValueChanged<CourseStatusFilter>? onStatusFilterChanged;
+  final ValueChanged<ActiveStatusFilter>? onStatusFilterChanged;
   final ValueChanged<int> onSelectCourse;
   final VoidCallback? onAdd;
   final VoidCallback onEdit;
@@ -69,18 +68,18 @@ class CourseManagementView extends StatelessWidget {
                 padding: const EdgeInsets.all(16),
                 child: Align(
                   alignment: Alignment.centerLeft,
-                  child: SegmentedButton<CourseStatusFilter>(
+                  child: SegmentedButton<ActiveStatusFilter>(
                     segments: const [
                       ButtonSegment(
-                        value: CourseStatusFilter.active,
+                        value: ActiveStatusFilter.active,
                         label: Text('Active'),
                       ),
                       ButtonSegment(
-                        value: CourseStatusFilter.all,
+                        value: ActiveStatusFilter.all,
                         label: Text('All'),
                       ),
                       ButtonSegment(
-                        value: CourseStatusFilter.inactive,
+                        value: ActiveStatusFilter.inactive,
                         label: Text('Inactive'),
                       ),
                     ],

@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+import 'feature_controller.dart';
 
 import '../api/api.dart';
 import '../models/models.dart';
@@ -6,7 +6,7 @@ import 'student_record_controller.dart';
 
 enum TrackStudentsView { list, record }
 
-class TrackStudentsController extends ChangeNotifier {
+class TrackStudentsController extends FeatureController {
   final SharedStudentApi _studentApi;
 
   TrackStudentsController({
@@ -52,6 +52,7 @@ class TrackStudentsController extends ChangeNotifier {
   bool get canView => selectedStudent != null && !_isLoading;
 
   Future<void> openList({required String accessToken}) async {
+    final request = beginRequest();
     _view = TrackStudentsView.list;
     _selectedStudentId = null;
     _students = [];
@@ -64,6 +65,8 @@ class TrackStudentsController extends ChangeNotifier {
       accessToken: accessToken,
       activeOnly: false,
     );
+
+    if (!requestIsCurrent(request)) return;
 
     if (result.students == null) {
       _message = result.message ?? _messageForStudentFailure(result.failure);
@@ -78,7 +81,9 @@ class TrackStudentsController extends ChangeNotifier {
   }
 
   void selectStudent(int studentId) {
-    if (_selectedStudentId == studentId) {
+    if (_isLoading ||
+        _selectedStudentId == studentId ||
+        !_students.any((student) => student.id == studentId)) {
       return;
     }
 
@@ -136,6 +141,7 @@ class TrackStudentsController extends ChangeNotifier {
   }
 
   void reset() {
+    invalidateRequests();
     _students = [];
     _view = TrackStudentsView.list;
     _selectedStudentId = null;

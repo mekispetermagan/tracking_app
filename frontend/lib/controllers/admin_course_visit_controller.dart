@@ -1,9 +1,9 @@
-import 'package:flutter/foundation.dart';
+import 'feature_controller.dart';
 
 import '../api/api.dart';
 import '../models/models.dart';
 
-class AdminCourseVisitController extends ChangeNotifier {
+class AdminCourseVisitController extends FeatureController {
   final AdminCourseVisitApi _courseVisitApi;
   final SharedCourseApi _courseApi;
   final SharedStudentApi _studentApi;
@@ -178,6 +178,7 @@ class AdminCourseVisitController extends ChangeNotifier {
       return false;
     }
 
+    final operation = beginRequest();
     _isSubmitting = true;
     _message = null;
     notifyListeners();
@@ -186,6 +187,8 @@ class AdminCourseVisitController extends ChangeNotifier {
       accessToken: accessToken,
       request: request,
     );
+
+    if (!requestIsCurrent(operation)) return false;
 
     final report = result.report;
 
@@ -220,6 +223,7 @@ class AdminCourseVisitController extends ChangeNotifier {
   }
 
   void reset() {
+    invalidateRequests();
     _reports = [];
     _courses = [];
     _students = [];
@@ -236,6 +240,7 @@ class AdminCourseVisitController extends ChangeNotifier {
   }
 
   Future<void> _loadData({required String accessToken}) async {
+    final request = beginRequest();
     _isLoading = true;
     _message = null;
     notifyListeners();
@@ -243,6 +248,8 @@ class AdminCourseVisitController extends ChangeNotifier {
     final reportResult = await _courseVisitApi.fetchReports(
       accessToken: accessToken,
     );
+
+    if (!requestIsCurrent(request)) return;
 
     if (reportResult.reports == null) {
       _finishLoading(
@@ -258,6 +265,8 @@ class AdminCourseVisitController extends ChangeNotifier {
       activeOnly: false,
     );
 
+    if (!requestIsCurrent(request)) return;
+
     if (courseResult.courses == null) {
       _finishLoading(
         courseResult.message ?? _messageForCourseFailure(courseResult.failure),
@@ -271,6 +280,8 @@ class AdminCourseVisitController extends ChangeNotifier {
       accessToken: accessToken,
       activeOnly: false,
     );
+
+    if (!requestIsCurrent(request)) return;
 
     if (studentResult.students == null) {
       _finishLoading(
@@ -286,6 +297,8 @@ class AdminCourseVisitController extends ChangeNotifier {
       accessToken: accessToken,
       activeOnly: false,
     );
+
+    if (!requestIsCurrent(request)) return;
 
     if (mentorResult.mentors == null) {
       _finishLoading(

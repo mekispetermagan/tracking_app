@@ -1,11 +1,9 @@
-import '../controllers/admin_student_management_controller.dart'
-    show StudentCourseStatusFilter;
+import '../controllers/management_types.dart';
 import '../models/models.dart';
 import '../widgets/assignment_management_view.dart';
 
 class AdminStudentCourseAssignmentScreen
-    extends
-        AssignmentManagementView<Student, Course, StudentCourseStatusFilter> {
+    extends AssignmentManagementView<Student, Course, ActiveStatusFilter> {
   const AdminStudentCourseAssignmentScreen({
     required Student? student,
     required List<Course> courses,
@@ -27,9 +25,9 @@ class AdminStudentCourseAssignmentScreen
          subjectNameFor: _studentName,
          items: courses,
          assignedItemIds: assignedCourseIds,
-         activeFilter: StudentCourseStatusFilter.active,
-         allFilter: StudentCourseStatusFilter.all,
-         inactiveFilter: StudentCourseStatusFilter.inactive,
+         activeFilter: ActiveStatusFilter.active,
+         allFilter: ActiveStatusFilter.all,
+         inactiveFilter: ActiveStatusFilter.inactive,
          emptyMessage: 'No courses',
          idFor: _courseId,
          titleFor: _courseTitle,

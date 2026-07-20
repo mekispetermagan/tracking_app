@@ -1,11 +1,11 @@
-import 'package:flutter/foundation.dart';
+import 'feature_controller.dart';
 
 import '../api/api.dart';
 import '../models/models.dart';
 
 enum MentorCourseManagementView { list, form }
 
-class MentorCourseManagementController extends ChangeNotifier {
+class MentorCourseManagementController extends FeatureController {
   final SharedCourseApi _sharedCourseApi;
 
   MentorCourseManagementController({SharedCourseApi? sharedCourseApi})
@@ -58,17 +58,20 @@ class MentorCourseManagementController extends ChangeNotifier {
   }
 
   Future<void> loadCourses({required String accessToken}) async {
+    final request = beginRequest();
     _isLoading = true;
     _message = null;
     notifyListeners();
 
     final result = await _sharedCourseApi.fetchCourses(
       accessToken: accessToken,
-      activeOnly: true,
+      activeOnly: false,
     );
 
+    if (!requestIsCurrent(request)) return;
+
     if (result.courses != null) {
-      _courses = result.courses!;
+      _courses = result.courses!.where((course) => course.active).toList();
       _clearSelectionIfMissing();
     } else {
       _message = result.message ?? _messageForFailure(result.failure);
@@ -79,7 +82,10 @@ class MentorCourseManagementController extends ChangeNotifier {
   }
 
   void selectCourse(int courseId) {
-    if (_selectedCourseId == courseId) {
+    if (_isLoading ||
+        _isSaving ||
+        _selectedCourseId == courseId ||
+        !_courses.any((course) => course.id == courseId)) {
       return;
     }
 
@@ -120,6 +126,8 @@ class MentorCourseManagementController extends ChangeNotifier {
     required int dayOfWeek,
     required String startTime,
   }) async {
+    if (_isLoading || _isSaving) return false;
+
     final course = selectedCourse;
 
     if (course == null) {
@@ -128,6 +136,7 @@ class MentorCourseManagementController extends ChangeNotifier {
       return false;
     }
 
+    final operation = beginRequest();
     _isSaving = true;
     _message = null;
     notifyListeners();
@@ -148,6 +157,8 @@ class MentorCourseManagementController extends ChangeNotifier {
       courseId: course.id,
       request: request,
     );
+
+    if (!requestIsCurrent(operation)) return false;
 
     if (result.course != null) {
       _replaceCourse(result.course!);
@@ -174,6 +185,7 @@ class MentorCourseManagementController extends ChangeNotifier {
   }
 
   void reset() {
+    invalidateRequests();
     _courses = [];
     _view = MentorCourseManagementView.list;
     _selectedCourseId = null;

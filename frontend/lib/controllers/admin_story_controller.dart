@@ -1,9 +1,10 @@
-import 'package:flutter/foundation.dart';
+import 'feature_controller.dart';
 
 import '../api/api.dart';
 import '../models/models.dart';
+import 'month_utils.dart';
 
-class AdminStoryController extends ChangeNotifier {
+class AdminStoryController extends FeatureController {
   final AdminStoryApi _storyApi;
 
   AdminStoryController({AdminStoryApi? storyApi})
@@ -11,7 +12,7 @@ class AdminStoryController extends ChangeNotifier {
 
   List<AdminStory> _stories = [];
 
-  DateTime _selectedMonth = _monthStart(DateTime.now());
+  DateTime _selectedMonth = monthStart(DateTime.now());
   bool _activeOnly = true;
 
   bool _isLoading = false;
@@ -20,7 +21,9 @@ class AdminStoryController extends ChangeNotifier {
 
   String? _message;
 
-  List<AdminStory> get stories => List.unmodifiable(_stories);
+  List<AdminStory> get stories => List.unmodifiable(
+    _activeOnly ? _stories.where((story) => story.active) : _stories,
+  );
 
   DateTime get selectedMonth => _selectedMonth;
   bool get activeOnly => _activeOnly;
@@ -32,7 +35,7 @@ class AdminStoryController extends ChangeNotifier {
   String? get message => _message;
 
   bool get canSelectWinner {
-    return _selectedMonth.isBefore(_monthStart(DateTime.now()));
+    return _selectedMonth.isBefore(monthStart(DateTime.now()));
   }
 
   AdminStory? get selectedWinner {
@@ -47,7 +50,7 @@ class AdminStoryController extends ChangeNotifier {
 
   Future<void> initialize({required String accessToken}) async {
     _stories = [];
-    _selectedMonth = _monthStart(DateTime.now());
+    _selectedMonth = monthStart(DateTime.now());
     _activeOnly = true;
     _isLoading = false;
     _savingStoryId = null;
@@ -65,15 +68,12 @@ class AdminStoryController extends ChangeNotifier {
       return;
     }
 
-    _selectedMonth = _monthStart(month);
+    _selectedMonth = monthStart(month);
 
     await _loadStories(accessToken: accessToken);
   }
 
-  Future<void> setActiveOnly({
-    required String accessToken,
-    required bool value,
-  }) async {
+  void setActiveOnly(bool value) {
     if (_activeOnly == value ||
         _isLoading ||
         _savingStoryId != null ||
@@ -82,8 +82,7 @@ class AdminStoryController extends ChangeNotifier {
     }
 
     _activeOnly = value;
-
-    await _loadStories(accessToken: accessToken);
+    notifyListeners();
   }
 
   Future<bool> updateStory({
@@ -103,6 +102,7 @@ class AdminStoryController extends ChangeNotifier {
       return false;
     }
 
+    final request = beginRequest();
     _savingStoryId = storyId;
     _message = null;
     notifyListeners();
@@ -112,6 +112,8 @@ class AdminStoryController extends ChangeNotifier {
       storyId: storyId,
       request: StoryUpdateRequest(text: storyText),
     );
+
+    if (!requestIsCurrent(request)) return false;
 
     return _finishStoryChange(result);
   }
@@ -124,6 +126,7 @@ class AdminStoryController extends ChangeNotifier {
       return false;
     }
 
+    final request = beginRequest();
     _savingStoryId = storyId;
     _message = null;
     notifyListeners();
@@ -132,6 +135,8 @@ class AdminStoryController extends ChangeNotifier {
       accessToken: accessToken,
       storyId: storyId,
     );
+
+    if (!requestIsCurrent(request)) return false;
 
     return _finishStoryChange(result);
   }
@@ -144,6 +149,7 @@ class AdminStoryController extends ChangeNotifier {
       return false;
     }
 
+    final request = beginRequest();
     _savingStoryId = storyId;
     _message = null;
     notifyListeners();
@@ -152,6 +158,8 @@ class AdminStoryController extends ChangeNotifier {
       accessToken: accessToken,
       storyId: storyId,
     );
+
+    if (!requestIsCurrent(request)) return false;
 
     return _finishStoryChange(result);
   }
@@ -180,6 +188,7 @@ class AdminStoryController extends ChangeNotifier {
       return false;
     }
 
+    final request = beginRequest();
     _isSelectingWinner = true;
     _message = null;
     notifyListeners();
@@ -189,6 +198,8 @@ class AdminStoryController extends ChangeNotifier {
       month: _selectedMonth,
       request: StoryWinnerRequest(storyId: storyId),
     );
+
+    if (!requestIsCurrent(request)) return false;
 
     if (result.winner == null) {
       _message = result.message ?? _messageForFailure(result.failure);
@@ -201,8 +212,10 @@ class AdminStoryController extends ChangeNotifier {
     final refreshResult = await _storyApi.fetchStories(
       accessToken: accessToken,
       month: _selectedMonth,
-      activeOnly: _activeOnly,
+      activeOnly: false,
     );
+
+    if (!requestIsCurrent(request)) return false;
 
     if (refreshResult.stories != null) {
       _stories = refreshResult.stories!;
@@ -229,8 +242,9 @@ class AdminStoryController extends ChangeNotifier {
   }
 
   void reset() {
+    invalidateRequests();
     _stories = [];
-    _selectedMonth = _monthStart(DateTime.now());
+    _selectedMonth = monthStart(DateTime.now());
     _activeOnly = true;
     _isLoading = false;
     _savingStoryId = null;
@@ -240,6 +254,7 @@ class AdminStoryController extends ChangeNotifier {
   }
 
   Future<void> _loadStories({required String accessToken}) async {
+    final request = beginRequest();
     _stories = [];
     _isLoading = true;
     _message = null;
@@ -248,8 +263,10 @@ class AdminStoryController extends ChangeNotifier {
     final result = await _storyApi.fetchStories(
       accessToken: accessToken,
       month: _selectedMonth,
-      activeOnly: _activeOnly,
+      activeOnly: false,
     );
+
+    if (!requestIsCurrent(request)) return;
 
     if (result.stories != null) {
       _stories = result.stories!;
@@ -279,13 +296,7 @@ class AdminStoryController extends ChangeNotifier {
     if (result.story != null) {
       final story = result.story!;
 
-      if (_activeOnly && !story.active) {
-        _stories = _stories
-            .where((existing) => existing.id != story.id)
-            .toList();
-      } else {
-        _replaceStory(story);
-      }
+      _replaceStory(story);
 
       _savingStoryId = null;
       notifyListeners();
@@ -335,8 +346,4 @@ class AdminStoryController extends ChangeNotifier {
       null => 'Unknown error.',
     };
   }
-}
-
-DateTime _monthStart(DateTime date) {
-  return DateTime(date.year, date.month);
 }

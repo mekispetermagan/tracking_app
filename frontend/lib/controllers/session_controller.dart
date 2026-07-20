@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+import 'feature_controller.dart';
 
 import '../api/api.dart';
 import '../storage/storage.dart';
@@ -14,7 +14,7 @@ enum SessionStatus {
   mentorArea,
 }
 
-class SessionController extends ChangeNotifier {
+class SessionController extends FeatureController {
   final AuthApi _authApi;
   final TokenStorage _tokenStorage;
 
@@ -61,9 +61,11 @@ class SessionController extends ChangeNotifier {
   bool get isAuthenticated => isAdmin || isMentor;
 
   Future<void> restoreSession() async {
+    final operation = beginRequest();
     _setStatus(SessionStatus.restoring);
 
     final storedSession = await _tokenStorage.readAccessSession();
+    if (!requestIsCurrent(operation)) return;
 
     if (storedSession == null) {
       _setStatus(SessionStatus.start);
@@ -78,9 +80,11 @@ class SessionController extends ChangeNotifier {
         accessToken: storedSession.accessToken,
       ),
     };
+    if (!requestIsCurrent(operation)) return;
 
     if (result.failure != null) {
       await _tokenStorage.clear();
+      if (!requestIsCurrent(operation)) return;
       _accessToken = null;
       _setupToken = null;
       _setStatus(SessionStatus.start);
@@ -98,16 +102,19 @@ class SessionController extends ChangeNotifier {
   }
 
   void startAdminLogin() {
+    invalidateRequests();
     _adminLoginMessage = null;
     _setStatus(SessionStatus.adminLogin);
   }
 
   void startMentorLogin() {
+    invalidateRequests();
     _mentorLoginMessage = null;
     _setStatus(SessionStatus.mentorLogin);
   }
 
   void cancelLogin() {
+    invalidateRequests();
     _mentorLoginMessage = null;
     _adminLoginMessage = null;
     _setStatus(SessionStatus.start);
@@ -119,11 +126,13 @@ class SessionController extends ChangeNotifier {
   }) async {
     if (_mentorLoginIsSubmitting) return;
 
+    final operation = beginRequest();
     _mentorLoginMessage = null;
     _mentorLoginIsSubmitting = true;
     notifyListeners();
 
     final result = await _authApi.mentorLogin(phone: phone, pin: pin);
+    if (!requestIsCurrent(operation)) return;
 
     _mentorLoginIsSubmitting = false;
 
@@ -152,6 +161,7 @@ class SessionController extends ChangeNotifier {
       accessToken: result.token!,
       role: StoredAuthRole.mentor,
     );
+    if (!requestIsCurrent(operation)) return;
 
     _setStatus(SessionStatus.mentorArea);
   }
@@ -162,11 +172,13 @@ class SessionController extends ChangeNotifier {
   }) async {
     if (_adminLoginIsSubmitting) return;
 
+    final operation = beginRequest();
     _adminLoginMessage = null;
     _adminLoginIsSubmitting = true;
     notifyListeners();
 
     final result = await _authApi.adminLogin(phone: phone, password: password);
+    if (!requestIsCurrent(operation)) return;
 
     _adminLoginIsSubmitting = false;
 
@@ -195,6 +207,7 @@ class SessionController extends ChangeNotifier {
       accessToken: result.token!,
       role: StoredAuthRole.admin,
     );
+    if (!requestIsCurrent(operation)) return;
 
     _setStatus(SessionStatus.adminArea);
   }
@@ -210,6 +223,7 @@ class SessionController extends ChangeNotifier {
       return;
     }
 
+    final operation = beginRequest();
     _mentorSetupMessage = null;
     _mentorSetupIsSubmitting = true;
     notifyListeners();
@@ -218,6 +232,7 @@ class SessionController extends ChangeNotifier {
       setupToken: token,
       newPin: newPin,
     );
+    if (!requestIsCurrent(operation)) return;
 
     _mentorSetupIsSubmitting = false;
 
@@ -243,6 +258,7 @@ class SessionController extends ChangeNotifier {
       accessToken: result.token!,
       role: StoredAuthRole.mentor,
     );
+    if (!requestIsCurrent(operation)) return;
 
     _setStatus(SessionStatus.mentorArea);
   }
@@ -258,6 +274,7 @@ class SessionController extends ChangeNotifier {
       return;
     }
 
+    final operation = beginRequest();
     _adminSetupMessage = null;
     _adminSetupIsSubmitting = true;
     notifyListeners();
@@ -266,6 +283,7 @@ class SessionController extends ChangeNotifier {
       setupToken: token,
       newPassword: newPassword,
     );
+    if (!requestIsCurrent(operation)) return;
 
     _adminSetupIsSubmitting = false;
 
@@ -291,6 +309,7 @@ class SessionController extends ChangeNotifier {
       accessToken: result.token!,
       role: StoredAuthRole.admin,
     );
+    if (!requestIsCurrent(operation)) return;
 
     _setStatus(SessionStatus.adminArea);
   }
@@ -324,6 +343,7 @@ class SessionController extends ChangeNotifier {
   }
 
   Future<void> logout() async {
+    final operation = beginRequest();
     _accessToken = null;
     _setupToken = null;
 
@@ -340,6 +360,7 @@ class SessionController extends ChangeNotifier {
     _adminSetupIsSubmitting = false;
 
     await _tokenStorage.clear();
+    if (!requestIsCurrent(operation)) return;
 
     _setStatus(SessionStatus.start);
   }

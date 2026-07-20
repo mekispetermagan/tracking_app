@@ -1,9 +1,11 @@
 import 'package:flutter/foundation.dart';
 
+import 'feature_controller.dart';
+
 import '../api/api.dart';
 import '../models/models.dart';
 
-class MentorSessionLogController extends ChangeNotifier {
+class MentorSessionLogController extends FeatureController {
   final MentorSessionLogApi _sessionLogApi;
   final SharedCourseApi _courseApi;
   final SharedStudentApi _studentApi;
@@ -74,6 +76,7 @@ class MentorSessionLogController extends ChangeNotifier {
       !_isSaving;
 
   Future<void> initialize({required String accessToken}) async {
+    final request = beginRequest();
     _courses = [];
     _students = [];
     _mentors = [];
@@ -87,11 +90,13 @@ class MentorSessionLogController extends ChangeNotifier {
 
     final result = await _courseApi.fetchCourses(
       accessToken: accessToken,
-      activeOnly: true,
+      activeOnly: false,
     );
 
+    if (!requestIsCurrent(request)) return;
+
     if (result.courses != null) {
-      _courses = result.courses!;
+      _courses = result.courses!.where((course) => course.active).toList();
     } else {
       _message = result.message ?? _messageForCourseFailure(result.failure);
     }
@@ -108,6 +113,7 @@ class MentorSessionLogController extends ChangeNotifier {
       return;
     }
 
+    final request = beginRequest();
     _selectedCourseId = courseId;
     _students = [];
     _mentors = [];
@@ -121,8 +127,10 @@ class MentorSessionLogController extends ChangeNotifier {
     final studentResult = await _studentApi.fetchStudents(
       accessToken: accessToken,
       courseId: courseId,
-      activeOnly: true,
+      activeOnly: false,
     );
+
+    if (!requestIsCurrent(request)) return;
 
     if (studentResult.students == null) {
       _message =
@@ -133,13 +141,17 @@ class MentorSessionLogController extends ChangeNotifier {
       return;
     }
 
-    _students = studentResult.students!;
+    _students = studentResult.students!
+        .where((student) => student.active)
+        .toList();
     _selectedStudentIds = {for (final student in _students) student.id};
 
     final mentorResult = await _mentorApi.fetchCourseMentors(
       accessToken: accessToken,
       courseId: courseId,
     );
+
+    if (!requestIsCurrent(request)) return;
 
     if (mentorResult.mentors == null) {
       _message =
@@ -284,6 +296,9 @@ class MentorSessionLogController extends ChangeNotifier {
       return false;
     }
 
+    if (_isLoading || _isSaving) return false;
+
+    final operation = beginRequest();
     _isSaving = true;
     _message = null;
     notifyListeners();
@@ -292,6 +307,8 @@ class MentorSessionLogController extends ChangeNotifier {
       accessToken: accessToken,
       request: request,
     );
+
+    if (!requestIsCurrent(operation)) return false;
 
     if (result.sessionLog != null) {
       _isSaving = false;
@@ -316,6 +333,7 @@ class MentorSessionLogController extends ChangeNotifier {
   }
 
   void reset() {
+    invalidateRequests();
     _courses = [];
     _students = [];
     _mentors = [];

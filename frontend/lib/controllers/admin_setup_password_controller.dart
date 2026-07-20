@@ -1,39 +1,18 @@
-import 'package:flutter/foundation.dart';
-import 'package:frontend/validation/credential_validation.dart';
+import "../validation/credential_validation.dart" show isValidPassword;
+import "confirmed_credential_controller.dart";
 
-class AdminSetupPasswordController extends ChangeNotifier {
-  String _password = '';
-  String _confirmPassword = '';
+class AdminSetupPasswordController extends ConfirmedCredentialController {
+  AdminSetupPasswordController()
+    : super(normalize: _identity, validate: isValidPassword);
 
-  String get password => _password;
-  String get confirmPassword => _confirmPassword;
+  String get password => credential;
+  String get confirmPassword => confirmation;
+  bool get passwordIsValid => credentialIsValid;
+  bool get confirmPasswordIsValid => confirmationIsValid;
+  bool get passwordsMatch => credentialsMatch;
 
-  bool get passwordIsValid => isValidPassword(_password);
-  bool get confirmPasswordIsValid => isValidPassword(_confirmPassword);
-  bool get passwordsMatch => _password == _confirmPassword;
-
-  bool get canSubmit =>
-      passwordIsValid && confirmPasswordIsValid && passwordsMatch;
-
-  void setPassword(String value) {
-    if (value == _password) return;
-
-    _password = value;
-    notifyListeners();
-  }
-
-  void setConfirmPassword(String value) {
-    if (value == _confirmPassword) return;
-
-    _confirmPassword = value;
-    notifyListeners();
-  }
-
-  void reset() {
-    if (_password.isEmpty && _confirmPassword.isEmpty) return;
-
-    _password = '';
-    _confirmPassword = '';
-    notifyListeners();
-  }
+  void setPassword(String value) => setCredential(value);
+  void setConfirmPassword(String value) => setConfirmation(value);
 }
+
+String _identity(String value) => value;

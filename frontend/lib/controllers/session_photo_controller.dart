@@ -1,10 +1,10 @@
-import 'package:flutter/foundation.dart';
+import 'feature_controller.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../api/api.dart';
 import '../models/models.dart';
 
-class SessionPhotoController extends ChangeNotifier {
+class SessionPhotoController extends FeatureController {
   final SharedSessionPhotoApi _sharedPhotoApi;
   final MentorSessionPhotoApi _mentorPhotoApi;
   final SharedCourseApi _courseApi;
@@ -69,6 +69,7 @@ class SessionPhotoController extends ChangeNotifier {
       !_isUploading;
 
   Future<void> initializeCourseSelection({required String accessToken}) async {
+    final request = beginRequest();
     _courses = [];
     _selectedCourseId = null;
     _photos = [];
@@ -81,6 +82,8 @@ class SessionPhotoController extends ChangeNotifier {
       accessToken: accessToken,
       activeOnly: false,
     );
+
+    if (!requestIsCurrent(request)) return;
 
     if (result.courses != null) {
       _courses = result.courses!..sort((a, b) => a.name.compareTo(b.name));
@@ -136,13 +139,14 @@ class SessionPhotoController extends ChangeNotifier {
     required String accessToken,
     required int sessionLogId,
   }) async {
-    _startLoading();
+    final request = _startLoading();
 
     final result = await _sharedPhotoApi.fetchSessionPhotos(
       accessToken: accessToken,
       sessionLogId: sessionLogId,
     );
 
+    if (!requestIsCurrent(request)) return;
     _finishLoading(result);
   }
 
@@ -150,13 +154,14 @@ class SessionPhotoController extends ChangeNotifier {
     required String accessToken,
     required int courseId,
   }) async {
-    _startLoading();
+    final request = _startLoading();
 
     final result = await _sharedPhotoApi.fetchCoursePhotos(
       accessToken: accessToken,
       courseId: courseId,
     );
 
+    if (!requestIsCurrent(request)) return;
     _finishLoading(result);
   }
 
@@ -165,12 +170,15 @@ class SessionPhotoController extends ChangeNotifier {
       return;
     }
 
+    final request = beginRequest();
     _isSelecting = true;
     _message = null;
     notifyListeners();
 
     try {
       final selected = await _imagePicker.pickMultiImage();
+
+      if (!requestIsCurrent(request)) return;
 
       if (selected.isEmpty) {
         _isSelecting = false;
@@ -230,6 +238,7 @@ class SessionPhotoController extends ChangeNotifier {
       return false;
     }
 
+    final request = beginRequest();
     _isUploading = true;
     _message = null;
     notifyListeners();
@@ -239,6 +248,8 @@ class SessionPhotoController extends ChangeNotifier {
       sessionLogId: sessionLogId,
       photoPaths: [for (final photo in _selectedPhotos) photo.path],
     );
+
+    if (!requestIsCurrent(request)) return false;
 
     if (result.photos != null) {
       _photos = [..._photos, ...result.photos!];
@@ -257,6 +268,7 @@ class SessionPhotoController extends ChangeNotifier {
   }
 
   void closeGallery() {
+    invalidateRequests();
     _photos = [];
     _selectedPhotos = [];
     _isLoading = false;
@@ -276,6 +288,7 @@ class SessionPhotoController extends ChangeNotifier {
   }
 
   void reset() {
+    invalidateRequests();
     _photos = [];
     _selectedPhotos = [];
     _courses = [];
@@ -287,12 +300,14 @@ class SessionPhotoController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void _startLoading() {
+  int _startLoading() {
+    final request = beginRequest();
     _photos = [];
     _selectedPhotos = [];
     _isLoading = true;
     _message = null;
     notifyListeners();
+    return request;
   }
 
   void _finishLoading(SharedSessionPhotoListResult result) {

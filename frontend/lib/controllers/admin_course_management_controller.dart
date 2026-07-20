@@ -1,17 +1,12 @@
-import 'package:flutter/foundation.dart';
+import 'feature_controller.dart';
 
 import '../api/api.dart';
 import '../models/models.dart';
-
-enum CourseStatusFilter { active, all, inactive }
-
-enum CourseMentorStatusFilter { active, all, inactive }
+import 'management_types.dart';
 
 enum AdminCourseManagementView { list, form, assignMentors }
 
-enum AdminCourseFormMode { add, edit }
-
-class AdminCourseManagementController extends ChangeNotifier {
+class AdminCourseManagementController extends FeatureController {
   final SharedCourseApi _sharedCourseApi;
   final AdminCourseApi _adminCourseApi;
   final AdminMentorApi _adminMentorApi;
@@ -28,11 +23,10 @@ class AdminCourseManagementController extends ChangeNotifier {
   List<Mentor> _mentors = [];
   Set<int> _assignedMentorIds = {};
 
-  CourseStatusFilter _statusFilter = CourseStatusFilter.active;
-  CourseMentorStatusFilter _mentorStatusFilter =
-      CourseMentorStatusFilter.active;
+  ActiveStatusFilter _statusFilter = ActiveStatusFilter.active;
+  ActiveStatusFilter _mentorStatusFilter = ActiveStatusFilter.active;
   AdminCourseManagementView _view = AdminCourseManagementView.list;
-  AdminCourseFormMode _formMode = AdminCourseFormMode.add;
+  EntityFormMode _formMode = EntityFormMode.add;
 
   int? _countryIdFilter;
   int? _mentorCountryIdFilter;
@@ -48,9 +42,9 @@ class AdminCourseManagementController extends ChangeNotifier {
   List<Course> get visibleCourses {
     return _courses.where((course) {
       final statusMatches = switch (_statusFilter) {
-        CourseStatusFilter.active => course.active,
-        CourseStatusFilter.all => true,
-        CourseStatusFilter.inactive => !course.active,
+        ActiveStatusFilter.active => course.active,
+        ActiveStatusFilter.all => true,
+        ActiveStatusFilter.inactive => !course.active,
       };
 
       final countryMatches =
@@ -63,9 +57,9 @@ class AdminCourseManagementController extends ChangeNotifier {
   List<Mentor> get visibleMentors {
     return _mentors.where((mentor) {
       final statusMatches = switch (_mentorStatusFilter) {
-        CourseMentorStatusFilter.active => mentor.active,
-        CourseMentorStatusFilter.all => true,
-        CourseMentorStatusFilter.inactive => !mentor.active,
+        ActiveStatusFilter.active => mentor.active,
+        ActiveStatusFilter.all => true,
+        ActiveStatusFilter.inactive => !mentor.active,
       };
 
       final countryMatches =
@@ -76,10 +70,10 @@ class AdminCourseManagementController extends ChangeNotifier {
     }).toList();
   }
 
-  CourseStatusFilter get statusFilter => _statusFilter;
-  CourseMentorStatusFilter get mentorStatusFilter => _mentorStatusFilter;
+  ActiveStatusFilter get statusFilter => _statusFilter;
+  ActiveStatusFilter get mentorStatusFilter => _mentorStatusFilter;
   AdminCourseManagementView get view => _view;
-  AdminCourseFormMode get formMode => _formMode;
+  EntityFormMode get formMode => _formMode;
 
   int? get countryIdFilter => _countryIdFilter;
   int? get mentorCountryIdFilter => _mentorCountryIdFilter;
@@ -108,7 +102,7 @@ class AdminCourseManagementController extends ChangeNotifier {
   }
 
   Course? get formCourse {
-    return _formMode == AdminCourseFormMode.edit ? selectedCourse : null;
+    return _formMode == EntityFormMode.edit ? selectedCourse : null;
   }
 
   bool get canEdit => selectedCourse != null && !_isLoading && !_isSaving;
@@ -129,7 +123,7 @@ class AdminCourseManagementController extends ChangeNotifier {
       return;
     }
 
-    _formMode = AdminCourseFormMode.add;
+    _formMode = EntityFormMode.add;
     _view = AdminCourseManagementView.form;
     _message = null;
     notifyListeners();
@@ -142,7 +136,7 @@ class AdminCourseManagementController extends ChangeNotifier {
       return;
     }
 
-    _formMode = AdminCourseFormMode.edit;
+    _formMode = EntityFormMode.edit;
     _view = AdminCourseManagementView.form;
     _message = null;
     notifyListeners();
@@ -173,14 +167,17 @@ class AdminCourseManagementController extends ChangeNotifier {
   }
 
   Future<void> loadCourses({required String accessToken}) async {
+    final request = beginRequest();
     _isLoading = true;
     _message = null;
     notifyListeners();
 
     final result = await _sharedCourseApi.fetchCourses(
       accessToken: accessToken,
-      activeOnly: _statusFilter == CourseStatusFilter.active,
+      activeOnly: false,
     );
+
+    if (!requestIsCurrent(request)) return;
 
     if (result.courses != null) {
       _courses = result.courses!;
@@ -194,14 +191,17 @@ class AdminCourseManagementController extends ChangeNotifier {
   }
 
   Future<void> loadMentors({required String accessToken}) async {
+    final request = beginRequest();
     _isLoading = true;
     _message = null;
     notifyListeners();
 
     final result = await _adminMentorApi.fetchMentors(
       accessToken: accessToken,
-      activeOnly: _mentorStatusFilter == CourseMentorStatusFilter.active,
+      activeOnly: false,
     );
+
+    if (!requestIsCurrent(request)) return;
 
     if (result.mentors != null) {
       _mentors = result.mentors!;
@@ -213,33 +213,23 @@ class AdminCourseManagementController extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> setStatusFilter({
-    required CourseStatusFilter value,
-    required String accessToken,
-  }) async {
+  void setStatusFilter(ActiveStatusFilter value) {
     if (_statusFilter == value) {
       return;
     }
 
     _statusFilter = value;
-    _selectedCourseId = null;
+    _clearSelectionIfHidden();
     notifyListeners();
-
-    await loadCourses(accessToken: accessToken);
   }
 
-  Future<void> setMentorStatusFilter({
-    required CourseMentorStatusFilter value,
-    required String accessToken,
-  }) async {
+  void setMentorStatusFilter(ActiveStatusFilter value) {
     if (_mentorStatusFilter == value) {
       return;
     }
 
     _mentorStatusFilter = value;
     notifyListeners();
-
-    await loadMentors(accessToken: accessToken);
   }
 
   void setCountryIdFilter(int? value) {
@@ -262,7 +252,10 @@ class AdminCourseManagementController extends ChangeNotifier {
   }
 
   void selectCourse(int courseId) {
-    if (_selectedCourseId == courseId) {
+    if (_isLoading ||
+        _isSaving ||
+        _selectedCourseId == courseId ||
+        !_courses.any((course) => course.id == courseId)) {
       return;
     }
 
@@ -302,6 +295,9 @@ class AdminCourseManagementController extends ChangeNotifier {
     required String accessToken,
     required CourseCreateRequest request,
   }) async {
+    if (_isLoading || _isSaving) return false;
+
+    final operation = beginRequest();
     _isSaving = true;
     _message = null;
     notifyListeners();
@@ -311,10 +307,13 @@ class AdminCourseManagementController extends ChangeNotifier {
       request: request,
     );
 
+    if (!requestIsCurrent(operation)) return false;
+
     if (result.course != null) {
+      _replaceCourse(result.course!);
       _selectedCourseId = result.course!.id;
       _view = AdminCourseManagementView.list;
-      await loadCourses(accessToken: accessToken);
+      _clearSelectionIfHidden();
       _isSaving = false;
       notifyListeners();
       return true;
@@ -331,6 +330,9 @@ class AdminCourseManagementController extends ChangeNotifier {
     required int courseId,
     required CourseUpdateRequest request,
   }) async {
+    if (_isLoading || _isSaving) return false;
+
+    final operation = beginRequest();
     _isSaving = true;
     _message = null;
     notifyListeners();
@@ -340,6 +342,8 @@ class AdminCourseManagementController extends ChangeNotifier {
       courseId: courseId,
       request: request,
     );
+
+    if (!requestIsCurrent(operation)) return false;
 
     if (result.course != null) {
       _replaceCourse(result.course!);
@@ -385,6 +389,8 @@ class AdminCourseManagementController extends ChangeNotifier {
   }
 
   Future<bool> deactivateSelectedCourse({required String accessToken}) async {
+    if (_isLoading || _isSaving) return false;
+
     final course = selectedCourse;
 
     if (course == null) {
@@ -393,6 +399,7 @@ class AdminCourseManagementController extends ChangeNotifier {
       return false;
     }
 
+    final operation = beginRequest();
     _isSaving = true;
     _message = null;
     notifyListeners();
@@ -401,6 +408,8 @@ class AdminCourseManagementController extends ChangeNotifier {
       accessToken: accessToken,
       courseId: course.id,
     );
+
+    if (!requestIsCurrent(operation)) return false;
 
     if (result.course != null) {
       _replaceCourse(result.course!);
@@ -417,13 +426,14 @@ class AdminCourseManagementController extends ChangeNotifier {
   }
 
   void reset() {
+    invalidateRequests();
     _courses = [];
     _mentors = [];
     _assignedMentorIds = {};
-    _statusFilter = CourseStatusFilter.active;
-    _mentorStatusFilter = CourseMentorStatusFilter.active;
+    _statusFilter = ActiveStatusFilter.active;
+    _mentorStatusFilter = ActiveStatusFilter.active;
     _view = AdminCourseManagementView.list;
-    _formMode = AdminCourseFormMode.add;
+    _formMode = EntityFormMode.add;
     _countryIdFilter = null;
     _mentorCountryIdFilter = null;
     _selectedCourseId = null;

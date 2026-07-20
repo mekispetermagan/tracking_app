@@ -1,17 +1,12 @@
-import 'package:flutter/foundation.dart';
+import 'feature_controller.dart';
 
 import '../api/api.dart';
 import '../models/models.dart';
-
-enum StudentStatusFilter { active, all, inactive }
-
-enum StudentCourseStatusFilter { active, all, inactive }
+import 'management_types.dart';
 
 enum AdminStudentManagementView { list, form, assignCourses }
 
-enum AdminStudentFormMode { add, edit }
-
-class AdminStudentManagementController extends ChangeNotifier {
+class AdminStudentManagementController extends FeatureController {
   final SharedStudentApi _studentApi;
   final SharedCourseApi _courseApi;
 
@@ -25,11 +20,10 @@ class AdminStudentManagementController extends ChangeNotifier {
   List<Course> _courses = [];
   Set<int> _assignedCourseIds = {};
 
-  StudentStatusFilter _statusFilter = StudentStatusFilter.active;
-  StudentCourseStatusFilter _courseStatusFilter =
-      StudentCourseStatusFilter.active;
+  ActiveStatusFilter _statusFilter = ActiveStatusFilter.active;
+  ActiveStatusFilter _courseStatusFilter = ActiveStatusFilter.active;
   AdminStudentManagementView _view = AdminStudentManagementView.list;
-  AdminStudentFormMode _formMode = AdminStudentFormMode.add;
+  EntityFormMode _formMode = EntityFormMode.add;
   bool _unassignedOnly = false;
 
   int? _countryIdFilter;
@@ -46,9 +40,9 @@ class AdminStudentManagementController extends ChangeNotifier {
   List<Student> get visibleStudents {
     return _students.where((student) {
       final statusMatches = switch (_statusFilter) {
-        StudentStatusFilter.active => student.active,
-        StudentStatusFilter.all => true,
-        StudentStatusFilter.inactive => !student.active,
+        ActiveStatusFilter.active => student.active,
+        ActiveStatusFilter.all => true,
+        ActiveStatusFilter.inactive => !student.active,
       };
 
       final countryMatches =
@@ -67,17 +61,17 @@ class AdminStudentManagementController extends ChangeNotifier {
   List<Course> get visibleCourses {
     return _courses.where((course) {
       return switch (_courseStatusFilter) {
-        StudentCourseStatusFilter.active => course.active,
-        StudentCourseStatusFilter.all => true,
-        StudentCourseStatusFilter.inactive => !course.active,
+        ActiveStatusFilter.active => course.active,
+        ActiveStatusFilter.all => true,
+        ActiveStatusFilter.inactive => !course.active,
       };
     }).toList();
   }
 
-  StudentStatusFilter get statusFilter => _statusFilter;
-  StudentCourseStatusFilter get courseStatusFilter => _courseStatusFilter;
+  ActiveStatusFilter get statusFilter => _statusFilter;
+  ActiveStatusFilter get courseStatusFilter => _courseStatusFilter;
   AdminStudentManagementView get view => _view;
-  AdminStudentFormMode get formMode => _formMode;
+  EntityFormMode get formMode => _formMode;
 
   int? get countryIdFilter => _countryIdFilter;
   int? get courseIdFilter => _courseIdFilter;
@@ -107,7 +101,7 @@ class AdminStudentManagementController extends ChangeNotifier {
   }
 
   Student? get formStudent {
-    return _formMode == AdminStudentFormMode.edit ? selectedStudent : null;
+    return _formMode == EntityFormMode.edit ? selectedStudent : null;
   }
 
   Course? get filterCourse {
@@ -132,13 +126,15 @@ class AdminStudentManagementController extends ChangeNotifier {
       selectedStudent != null && !_isLoading && !_isSaving;
 
   Future<void> openList({required String accessToken}) async {
+    final request = beginRequest();
     _view = AdminStudentManagementView.list;
     _message = null;
     notifyListeners();
 
-    await loadCourses(accessToken: accessToken);
+    await loadCourses(accessToken: accessToken, requestRevision: request);
+    if (!requestIsCurrent(request) || _message != null) return;
 
-    await loadStudents(accessToken: accessToken);
+    await loadStudents(accessToken: accessToken, requestRevision: request);
   }
 
   void startAddStudent() {
@@ -146,7 +142,7 @@ class AdminStudentManagementController extends ChangeNotifier {
       return;
     }
 
-    _formMode = AdminStudentFormMode.add;
+    _formMode = EntityFormMode.add;
     _view = AdminStudentManagementView.form;
     _message = null;
     notifyListeners();
@@ -159,7 +155,7 @@ class AdminStudentManagementController extends ChangeNotifier {
       return;
     }
 
-    _formMode = AdminStudentFormMode.edit;
+    _formMode = EntityFormMode.edit;
     _view = AdminStudentManagementView.form;
     _message = null;
     notifyListeners();
@@ -189,7 +185,11 @@ class AdminStudentManagementController extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> loadStudents({required String accessToken}) async {
+  Future<void> loadStudents({
+    required String accessToken,
+    int? requestRevision,
+  }) async {
+    final request = requestRevision ?? beginRequest();
     _isLoading = true;
     _message = null;
     notifyListeners();
@@ -198,6 +198,8 @@ class AdminStudentManagementController extends ChangeNotifier {
       accessToken: accessToken,
       activeOnly: false,
     );
+
+    if (!requestIsCurrent(request)) return;
 
     if (result.students != null) {
       _students = result.students!;
@@ -210,15 +212,21 @@ class AdminStudentManagementController extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> loadCourses({required String accessToken}) async {
+  Future<void> loadCourses({
+    required String accessToken,
+    int? requestRevision,
+  }) async {
+    final request = requestRevision ?? beginRequest();
     _isLoading = true;
     _message = null;
     notifyListeners();
 
     final result = await _courseApi.fetchCourses(
       accessToken: accessToken,
-      activeOnly: _courseStatusFilter == StudentCourseStatusFilter.active,
+      activeOnly: false,
     );
+
+    if (!requestIsCurrent(request)) return;
 
     if (result.courses != null) {
       _courses = result.courses!;
@@ -230,7 +238,7 @@ class AdminStudentManagementController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setStatusFilter(StudentStatusFilter value) {
+  void setStatusFilter(ActiveStatusFilter value) {
     if (_statusFilter == value) {
       return;
     }
@@ -262,18 +270,13 @@ class AdminStudentManagementController extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> setCourseStatusFilter({
-    required StudentCourseStatusFilter value,
-    required String accessToken,
-  }) async {
+  void setCourseStatusFilter(ActiveStatusFilter value) {
     if (_courseStatusFilter == value) {
       return;
     }
 
     _courseStatusFilter = value;
     notifyListeners();
-
-    await loadCourses(accessToken: accessToken);
   }
 
   void setCountryIdFilter(int? value) {
@@ -287,7 +290,10 @@ class AdminStudentManagementController extends ChangeNotifier {
   }
 
   void selectStudent(int studentId) {
-    if (_selectedStudentId == studentId) {
+    if (_isLoading ||
+        _isSaving ||
+        _selectedStudentId == studentId ||
+        !_students.any((student) => student.id == studentId)) {
       return;
     }
 
@@ -327,6 +333,9 @@ class AdminStudentManagementController extends ChangeNotifier {
     required String accessToken,
     required StudentCreateRequest request,
   }) async {
+    if (_isLoading || _isSaving) return false;
+
+    final operation = beginRequest();
     _isSaving = true;
     _message = null;
     notifyListeners();
@@ -336,10 +345,13 @@ class AdminStudentManagementController extends ChangeNotifier {
       request: request,
     );
 
+    if (!requestIsCurrent(operation)) return false;
+
     if (result.student != null) {
+      _replaceStudent(result.student!);
       _selectedStudentId = result.student!.id;
       _view = AdminStudentManagementView.list;
-      await loadStudents(accessToken: accessToken);
+      _clearSelectionIfHidden();
       _isSaving = false;
       notifyListeners();
       return true;
@@ -356,6 +368,9 @@ class AdminStudentManagementController extends ChangeNotifier {
     required int studentId,
     required StudentUpdateRequest request,
   }) async {
+    if (_isLoading || _isSaving) return false;
+
+    final operation = beginRequest();
     _isSaving = true;
     _message = null;
     notifyListeners();
@@ -365,6 +380,8 @@ class AdminStudentManagementController extends ChangeNotifier {
       studentId: studentId,
       request: request,
     );
+
+    if (!requestIsCurrent(operation)) return false;
 
     if (result.student != null) {
       _replaceStudent(result.student!);
@@ -409,13 +426,14 @@ class AdminStudentManagementController extends ChangeNotifier {
   }
 
   void reset() {
+    invalidateRequests();
     _students = [];
     _courses = [];
     _assignedCourseIds = {};
-    _statusFilter = StudentStatusFilter.active;
-    _courseStatusFilter = StudentCourseStatusFilter.active;
+    _statusFilter = ActiveStatusFilter.active;
+    _courseStatusFilter = ActiveStatusFilter.active;
     _view = AdminStudentManagementView.list;
-    _formMode = AdminStudentFormMode.add;
+    _formMode = EntityFormMode.add;
     _countryIdFilter = null;
     _courseIdFilter = null;
     _selectedStudentId = null;

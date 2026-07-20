@@ -1,10 +1,11 @@
-import 'package:flutter/foundation.dart';
+import 'feature_controller.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../api/api.dart';
 import '../models/models.dart';
+import 'month_utils.dart';
 
-class MentorStoryController extends ChangeNotifier {
+class MentorStoryController extends FeatureController {
   final MentorStoryApi _storyApi;
   final SharedCourseApi _courseApi;
   final ImagePicker _imagePicker;
@@ -20,7 +21,7 @@ class MentorStoryController extends ChangeNotifier {
   List<MentorStory> _stories = [];
   List<Course> _courses = [];
 
-  DateTime _selectedMonth = _monthStart(DateTime.now());
+  DateTime _selectedMonth = monthStart(DateTime.now());
 
   int? _mentorProfileId;
   int? _selectedCourseId;
@@ -94,9 +95,10 @@ class MentorStoryController extends ChangeNotifier {
     required String accessToken,
     required int mentorProfileId,
   }) async {
+    final request = beginRequest();
     _stories = [];
     _courses = [];
-    _selectedMonth = _monthStart(DateTime.now());
+    _selectedMonth = monthStart(DateTime.now());
     _mentorProfileId = mentorProfileId;
     _selectedCourseId = null;
     _selectedPhoto = null;
@@ -111,11 +113,13 @@ class MentorStoryController extends ChangeNotifier {
 
     final courseResult = await _courseApi.fetchCourses(
       accessToken: accessToken,
-      activeOnly: true,
+      activeOnly: false,
     );
 
+    if (!requestIsCurrent(request)) return;
+
     if (courseResult.courses != null) {
-      _courses = courseResult.courses!
+      _courses = courseResult.courses!.where((course) => course.active).toList()
         ..sort((a, b) => a.name.compareTo(b.name));
     } else {
       failureMessage =
@@ -128,10 +132,12 @@ class MentorStoryController extends ChangeNotifier {
       month: _selectedMonth,
     );
 
+    if (!requestIsCurrent(request)) return;
+
     if (storyResult.stories != null) {
       _stories = storyResult.stories!;
     } else {
-      failureMessage =
+      failureMessage ??=
           storyResult.message ?? _messageForStoryFailure(storyResult.failure);
     }
 
@@ -148,7 +154,8 @@ class MentorStoryController extends ChangeNotifier {
       return;
     }
 
-    _selectedMonth = _monthStart(month);
+    final request = beginRequest();
+    _selectedMonth = monthStart(month);
     _stories = [];
     _isLoading = true;
     _message = null;
@@ -158,6 +165,8 @@ class MentorStoryController extends ChangeNotifier {
       accessToken: accessToken,
       month: _selectedMonth,
     );
+
+    if (!requestIsCurrent(request)) return;
 
     if (result.stories != null) {
       _stories = result.stories!;
@@ -186,12 +195,15 @@ class MentorStoryController extends ChangeNotifier {
       return;
     }
 
+    final request = beginRequest();
     _isSelectingPhoto = true;
     _message = null;
     notifyListeners();
 
     try {
       final photo = await _imagePicker.pickImage(source: ImageSource.gallery);
+
+      if (!requestIsCurrent(request)) return;
 
       if (photo != null) {
         _selectedPhoto = photo;
@@ -259,6 +271,7 @@ class MentorStoryController extends ChangeNotifier {
       return false;
     }
 
+    final request = beginRequest();
     _isSubmitting = true;
     _message = null;
     notifyListeners();
@@ -271,6 +284,8 @@ class MentorStoryController extends ChangeNotifier {
         photoPath: photo.path,
       ),
     );
+
+    if (!requestIsCurrent(request)) return false;
 
     if (result.story != null) {
       _stories = [
@@ -319,6 +334,7 @@ class MentorStoryController extends ChangeNotifier {
       return false;
     }
 
+    final request = beginRequest();
     _ratingStoryId = storyId;
     _message = null;
     notifyListeners();
@@ -328,6 +344,8 @@ class MentorStoryController extends ChangeNotifier {
       storyId: storyId,
       request: StoryRatingRequest(rating: rating),
     );
+
+    if (!requestIsCurrent(request)) return false;
 
     if (result.story != null) {
       _replaceStory(result.story!);
@@ -353,9 +371,10 @@ class MentorStoryController extends ChangeNotifier {
   }
 
   void reset() {
+    invalidateRequests();
     _stories = [];
     _courses = [];
-    _selectedMonth = _monthStart(DateTime.now());
+    _selectedMonth = monthStart(DateTime.now());
     _mentorProfileId = null;
     _selectedCourseId = null;
     _selectedPhoto = null;
@@ -409,10 +428,6 @@ class MentorStoryController extends ChangeNotifier {
       null => 'Unknown error.',
     };
   }
-}
-
-DateTime _monthStart(DateTime date) {
-  return DateTime(date.year, date.month);
 }
 
 bool _sameMonth(DateTime first, DateTime second) {

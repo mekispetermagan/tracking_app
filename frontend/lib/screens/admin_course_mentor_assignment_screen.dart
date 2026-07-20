@@ -1,10 +1,9 @@
-import '../controllers/admin_course_management_controller.dart'
-    show CourseMentorStatusFilter;
+import '../controllers/management_types.dart';
 import '../models/models.dart';
 import '../widgets/assignment_management_view.dart';
 
 class AdminCourseMentorAssignmentScreen
-    extends AssignmentManagementView<Course, Mentor, CourseMentorStatusFilter> {
+    extends AssignmentManagementView<Course, Mentor, ActiveStatusFilter> {
   const AdminCourseMentorAssignmentScreen({
     required Course? course,
     required List<Mentor> mentors,
@@ -26,9 +25,9 @@ class AdminCourseMentorAssignmentScreen
          subjectNameFor: _courseName,
          items: mentors,
          assignedItemIds: assignedMentorIds,
-         activeFilter: CourseMentorStatusFilter.active,
-         allFilter: CourseMentorStatusFilter.all,
-         inactiveFilter: CourseMentorStatusFilter.inactive,
+         activeFilter: ActiveStatusFilter.active,
+         allFilter: ActiveStatusFilter.all,
+         inactiveFilter: ActiveStatusFilter.inactive,
          emptyMessage: 'No mentors',
          idFor: _mentorId,
          titleFor: _mentorTitle,

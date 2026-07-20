@@ -1,30 +1,26 @@
-import 'package:flutter/foundation.dart';
+import 'feature_controller.dart';
 
 import '../api/api.dart';
 import '../models/models.dart';
-
-enum MentorStatusFilter { active, all, inactive }
+import 'management_types.dart';
 
 enum AdminMentorManagementView { list, form, resetPin }
 
-enum AdminMentorFormMode { add, edit }
-
-class AdminMentorManagementController extends ChangeNotifier {
+class AdminMentorManagementController extends FeatureController {
   final AdminMentorApi _api;
 
   AdminMentorManagementController({AdminMentorApi? api})
     : _api = api ?? AdminMentorApi();
 
   List<Mentor> _mentors = [];
-  MentorStatusFilter _statusFilter = MentorStatusFilter.active;
+  ActiveStatusFilter _statusFilter = ActiveStatusFilter.active;
   AdminMentorManagementView _view = AdminMentorManagementView.list;
-  AdminMentorFormMode _formMode = AdminMentorFormMode.add;
+  EntityFormMode _formMode = EntityFormMode.add;
 
   int? _countryIdFilter;
   int? _selectedMentorId;
   bool _isLoading = false;
   bool _isSaving = false;
-  bool _hasLoaded = false;
   String? _message;
 
   List<Mentor> get mentors => List.unmodifiable(_mentors);
@@ -32,9 +28,9 @@ class AdminMentorManagementController extends ChangeNotifier {
   List<Mentor> get visibleMentors {
     return _mentors.where((mentor) {
       final statusMatches = switch (_statusFilter) {
-        MentorStatusFilter.active => mentor.active,
-        MentorStatusFilter.all => true,
-        MentorStatusFilter.inactive => !mentor.active,
+        ActiveStatusFilter.active => mentor.active,
+        ActiveStatusFilter.all => true,
+        ActiveStatusFilter.inactive => !mentor.active,
       };
 
       final countryMatches =
@@ -44,9 +40,9 @@ class AdminMentorManagementController extends ChangeNotifier {
     }).toList();
   }
 
-  MentorStatusFilter get statusFilter => _statusFilter;
+  ActiveStatusFilter get statusFilter => _statusFilter;
   AdminMentorManagementView get view => _view;
-  AdminMentorFormMode get formMode => _formMode;
+  EntityFormMode get formMode => _formMode;
   int? get countryIdFilter => _countryIdFilter;
   int? get selectedMentorId => _selectedMentorId;
   bool get isLoading => _isLoading;
@@ -70,7 +66,7 @@ class AdminMentorManagementController extends ChangeNotifier {
   }
 
   Mentor? get formMentor {
-    return _formMode == AdminMentorFormMode.edit ? selectedMentor : null;
+    return _formMode == EntityFormMode.edit ? selectedMentor : null;
   }
 
   bool get canEdit => selectedMentor != null && !_isLoading && !_isSaving;
@@ -80,9 +76,7 @@ class AdminMentorManagementController extends ChangeNotifier {
     _message = null;
     notifyListeners();
 
-    if (!_hasLoaded) {
-      await loadMentors(accessToken: accessToken);
-    }
+    await loadMentors(accessToken: accessToken);
   }
 
   void startAddMentor() {
@@ -90,7 +84,7 @@ class AdminMentorManagementController extends ChangeNotifier {
       return;
     }
 
-    _formMode = AdminMentorFormMode.add;
+    _formMode = EntityFormMode.add;
     _view = AdminMentorManagementView.form;
     _message = null;
     notifyListeners();
@@ -103,7 +97,7 @@ class AdminMentorManagementController extends ChangeNotifier {
       return;
     }
 
-    _formMode = AdminMentorFormMode.edit;
+    _formMode = EntityFormMode.edit;
     _view = AdminMentorManagementView.form;
     _message = null;
     notifyListeners();
@@ -116,18 +110,20 @@ class AdminMentorManagementController extends ChangeNotifier {
   }
 
   Future<void> loadMentors({required String accessToken}) async {
+    final request = beginRequest();
     _isLoading = true;
     _message = null;
     notifyListeners();
 
     final result = await _api.fetchMentors(
       accessToken: accessToken,
-      activeOnly: _statusFilter == MentorStatusFilter.active,
+      activeOnly: false,
     );
+
+    if (!requestIsCurrent(request)) return;
 
     if (result.mentors != null) {
       _mentors = result.mentors!;
-      _hasLoaded = true;
       _clearSelectionIfHidden();
     } else {
       _message = result.message ?? _messageForFailure(result.failure);
@@ -137,19 +133,14 @@ class AdminMentorManagementController extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> setStatusFilter({
-    required MentorStatusFilter value,
-    required String accessToken,
-  }) async {
+  void setStatusFilter(ActiveStatusFilter value) {
     if (_statusFilter == value) {
       return;
     }
 
     _statusFilter = value;
-    _selectedMentorId = null;
+    _clearSelectionIfHidden();
     notifyListeners();
-
-    await loadMentors(accessToken: accessToken);
   }
 
   void setCountryIdFilter(int? value) {
@@ -163,7 +154,10 @@ class AdminMentorManagementController extends ChangeNotifier {
   }
 
   void selectMentor(int mentorId) {
-    if (_selectedMentorId == mentorId) {
+    if (_isLoading ||
+        _isSaving ||
+        _selectedMentorId == mentorId ||
+        !_mentors.any((mentor) => mentor.id == mentorId)) {
       return;
     }
 
@@ -193,6 +187,8 @@ class AdminMentorManagementController extends ChangeNotifier {
     required String accessToken,
     required MentorCreateRequest request,
   }) async {
+    if (_isLoading || _isSaving) return false;
+    final operation = beginRequest();
     _isSaving = true;
     _message = null;
     notifyListeners();
@@ -202,10 +198,13 @@ class AdminMentorManagementController extends ChangeNotifier {
       request: request,
     );
 
+    if (!requestIsCurrent(operation)) return false;
+
     if (result.mentor != null) {
+      _replaceMentor(result.mentor!);
       _selectedMentorId = result.mentor!.id;
       _view = AdminMentorManagementView.list;
-      await loadMentors(accessToken: accessToken);
+      _clearSelectionIfHidden();
       _isSaving = false;
       notifyListeners();
       return true;
@@ -222,6 +221,8 @@ class AdminMentorManagementController extends ChangeNotifier {
     required int mentorId,
     required MentorUpdateRequest request,
   }) async {
+    if (_isLoading || _isSaving) return false;
+    final operation = beginRequest();
     _isSaving = true;
     _message = null;
     notifyListeners();
@@ -231,6 +232,8 @@ class AdminMentorManagementController extends ChangeNotifier {
       mentorId: mentorId,
       request: request,
     );
+
+    if (!requestIsCurrent(operation)) return false;
 
     if (result.mentor != null) {
       _replaceMentor(result.mentor!);
@@ -249,6 +252,7 @@ class AdminMentorManagementController extends ChangeNotifier {
   }
 
   Future<bool> deactivateSelectedMentor({required String accessToken}) async {
+    if (_isLoading || _isSaving) return false;
     final mentor = selectedMentor;
 
     if (mentor == null) {
@@ -257,6 +261,7 @@ class AdminMentorManagementController extends ChangeNotifier {
       return false;
     }
 
+    final operation = beginRequest();
     _isSaving = true;
     _message = null;
     notifyListeners();
@@ -265,6 +270,8 @@ class AdminMentorManagementController extends ChangeNotifier {
       accessToken: accessToken,
       mentorId: mentor.id,
     );
+
+    if (!requestIsCurrent(operation)) return false;
 
     if (result.mentor != null) {
       _replaceMentor(result.mentor!);
@@ -296,6 +303,7 @@ class AdminMentorManagementController extends ChangeNotifier {
     required String accessToken,
     required MentorResetPinRequest request,
   }) async {
+    if (_isLoading || _isSaving) return false;
     final mentor = selectedMentor;
 
     if (mentor == null) {
@@ -304,6 +312,7 @@ class AdminMentorManagementController extends ChangeNotifier {
       return false;
     }
 
+    final operation = beginRequest();
     _isSaving = true;
     _message = null;
     notifyListeners();
@@ -313,6 +322,8 @@ class AdminMentorManagementController extends ChangeNotifier {
       mentorId: mentor.id,
       request: request,
     );
+
+    if (!requestIsCurrent(operation)) return false;
 
     if (result.mentor != null) {
       _replaceMentor(result.mentor!);
@@ -330,15 +341,15 @@ class AdminMentorManagementController extends ChangeNotifier {
   }
 
   void reset() {
+    invalidateRequests();
     _mentors = [];
-    _statusFilter = MentorStatusFilter.active;
+    _statusFilter = ActiveStatusFilter.active;
     _view = AdminMentorManagementView.list;
-    _formMode = AdminMentorFormMode.add;
+    _formMode = EntityFormMode.add;
     _countryIdFilter = null;
     _selectedMentorId = null;
     _isLoading = false;
     _isSaving = false;
-    _hasLoaded = false;
     _message = null;
     notifyListeners();
   }

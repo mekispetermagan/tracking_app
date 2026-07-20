@@ -490,12 +490,7 @@ class _AdminAreaState extends State<AdminArea> {
           month: month,
         );
       },
-      onActiveOnlyChanged: (value) {
-        return _storyController.setActiveOnly(
-          accessToken: widget.accessToken,
-          value: value,
-        );
-      },
+      onActiveOnlyChanged: _storyController.setActiveOnly,
       onEditStory: (story) {
         _areaController.openStoryEdit(story.id);
       },
@@ -656,11 +651,8 @@ class _AdminAreaState extends State<AdminArea> {
     }
   }
 
-  Future<void> _setMentorStatusFilter(MentorStatusFilter statusFilter) async {
-    await _mentorManagementController.setStatusFilter(
-      value: statusFilter,
-      accessToken: widget.accessToken,
-    );
+  void _setMentorStatusFilter(ActiveStatusFilter statusFilter) {
+    _mentorManagementController.setStatusFilter(statusFilter);
   }
 
   Future<bool> _createMentor(MentorCreateRequest request) {
@@ -685,11 +677,8 @@ class _AdminAreaState extends State<AdminArea> {
     );
   }
 
-  Future<void> _setCourseStatusFilter(CourseStatusFilter statusFilter) async {
-    await _courseManagementController.setStatusFilter(
-      value: statusFilter,
-      accessToken: widget.accessToken,
-    );
+  void _setCourseStatusFilter(ActiveStatusFilter statusFilter) {
+    _courseManagementController.setStatusFilter(statusFilter);
   }
 
   Future<void> _startCourseMentorAssignment() async {
@@ -698,13 +687,8 @@ class _AdminAreaState extends State<AdminArea> {
     );
   }
 
-  Future<void> _setCourseMentorStatusFilter(
-    CourseMentorStatusFilter statusFilter,
-  ) async {
-    await _courseManagementController.setMentorStatusFilter(
-      value: statusFilter,
-      accessToken: widget.accessToken,
-    );
+  void _setCourseMentorStatusFilter(ActiveStatusFilter statusFilter) {
+    _courseManagementController.setMentorStatusFilter(statusFilter);
   }
 
   Future<bool> _createCourse(CourseCreateRequest request) {
@@ -734,13 +718,8 @@ class _AdminAreaState extends State<AdminArea> {
     );
   }
 
-  Future<void> _setStudentCourseStatusFilter(
-    StudentCourseStatusFilter statusFilter,
-  ) async {
-    await _studentManagementController.setCourseStatusFilter(
-      value: statusFilter,
-      accessToken: widget.accessToken,
-    );
+  void _setStudentCourseStatusFilter(ActiveStatusFilter statusFilter) {
+    _studentManagementController.setCourseStatusFilter(statusFilter);
   }
 
   Future<bool> _createStudent(StudentCreateRequest request) {

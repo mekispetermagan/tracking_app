@@ -2,20 +2,19 @@ import 'package:flutter/material.dart';
 
 import '../widgets/app_bar.dart';
 
-import '../controllers/admin_mentor_management_controller.dart'
-    show MentorStatusFilter;
+import '../controllers/management_types.dart';
 import '../models/models.dart';
 
 class AdminMentorManagementScreen extends StatelessWidget {
   final List<Mentor> mentors;
-  final MentorStatusFilter statusFilter;
+  final ActiveStatusFilter statusFilter;
   final int? selectedMentorId;
   final bool canEdit;
   final bool isLoading;
   final bool isSaving;
   final String? message;
   final VoidCallback clearMessage;
-  final ValueChanged<MentorStatusFilter> onStatusFilterChanged;
+  final ValueChanged<ActiveStatusFilter> onStatusFilterChanged;
   final ValueChanged<int> onSelectMentor;
   final VoidCallback onAdd;
   final VoidCallback onEdit;
@@ -66,18 +65,18 @@ class AdminMentorManagementScreen extends StatelessWidget {
               padding: const EdgeInsets.all(16),
               child: Align(
                 alignment: Alignment.centerLeft,
-                child: SegmentedButton<MentorStatusFilter>(
+                child: SegmentedButton<ActiveStatusFilter>(
                   segments: const [
                     ButtonSegment(
-                      value: MentorStatusFilter.active,
+                      value: ActiveStatusFilter.active,
                       label: Text('Active'),
                     ),
                     ButtonSegment(
-                      value: MentorStatusFilter.all,
+                      value: ActiveStatusFilter.all,
                       label: Text('All'),
                     ),
                     ButtonSegment(
-                      value: MentorStatusFilter.inactive,
+                      value: ActiveStatusFilter.inactive,
                       label: Text('Inactive'),
                     ),
                   ],

@@ -1,9 +1,9 @@
-import 'package:flutter/foundation.dart';
+import 'feature_controller.dart';
 
 import '../api/api.dart';
 import '../models/models.dart';
 
-class MentorProfileController extends ChangeNotifier {
+class MentorProfileController extends FeatureController {
   final MentorProfileApi _api;
 
   MentorProfileController({MentorProfileApi? api})
@@ -21,14 +21,19 @@ class MentorProfileController extends ChangeNotifier {
   bool get isChangingPin => _isChangingPin;
   String? get message => _message;
 
-  Future<void> loadProfile({required String accessToken}) async {
-    if (_isLoading) return;
+  bool get _isBusy => _isLoading || _isSaving || _isChangingPin;
 
+  Future<void> loadProfile({required String accessToken}) async {
+    if (_isBusy) return;
+
+    final request = beginRequest();
     _isLoading = true;
     _message = null;
     notifyListeners();
 
     final result = await _api.fetchMyProfile(accessToken: accessToken);
+
+    if (!requestIsCurrent(request)) return;
 
     if (result.mentor != null) {
       _mentor = result.mentor;
@@ -44,8 +49,9 @@ class MentorProfileController extends ChangeNotifier {
     required String accessToken,
     required MentorSelfUpdateRequest request,
   }) async {
-    if (_isSaving) return false;
+    if (_isBusy) return false;
 
+    final operation = beginRequest();
     _isSaving = true;
     _message = null;
     notifyListeners();
@@ -54,6 +60,8 @@ class MentorProfileController extends ChangeNotifier {
       accessToken: accessToken,
       request: request,
     );
+
+    if (!requestIsCurrent(operation)) return false;
 
     if (result.mentor != null) {
       _mentor = result.mentor;
@@ -73,8 +81,9 @@ class MentorProfileController extends ChangeNotifier {
     required String accessToken,
     required MentorChangePinRequest request,
   }) async {
-    if (_isChangingPin) return false;
+    if (_isBusy) return false;
 
+    final operation = beginRequest();
     _isChangingPin = true;
     _message = null;
     notifyListeners();
@@ -83,6 +92,8 @@ class MentorProfileController extends ChangeNotifier {
       accessToken: accessToken,
       request: request,
     );
+
+    if (!requestIsCurrent(operation)) return false;
 
     if (result.success) {
       _message = 'PIN changed.';
@@ -105,6 +116,7 @@ class MentorProfileController extends ChangeNotifier {
   }
 
   void reset() {
+    invalidateRequests();
     _mentor = null;
     _isLoading = false;
     _isSaving = false;

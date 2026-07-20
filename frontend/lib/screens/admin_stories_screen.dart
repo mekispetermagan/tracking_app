@@ -17,7 +17,7 @@ class AdminStoriesScreen extends StatelessWidget {
   final VoidCallback clearMessage;
 
   final Future<void> Function(DateTime month) onMonthChanged;
-  final Future<void> Function(bool value) onActiveOnlyChanged;
+  final ValueChanged<bool> onActiveOnlyChanged;
 
   final ValueChanged<AdminStory> onEditStory;
 

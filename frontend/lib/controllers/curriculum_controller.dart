@@ -1,9 +1,9 @@
-import 'package:flutter/foundation.dart';
+import 'feature_controller.dart';
 
 import '../api/api.dart';
 import '../models/models.dart';
 
-class CurriculumController extends ChangeNotifier {
+class CurriculumController extends FeatureController {
   final CurriculumApi _curriculumApi;
 
   CurriculumController({CurriculumApi? curriculumApi})
@@ -78,6 +78,7 @@ class CurriculumController extends ChangeNotifier {
   }
 
   void reset() {
+    invalidateRequests();
     _categories = [];
     _selectedChapter = null;
     _isLoading = false;
@@ -86,12 +87,15 @@ class CurriculumController extends ChangeNotifier {
   }
 
   Future<void> _loadCatalog() async {
+    final request = beginRequest();
     _categories = [];
     _isLoading = true;
     _message = null;
     notifyListeners();
 
     final result = await _curriculumApi.fetchCatalog();
+
+    if (!requestIsCurrent(request)) return;
 
     if (result.catalog != null) {
       _categories = result.catalog!.categories;

@@ -1,13 +1,12 @@
-import 'package:flutter/foundation.dart';
+import 'feature_controller.dart';
 
 import '../api/api.dart';
 import '../models/models.dart';
+import 'management_types.dart';
 
 enum MentorStudentManagementView { list, form }
 
-enum MentorStudentFormMode { add, edit }
-
-class MentorStudentManagementController extends ChangeNotifier {
+class MentorStudentManagementController extends FeatureController {
   final SharedStudentApi _studentApi;
   final SharedCourseApi _courseApi;
 
@@ -21,7 +20,7 @@ class MentorStudentManagementController extends ChangeNotifier {
   List<Course> _courses = [];
 
   MentorStudentManagementView _view = MentorStudentManagementView.list;
-  MentorStudentFormMode _formMode = MentorStudentFormMode.add;
+  EntityFormMode _formMode = EntityFormMode.add;
 
   int? _countryIdFilter;
   int? _courseIdFilter;
@@ -49,7 +48,7 @@ class MentorStudentManagementController extends ChangeNotifier {
   }
 
   MentorStudentManagementView get view => _view;
-  MentorStudentFormMode get formMode => _formMode;
+  EntityFormMode get formMode => _formMode;
 
   int? get countryIdFilter => _countryIdFilter;
   int? get courseIdFilter => _courseIdFilter;
@@ -76,7 +75,7 @@ class MentorStudentManagementController extends ChangeNotifier {
   }
 
   Student? get formStudent {
-    return _formMode == MentorStudentFormMode.edit ? selectedStudent : null;
+    return _formMode == EntityFormMode.edit ? selectedStudent : null;
   }
 
   Course? get filterCourse {
@@ -98,26 +97,35 @@ class MentorStudentManagementController extends ChangeNotifier {
   bool get canEdit => selectedStudent != null && !_isLoading && !_isSaving;
 
   Future<void> openList({required String accessToken}) async {
+    final request = beginRequest();
     _view = MentorStudentManagementView.list;
     _message = null;
     notifyListeners();
 
-    await loadCourses(accessToken: accessToken);
-    await loadStudents(accessToken: accessToken);
+    await loadCourses(accessToken: accessToken, requestRevision: request);
+    if (!requestIsCurrent(request) || _message != null) return;
+
+    await loadStudents(accessToken: accessToken, requestRevision: request);
   }
 
-  Future<void> loadStudents({required String accessToken}) async {
+  Future<void> loadStudents({
+    required String accessToken,
+    int? requestRevision,
+  }) async {
+    final request = requestRevision ?? beginRequest();
     _isLoading = true;
     _message = null;
     notifyListeners();
 
     final result = await _studentApi.fetchStudents(
       accessToken: accessToken,
-      activeOnly: true,
+      activeOnly: false,
     );
 
+    if (!requestIsCurrent(request)) return;
+
     if (result.students != null) {
-      _students = result.students!;
+      _students = result.students!.where((student) => student.active).toList();
       _clearSelectionIfHidden();
     } else {
       _message = result.message ?? _messageForStudentFailure(result.failure);
@@ -127,7 +135,11 @@ class MentorStudentManagementController extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> loadCourses({required String accessToken}) async {
+  Future<void> loadCourses({
+    required String accessToken,
+    int? requestRevision,
+  }) async {
+    final request = requestRevision ?? beginRequest();
     _isLoading = true;
     _message = null;
     notifyListeners();
@@ -136,6 +148,8 @@ class MentorStudentManagementController extends ChangeNotifier {
       accessToken: accessToken,
       activeOnly: false,
     );
+
+    if (!requestIsCurrent(request)) return;
 
     if (result.courses != null) {
       _courses = result.courses!;
@@ -152,7 +166,7 @@ class MentorStudentManagementController extends ChangeNotifier {
       return;
     }
 
-    _formMode = MentorStudentFormMode.add;
+    _formMode = EntityFormMode.add;
     _view = MentorStudentManagementView.form;
     _message = null;
     notifyListeners();
@@ -165,7 +179,7 @@ class MentorStudentManagementController extends ChangeNotifier {
       return;
     }
 
-    _formMode = MentorStudentFormMode.edit;
+    _formMode = EntityFormMode.edit;
     _view = MentorStudentManagementView.form;
     _message = null;
     notifyListeners();
@@ -198,7 +212,10 @@ class MentorStudentManagementController extends ChangeNotifier {
   }
 
   void selectStudent(int studentId) {
-    if (_selectedStudentId == studentId) {
+    if (_isLoading ||
+        _isSaving ||
+        _selectedStudentId == studentId ||
+        !_students.any((student) => student.id == studentId)) {
       return;
     }
 
@@ -216,7 +233,7 @@ class MentorStudentManagementController extends ChangeNotifier {
   }
 
   bool requiresUnassignmentWarning(List<int> courseIds) {
-    return _formMode == MentorStudentFormMode.edit &&
+    return _formMode == EntityFormMode.edit &&
         selectedStudent != null &&
         selectedStudent!.courseIds.isNotEmpty &&
         courseIds.isEmpty;
@@ -226,12 +243,15 @@ class MentorStudentManagementController extends ChangeNotifier {
     required String accessToken,
     required MentorStudentCreateRequest request,
   }) async {
+    if (_isLoading || _isSaving) return false;
+
     if (request.courseIds.isEmpty) {
       _message = 'Assign the student to at least one course.';
       notifyListeners();
       return false;
     }
 
+    final operation = beginRequest();
     _isSaving = true;
     _message = null;
     notifyListeners();
@@ -241,11 +261,13 @@ class MentorStudentManagementController extends ChangeNotifier {
       request: request,
     );
 
+    if (!requestIsCurrent(operation)) return false;
+
     if (result.student != null) {
+      _replaceStudent(result.student!);
       _selectedStudentId = result.student!.id;
       _view = MentorStudentManagementView.list;
-
-      await loadStudents(accessToken: accessToken);
+      _clearSelectionIfHidden();
 
       _isSaving = false;
       notifyListeners();
@@ -264,6 +286,9 @@ class MentorStudentManagementController extends ChangeNotifier {
     required int studentId,
     required MentorStudentUpdateRequest request,
   }) async {
+    if (_isLoading || _isSaving) return false;
+
+    final operation = beginRequest();
     _isSaving = true;
     _message = null;
     notifyListeners();
@@ -274,11 +299,13 @@ class MentorStudentManagementController extends ChangeNotifier {
       request: request,
     );
 
+    if (!requestIsCurrent(operation)) return false;
+
     if (result.student != null) {
+      _replaceStudent(result.student!);
       _selectedStudentId = result.student!.id;
       _view = MentorStudentManagementView.list;
-
-      await loadStudents(accessToken: accessToken);
+      _clearSelectionIfHidden();
 
       _isSaving = false;
       notifyListeners();
@@ -302,10 +329,11 @@ class MentorStudentManagementController extends ChangeNotifier {
   }
 
   void reset() {
+    invalidateRequests();
     _students = [];
     _courses = [];
     _view = MentorStudentManagementView.list;
-    _formMode = MentorStudentFormMode.add;
+    _formMode = EntityFormMode.add;
     _countryIdFilter = null;
     _courseIdFilter = null;
     _selectedStudentId = null;
@@ -313,6 +341,23 @@ class MentorStudentManagementController extends ChangeNotifier {
     _isSaving = false;
     _message = null;
     notifyListeners();
+  }
+
+  void _replaceStudent(Student updatedStudent) {
+    final index = _students.indexWhere(
+      (student) => student.id == updatedStudent.id,
+    );
+
+    if (index == -1) {
+      _students = [..._students, updatedStudent];
+      return;
+    }
+
+    _students = [
+      ..._students.sublist(0, index),
+      updatedStudent,
+      ..._students.sublist(index + 1),
+    ];
   }
 
   void _clearSelectionIfHidden() {
