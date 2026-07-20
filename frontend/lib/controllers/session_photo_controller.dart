@@ -329,6 +329,7 @@ class SessionPhotoController extends FeatureController {
       SharedSessionPhotoFailure.unauthorized => 'Login expired.',
       SharedSessionPhotoFailure.forbidden => 'Photo access denied.',
       SharedSessionPhotoFailure.notFound => 'Session or course not found.',
+      SharedSessionPhotoFailure.invalidData => 'Invalid server data.',
       SharedSessionPhotoFailure.serverError => 'Server error.',
       SharedSessionPhotoFailure.networkError => 'Cannot connect to server.',
       null => 'Unknown error.',
@@ -345,6 +346,7 @@ class SessionPhotoController extends FeatureController {
       MentorSessionPhotoFailure.notFound => 'Session log not found.',
       MentorSessionPhotoFailure.conflict =>
         'Photos have already been submitted.',
+      MentorSessionPhotoFailure.invalidData => 'Invalid server data.',
       MentorSessionPhotoFailure.serverError => 'Server error.',
       MentorSessionPhotoFailure.networkError => 'Cannot connect to server.',
       null => 'Unknown error.',
@@ -358,6 +360,7 @@ class SessionPhotoController extends FeatureController {
       SharedCourseFailure.forbidden => 'Course access denied.',
       SharedCourseFailure.notFound => 'Course not found.',
       SharedCourseFailure.conflict => 'Course conflict.',
+      SharedCourseFailure.invalidData => 'Invalid server data.',
       SharedCourseFailure.serverError => 'Server error.',
       SharedCourseFailure.networkError => 'Cannot connect to server.',
       null => 'Unknown error.',

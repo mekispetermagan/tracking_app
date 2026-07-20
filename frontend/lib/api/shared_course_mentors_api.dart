@@ -1,8 +1,8 @@
-import 'dart:convert';
-
 import 'package:http/http.dart' as http;
 
 import '../config/api_config.dart';
+import '_api_support.dart';
+import 'api_result.dart';
 import '../models/models.dart';
 
 enum SharedCourseMentorsFailure {
@@ -11,12 +11,17 @@ enum SharedCourseMentorsFailure {
   forbidden,
   notFound,
   serverError,
+  invalidData,
   networkError,
 }
 
-class SharedCourseMentorListResult {
+class SharedCourseMentorListResult
+    extends ApiResult<List<SharedMentor>, SharedCourseMentorsFailure> {
   final List<SharedMentor>? mentors;
+
+  @override
   final SharedCourseMentorsFailure? failure;
+  @override
   final String? message;
 
   const SharedCourseMentorListResult.success({required this.mentors})
@@ -30,6 +35,11 @@ class SharedCourseMentorListResult {
 }
 
 class SharedCourseMentorsApi {
+  final http.Client _client;
+
+  SharedCourseMentorsApi({http.Client? client})
+    : _client = client ?? http.Client();
+
   Future<SharedCourseMentorListResult> fetchCourseMentors({
     required String accessToken,
     required int courseId,
@@ -39,9 +49,12 @@ class SharedCourseMentorsApi {
     ).replace(queryParameters: {'course_id': courseId.toString()});
 
     try {
-      final response = await http.get(uri, headers: _headers(accessToken));
+      final response = await _client.get(
+        uri,
+        headers: authenticatedHeaders(accessToken, json: true),
+      );
 
-      final data = jsonDecode(response.body);
+      final data = decodeJsonBody(response.body);
 
       if (response.statusCode == 200) {
         final mentors = (data as List<dynamic>)
@@ -53,20 +66,18 @@ class SharedCourseMentorsApi {
 
       return SharedCourseMentorListResult.failure(
         failure: _failureFromStatusCode(response.statusCode),
-        message: _detailFromJson(data),
+        message: apiDetail(data),
       );
-    } catch (_) {
+    } catch (error) {
+      if (isInvalidApiData(error)) {
+        return const SharedCourseMentorListResult.failure(
+          failure: SharedCourseMentorsFailure.invalidData,
+        );
+      }
       return const SharedCourseMentorListResult.failure(
         failure: SharedCourseMentorsFailure.networkError,
       );
     }
-  }
-
-  Map<String, String> _headers(String accessToken) {
-    return {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer $accessToken',
-    };
   }
 
   SharedCourseMentorsFailure _failureFromStatusCode(int statusCode) {
@@ -77,13 +88,5 @@ class SharedCourseMentorsApi {
       404 => SharedCourseMentorsFailure.notFound,
       _ => SharedCourseMentorsFailure.serverError,
     };
-  }
-
-  String? _detailFromJson(dynamic data) {
-    if (data is Map<String, dynamic>) {
-      return data['detail']?.toString();
-    }
-
-    return null;
   }
 }

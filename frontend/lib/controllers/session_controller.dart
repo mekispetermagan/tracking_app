@@ -373,6 +373,7 @@ class SessionController extends FeatureController {
     return switch (failure) {
       AuthFailure.badCredentials => 'Bad phone or PIN.',
       AuthFailure.temporarySecretExpired => 'Temporary PIN expired.',
+      AuthFailure.invalidData => 'Invalid server data.',
       AuthFailure.serverError => 'Server error.',
       AuthFailure.networkError => 'Cannot connect to server.',
     };
@@ -382,6 +383,7 @@ class SessionController extends FeatureController {
     return switch (failure) {
       AuthFailure.badCredentials => 'Bad phone or password.',
       AuthFailure.temporarySecretExpired => 'Temporary password expired.',
+      AuthFailure.invalidData => 'Invalid server data.',
       AuthFailure.serverError => 'Server error.',
       AuthFailure.networkError => 'Cannot connect to server.',
     };
@@ -392,6 +394,7 @@ class SessionController extends FeatureController {
       AuthFailure.badCredentials =>
         'Setup session expired. Please log in again.',
       AuthFailure.temporarySecretExpired => 'Temporary PIN expired.',
+      AuthFailure.invalidData => 'Invalid server data.',
       AuthFailure.serverError => 'Server error.',
       AuthFailure.networkError => 'Cannot connect to server.',
     };
@@ -402,6 +405,7 @@ class SessionController extends FeatureController {
       AuthFailure.badCredentials =>
         'Setup session expired. Please log in again.',
       AuthFailure.temporarySecretExpired => 'Temporary password expired.',
+      AuthFailure.invalidData => 'Invalid server data.',
       AuthFailure.serverError => 'Server error.',
       AuthFailure.networkError => 'Cannot connect to server.',
     };

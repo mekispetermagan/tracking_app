@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import '../config/api_config.dart';
+import '_api_support.dart';
+import 'api_result.dart';
 import '../models/models.dart';
 
 enum SharedStudentFailure {
@@ -12,12 +14,17 @@ enum SharedStudentFailure {
   notFound,
   conflict,
   serverError,
+  invalidData,
   networkError,
 }
 
-class SharedStudentListResult {
+class SharedStudentListResult
+    extends ApiResult<List<Student>, SharedStudentFailure> {
   final List<Student>? students;
+
+  @override
   final SharedStudentFailure? failure;
+  @override
   final String? message;
 
   const SharedStudentListResult.success({required this.students})
@@ -28,9 +35,12 @@ class SharedStudentListResult {
     : students = null;
 }
 
-class SharedStudentResult {
+class SharedStudentResult extends ApiResult<Student, SharedStudentFailure> {
   final Student? student;
+
+  @override
   final SharedStudentFailure? failure;
+  @override
   final String? message;
 
   const SharedStudentResult.success({required this.student})
@@ -42,6 +52,10 @@ class SharedStudentResult {
 }
 
 class SharedStudentApi {
+  final http.Client _client;
+
+  SharedStudentApi({http.Client? client}) : _client = client ?? http.Client();
+
   Future<SharedStudentListResult> fetchStudents({
     required String accessToken,
     bool activeOnly = true,
@@ -60,8 +74,11 @@ class SharedStudentApi {
     ).replace(queryParameters: queryParameters);
 
     try {
-      final response = await http.get(uri, headers: _headers(accessToken));
-      final data = jsonDecode(response.body);
+      final response = await _client.get(
+        uri,
+        headers: authenticatedHeaders(accessToken, json: true),
+      );
+      final data = decodeJsonBody(response.body);
 
       if (response.statusCode == 200) {
         final students = (data as List<dynamic>)
@@ -73,9 +90,14 @@ class SharedStudentApi {
 
       return SharedStudentListResult.failure(
         failure: _failureFromStatusCode(response.statusCode),
-        message: _detailFromJson(data),
+        message: apiDetail(data),
       );
-    } catch (_) {
+    } catch (error) {
+      if (isInvalidApiData(error)) {
+        return const SharedStudentListResult.failure(
+          failure: SharedStudentFailure.invalidData,
+        );
+      }
       return const SharedStudentListResult.failure(
         failure: SharedStudentFailure.networkError,
       );
@@ -91,8 +113,11 @@ class SharedStudentApi {
     );
 
     try {
-      final response = await http.get(uri, headers: _headers(accessToken));
-      final data = jsonDecode(response.body);
+      final response = await _client.get(
+        uri,
+        headers: authenticatedHeaders(accessToken, json: true),
+      );
+      final data = decodeJsonBody(response.body);
 
       if (response.statusCode == 200) {
         return SharedStudentResult.success(
@@ -102,9 +127,14 @@ class SharedStudentApi {
 
       return SharedStudentResult.failure(
         failure: _failureFromStatusCode(response.statusCode),
-        message: _detailFromJson(data),
+        message: apiDetail(data),
       );
-    } catch (_) {
+    } catch (error) {
+      if (isInvalidApiData(error)) {
+        return const SharedStudentResult.failure(
+          failure: SharedStudentFailure.invalidData,
+        );
+      }
       return const SharedStudentResult.failure(
         failure: SharedStudentFailure.networkError,
       );
@@ -156,13 +186,13 @@ class SharedStudentApi {
     final uri = Uri.parse('${ApiConfig.baseUrl}/api/shared/students');
 
     try {
-      final response = await http.post(
+      final response = await _client.post(
         uri,
-        headers: _headers(accessToken),
+        headers: authenticatedHeaders(accessToken, json: true),
         body: jsonEncode(body),
       );
 
-      final data = jsonDecode(response.body);
+      final data = decodeJsonBody(response.body);
 
       if (response.statusCode == 200) {
         return SharedStudentResult.success(
@@ -172,9 +202,14 @@ class SharedStudentApi {
 
       return SharedStudentResult.failure(
         failure: _failureFromStatusCode(response.statusCode),
-        message: _detailFromJson(data),
+        message: apiDetail(data),
       );
-    } catch (_) {
+    } catch (error) {
+      if (isInvalidApiData(error)) {
+        return const SharedStudentResult.failure(
+          failure: SharedStudentFailure.invalidData,
+        );
+      }
       return const SharedStudentResult.failure(
         failure: SharedStudentFailure.networkError,
       );
@@ -191,13 +226,13 @@ class SharedStudentApi {
     );
 
     try {
-      final response = await http.put(
+      final response = await _client.put(
         uri,
-        headers: _headers(accessToken),
+        headers: authenticatedHeaders(accessToken, json: true),
         body: jsonEncode(body),
       );
 
-      final data = jsonDecode(response.body);
+      final data = decodeJsonBody(response.body);
 
       if (response.statusCode == 200) {
         return SharedStudentResult.success(
@@ -207,20 +242,18 @@ class SharedStudentApi {
 
       return SharedStudentResult.failure(
         failure: _failureFromStatusCode(response.statusCode),
-        message: _detailFromJson(data),
+        message: apiDetail(data),
       );
-    } catch (_) {
+    } catch (error) {
+      if (isInvalidApiData(error)) {
+        return const SharedStudentResult.failure(
+          failure: SharedStudentFailure.invalidData,
+        );
+      }
       return const SharedStudentResult.failure(
         failure: SharedStudentFailure.networkError,
       );
     }
-  }
-
-  Map<String, String> _headers(String accessToken) {
-    return {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer $accessToken',
-    };
   }
 
   SharedStudentFailure _failureFromStatusCode(int statusCode) {
@@ -232,13 +265,5 @@ class SharedStudentApi {
       409 => SharedStudentFailure.conflict,
       _ => SharedStudentFailure.serverError,
     };
-  }
-
-  String? _detailFromJson(dynamic data) {
-    if (data is Map<String, dynamic>) {
-      return data['detail']?.toString();
-    }
-
-    return null;
   }
 }

@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import '../config/api_config.dart';
+import '_api_support.dart';
+import 'api_result.dart';
 import '../models/models.dart';
 
 enum MentorSessionLogFailure {
@@ -12,12 +14,17 @@ enum MentorSessionLogFailure {
   notFound,
   conflict,
   serverError,
+  invalidData,
   networkError,
 }
 
-class MentorSessionLogListResult {
+class MentorSessionLogListResult
+    extends ApiResult<List<SessionLog>, MentorSessionLogFailure> {
   final List<SessionLog>? sessionLogs;
+
+  @override
   final MentorSessionLogFailure? failure;
+  @override
   final String? message;
 
   const MentorSessionLogListResult.success({required this.sessionLogs})
@@ -30,9 +37,13 @@ class MentorSessionLogListResult {
   }) : sessionLogs = null;
 }
 
-class MentorSessionLogResult {
+class MentorSessionLogResult
+    extends ApiResult<SessionLog, MentorSessionLogFailure> {
   final SessionLog? sessionLog;
+
+  @override
   final MentorSessionLogFailure? failure;
+  @override
   final String? message;
 
   const MentorSessionLogResult.success({required this.sessionLog})
@@ -44,14 +55,22 @@ class MentorSessionLogResult {
 }
 
 class MentorSessionLogApi {
+  final http.Client _client;
+
+  MentorSessionLogApi({http.Client? client})
+    : _client = client ?? http.Client();
+
   Future<MentorSessionLogListResult> fetchAvailableSessionLogs({
     required String accessToken,
   }) async {
     final uri = Uri.parse('${ApiConfig.baseUrl}/api/mentor/session-logs');
 
     try {
-      final response = await http.get(uri, headers: _headers(accessToken));
-      final data = jsonDecode(response.body);
+      final response = await _client.get(
+        uri,
+        headers: authenticatedHeaders(accessToken, json: true),
+      );
+      final data = decodeJsonBody(response.body);
 
       if (response.statusCode == 200) {
         final sessionLogs = (data as List<dynamic>)
@@ -63,9 +82,14 @@ class MentorSessionLogApi {
 
       return MentorSessionLogListResult.failure(
         failure: _failureFromStatusCode(response.statusCode),
-        message: _detailFromJson(data),
+        message: apiDetail(data),
       );
-    } catch (_) {
+    } catch (error) {
+      if (isInvalidApiData(error)) {
+        return const MentorSessionLogListResult.failure(
+          failure: MentorSessionLogFailure.invalidData,
+        );
+      }
       return const MentorSessionLogListResult.failure(
         failure: MentorSessionLogFailure.networkError,
       );
@@ -79,12 +103,12 @@ class MentorSessionLogApi {
     final uri = Uri.parse('${ApiConfig.baseUrl}/api/mentor/session-logs');
 
     try {
-      final response = await http.post(
+      final response = await _client.post(
         uri,
-        headers: _headers(accessToken),
+        headers: authenticatedHeaders(accessToken, json: true),
         body: jsonEncode(request.toJson()),
       );
-      final data = jsonDecode(response.body);
+      final data = decodeJsonBody(response.body);
 
       if (response.statusCode == 201) {
         return MentorSessionLogResult.success(
@@ -94,20 +118,18 @@ class MentorSessionLogApi {
 
       return MentorSessionLogResult.failure(
         failure: _failureFromStatusCode(response.statusCode),
-        message: _detailFromJson(data),
+        message: apiDetail(data),
       );
-    } catch (_) {
+    } catch (error) {
+      if (isInvalidApiData(error)) {
+        return const MentorSessionLogResult.failure(
+          failure: MentorSessionLogFailure.invalidData,
+        );
+      }
       return const MentorSessionLogResult.failure(
         failure: MentorSessionLogFailure.networkError,
       );
     }
-  }
-
-  Map<String, String> _headers(String accessToken) {
-    return {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer $accessToken',
-    };
   }
 
   MentorSessionLogFailure _failureFromStatusCode(int statusCode) {
@@ -119,13 +141,5 @@ class MentorSessionLogApi {
       409 => MentorSessionLogFailure.conflict,
       _ => MentorSessionLogFailure.serverError,
     };
-  }
-
-  String? _detailFromJson(dynamic data) {
-    if (data is Map<String, dynamic>) {
-      return data['detail']?.toString();
-    }
-
-    return null;
   }
 }

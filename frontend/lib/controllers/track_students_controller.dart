@@ -158,6 +158,7 @@ class TrackStudentsController extends FeatureController {
       SharedStudentFailure.forbidden => 'Student access denied.',
       SharedStudentFailure.notFound => 'Student not found.',
       SharedStudentFailure.conflict => 'Student conflict.',
+      SharedStudentFailure.invalidData => 'Invalid server data.',
       SharedStudentFailure.serverError => 'Server error.',
       SharedStudentFailure.networkError => 'Cannot connect to server.',
       null => 'Unknown error.',

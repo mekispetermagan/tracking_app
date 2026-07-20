@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import '../config/api_config.dart';
+import '_api_support.dart';
+import 'api_result.dart';
 import '../models/models.dart';
 
 enum AdminMentorFailure {
@@ -12,12 +14,17 @@ enum AdminMentorFailure {
   notFound,
   conflict,
   serverError,
+  invalidData,
   networkError,
 }
 
-class AdminMentorListResult {
+class AdminMentorListResult
+    extends ApiResult<List<Mentor>, AdminMentorFailure> {
   final List<Mentor>? mentors;
+
+  @override
   final AdminMentorFailure? failure;
+  @override
   final String? message;
 
   const AdminMentorListResult.success({required this.mentors})
@@ -28,9 +35,12 @@ class AdminMentorListResult {
     : mentors = null;
 }
 
-class AdminMentorResult {
+class AdminMentorResult extends ApiResult<Mentor, AdminMentorFailure> {
   final Mentor? mentor;
+
+  @override
   final AdminMentorFailure? failure;
+  @override
   final String? message;
 
   const AdminMentorResult.success({required this.mentor})
@@ -42,6 +52,10 @@ class AdminMentorResult {
 }
 
 class AdminMentorApi {
+  final http.Client _client;
+
+  AdminMentorApi({http.Client? client}) : _client = client ?? http.Client();
+
   Future<AdminMentorListResult> fetchMentors({
     required String accessToken,
     bool activeOnly = false,
@@ -51,8 +65,11 @@ class AdminMentorApi {
     ).replace(queryParameters: {if (activeOnly) 'active_only': 'true'});
 
     try {
-      final response = await http.get(uri, headers: _headers(accessToken));
-      final data = jsonDecode(response.body);
+      final response = await _client.get(
+        uri,
+        headers: authenticatedHeaders(accessToken, json: true),
+      );
+      final data = decodeJsonBody(response.body);
 
       if (response.statusCode == 200) {
         final mentors = (data as List<dynamic>)
@@ -64,9 +81,14 @@ class AdminMentorApi {
 
       return AdminMentorListResult.failure(
         failure: _failureFromStatusCode(response.statusCode),
-        message: _detailFromJson(data),
+        message: apiDetail(data),
       );
-    } catch (_) {
+    } catch (error) {
+      if (isInvalidApiData(error)) {
+        return const AdminMentorListResult.failure(
+          failure: AdminMentorFailure.invalidData,
+        );
+      }
       return const AdminMentorListResult.failure(
         failure: AdminMentorFailure.networkError,
       );
@@ -80,8 +102,11 @@ class AdminMentorApi {
     final uri = Uri.parse('${ApiConfig.baseUrl}/api/admin/mentors/$mentorId');
 
     try {
-      final response = await http.get(uri, headers: _headers(accessToken));
-      final data = jsonDecode(response.body);
+      final response = await _client.get(
+        uri,
+        headers: authenticatedHeaders(accessToken, json: true),
+      );
+      final data = decodeJsonBody(response.body);
 
       if (response.statusCode == 200) {
         return AdminMentorResult.success(
@@ -91,9 +116,14 @@ class AdminMentorApi {
 
       return AdminMentorResult.failure(
         failure: _failureFromStatusCode(response.statusCode),
-        message: _detailFromJson(data),
+        message: apiDetail(data),
       );
-    } catch (_) {
+    } catch (error) {
+      if (isInvalidApiData(error)) {
+        return const AdminMentorResult.failure(
+          failure: AdminMentorFailure.invalidData,
+        );
+      }
       return const AdminMentorResult.failure(
         failure: AdminMentorFailure.networkError,
       );
@@ -107,13 +137,13 @@ class AdminMentorApi {
     final uri = Uri.parse('${ApiConfig.baseUrl}/api/admin/mentors');
 
     try {
-      final response = await http.post(
+      final response = await _client.post(
         uri,
-        headers: _headers(accessToken),
+        headers: authenticatedHeaders(accessToken, json: true),
         body: jsonEncode(request.toJson()),
       );
 
-      final data = jsonDecode(response.body);
+      final data = decodeJsonBody(response.body);
 
       if (response.statusCode == 200) {
         return AdminMentorResult.success(
@@ -123,9 +153,14 @@ class AdminMentorApi {
 
       return AdminMentorResult.failure(
         failure: _failureFromStatusCode(response.statusCode),
-        message: _detailFromJson(data),
+        message: apiDetail(data),
       );
-    } catch (_) {
+    } catch (error) {
+      if (isInvalidApiData(error)) {
+        return const AdminMentorResult.failure(
+          failure: AdminMentorFailure.invalidData,
+        );
+      }
       return const AdminMentorResult.failure(
         failure: AdminMentorFailure.networkError,
       );
@@ -140,13 +175,13 @@ class AdminMentorApi {
     final uri = Uri.parse('${ApiConfig.baseUrl}/api/admin/mentors/$mentorId');
 
     try {
-      final response = await http.put(
+      final response = await _client.put(
         uri,
-        headers: _headers(accessToken),
+        headers: authenticatedHeaders(accessToken, json: true),
         body: jsonEncode(request.toJson()),
       );
 
-      final data = jsonDecode(response.body);
+      final data = decodeJsonBody(response.body);
 
       if (response.statusCode == 200) {
         return AdminMentorResult.success(
@@ -156,9 +191,14 @@ class AdminMentorApi {
 
       return AdminMentorResult.failure(
         failure: _failureFromStatusCode(response.statusCode),
-        message: _detailFromJson(data),
+        message: apiDetail(data),
       );
-    } catch (_) {
+    } catch (error) {
+      if (isInvalidApiData(error)) {
+        return const AdminMentorResult.failure(
+          failure: AdminMentorFailure.invalidData,
+        );
+      }
       return const AdminMentorResult.failure(
         failure: AdminMentorFailure.networkError,
       );
@@ -174,8 +214,11 @@ class AdminMentorApi {
     );
 
     try {
-      final response = await http.post(uri, headers: _headers(accessToken));
-      final data = jsonDecode(response.body);
+      final response = await _client.post(
+        uri,
+        headers: authenticatedHeaders(accessToken, json: true),
+      );
+      final data = decodeJsonBody(response.body);
 
       if (response.statusCode == 200) {
         return AdminMentorResult.success(
@@ -185,9 +228,14 @@ class AdminMentorApi {
 
       return AdminMentorResult.failure(
         failure: _failureFromStatusCode(response.statusCode),
-        message: _detailFromJson(data),
+        message: apiDetail(data),
       );
-    } catch (_) {
+    } catch (error) {
+      if (isInvalidApiData(error)) {
+        return const AdminMentorResult.failure(
+          failure: AdminMentorFailure.invalidData,
+        );
+      }
       return const AdminMentorResult.failure(
         failure: AdminMentorFailure.networkError,
       );
@@ -204,13 +252,13 @@ class AdminMentorApi {
     );
 
     try {
-      final response = await http.post(
+      final response = await _client.post(
         uri,
-        headers: _headers(accessToken),
+        headers: authenticatedHeaders(accessToken, json: true),
         body: jsonEncode(request.toJson()),
       );
 
-      final data = jsonDecode(response.body);
+      final data = decodeJsonBody(response.body);
 
       if (response.statusCode == 200) {
         return AdminMentorResult.success(
@@ -220,20 +268,18 @@ class AdminMentorApi {
 
       return AdminMentorResult.failure(
         failure: _failureFromStatusCode(response.statusCode),
-        message: _detailFromJson(data),
+        message: apiDetail(data),
       );
-    } catch (_) {
+    } catch (error) {
+      if (isInvalidApiData(error)) {
+        return const AdminMentorResult.failure(
+          failure: AdminMentorFailure.invalidData,
+        );
+      }
       return const AdminMentorResult.failure(
         failure: AdminMentorFailure.networkError,
       );
     }
-  }
-
-  Map<String, String> _headers(String accessToken) {
-    return {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer $accessToken',
-    };
   }
 
   AdminMentorFailure _failureFromStatusCode(int statusCode) {
@@ -245,13 +291,5 @@ class AdminMentorApi {
       409 => AdminMentorFailure.conflict,
       _ => AdminMentorFailure.serverError,
     };
-  }
-
-  String? _detailFromJson(dynamic data) {
-    if (data is Map<String, dynamic>) {
-      return data['detail']?.toString();
-    }
-
-    return null;
   }
 }

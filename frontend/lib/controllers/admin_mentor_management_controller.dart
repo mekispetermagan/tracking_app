@@ -394,6 +394,7 @@ class AdminMentorManagementController extends FeatureController {
       AdminMentorFailure.forbidden => 'Admin access required.',
       AdminMentorFailure.notFound => 'Mentor not found.',
       AdminMentorFailure.conflict => 'Phone number already exists.',
+      AdminMentorFailure.invalidData => 'Invalid server data.',
       AdminMentorFailure.serverError => 'Server error.',
       AdminMentorFailure.networkError => 'Cannot connect to server.',
       null => 'Unknown error.',

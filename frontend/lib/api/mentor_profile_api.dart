@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import '../config/api_config.dart';
+import '_api_support.dart';
+import 'api_result.dart';
 import '../models/models.dart';
 
 enum MentorProfileFailure {
@@ -11,12 +13,16 @@ enum MentorProfileFailure {
   forbidden,
   conflict,
   serverError,
+  invalidData,
   networkError,
 }
 
-class MentorProfileResult {
+class MentorProfileResult extends ApiResult<Mentor, MentorProfileFailure> {
   final Mentor? mentor;
+
+  @override
   final MentorProfileFailure? failure;
+  @override
   final String? message;
 
   const MentorProfileResult.success({required this.mentor})
@@ -27,9 +33,11 @@ class MentorProfileResult {
     : mentor = null;
 }
 
-class MentorPinChangeResult {
+class MentorPinChangeResult extends ApiResult<bool, MentorProfileFailure> {
   final bool success;
+  @override
   final MentorProfileFailure? failure;
+  @override
   final String? message;
 
   const MentorPinChangeResult.success()
@@ -42,15 +50,22 @@ class MentorPinChangeResult {
 }
 
 class MentorProfileApi {
+  final http.Client _client;
+
+  MentorProfileApi({http.Client? client}) : _client = client ?? http.Client();
+
   Future<MentorProfileResult> fetchMyProfile({
     required String accessToken,
   }) async {
     final uri = Uri.parse('${ApiConfig.baseUrl}/api/mentor/me');
 
     try {
-      final response = await http.get(uri, headers: _headers(accessToken));
+      final response = await _client.get(
+        uri,
+        headers: authenticatedHeaders(accessToken, json: true),
+      );
 
-      final data = jsonDecode(response.body);
+      final data = decodeJsonBody(response.body);
 
       if (response.statusCode == 200) {
         return MentorProfileResult.success(
@@ -60,9 +75,14 @@ class MentorProfileApi {
 
       return MentorProfileResult.failure(
         failure: _failureFromStatusCode(response.statusCode),
-        message: _detailFromJson(data),
+        message: apiDetail(data),
       );
-    } catch (_) {
+    } catch (error) {
+      if (isInvalidApiData(error)) {
+        return const MentorProfileResult.failure(
+          failure: MentorProfileFailure.invalidData,
+        );
+      }
       return const MentorProfileResult.failure(
         failure: MentorProfileFailure.networkError,
       );
@@ -76,13 +96,13 @@ class MentorProfileApi {
     final uri = Uri.parse('${ApiConfig.baseUrl}/api/mentor/me');
 
     try {
-      final response = await http.put(
+      final response = await _client.put(
         uri,
-        headers: _headers(accessToken),
+        headers: authenticatedHeaders(accessToken, json: true),
         body: jsonEncode(request.toJson()),
       );
 
-      final data = jsonDecode(response.body);
+      final data = decodeJsonBody(response.body);
 
       if (response.statusCode == 200) {
         return MentorProfileResult.success(
@@ -92,9 +112,14 @@ class MentorProfileApi {
 
       return MentorProfileResult.failure(
         failure: _failureFromStatusCode(response.statusCode),
-        message: _detailFromJson(data),
+        message: apiDetail(data),
       );
-    } catch (_) {
+    } catch (error) {
+      if (isInvalidApiData(error)) {
+        return const MentorProfileResult.failure(
+          failure: MentorProfileFailure.invalidData,
+        );
+      }
       return const MentorProfileResult.failure(
         failure: MentorProfileFailure.networkError,
       );
@@ -108,9 +133,9 @@ class MentorProfileApi {
     final uri = Uri.parse('${ApiConfig.baseUrl}/api/mentor/me/pin');
 
     try {
-      final response = await http.put(
+      final response = await _client.put(
         uri,
-        headers: _headers(accessToken),
+        headers: authenticatedHeaders(accessToken, json: true),
         body: jsonEncode(request.toJson()),
       );
 
@@ -118,24 +143,22 @@ class MentorProfileApi {
         return const MentorPinChangeResult.success();
       }
 
-      final data = response.body.isEmpty ? null : jsonDecode(response.body);
+      final data = response.body.isEmpty ? null : decodeJsonBody(response.body);
 
       return MentorPinChangeResult.failure(
         failure: _failureFromStatusCode(response.statusCode),
-        message: _detailFromJson(data),
+        message: apiDetail(data),
       );
-    } catch (_) {
+    } catch (error) {
+      if (isInvalidApiData(error)) {
+        return const MentorPinChangeResult.failure(
+          failure: MentorProfileFailure.invalidData,
+        );
+      }
       return const MentorPinChangeResult.failure(
         failure: MentorProfileFailure.networkError,
       );
     }
-  }
-
-  Map<String, String> _headers(String accessToken) {
-    return {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer $accessToken',
-    };
   }
 
   MentorProfileFailure _failureFromStatusCode(int statusCode) {
@@ -146,13 +169,5 @@ class MentorProfileApi {
       409 => MentorProfileFailure.conflict,
       _ => MentorProfileFailure.serverError,
     };
-  }
-
-  String? _detailFromJson(dynamic data) {
-    if (data is Map<String, dynamic>) {
-      return data['detail']?.toString();
-    }
-
-    return null;
   }
 }

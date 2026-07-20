@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import '../config/api_config.dart';
+import '_api_support.dart';
+import 'api_result.dart';
 import '../models/models.dart';
 
 enum AdminCourseFailure {
@@ -12,12 +14,16 @@ enum AdminCourseFailure {
   notFound,
   conflict,
   serverError,
+  invalidData,
   networkError,
 }
 
-class AdminCourseResult {
+class AdminCourseResult extends ApiResult<Course, AdminCourseFailure> {
   final Course? course;
+
+  @override
   final AdminCourseFailure? failure;
+  @override
   final String? message;
 
   const AdminCourseResult.success({required this.course})
@@ -29,6 +35,10 @@ class AdminCourseResult {
 }
 
 class AdminCourseApi {
+  final http.Client _client;
+
+  AdminCourseApi({http.Client? client}) : _client = client ?? http.Client();
+
   Future<AdminCourseResult> createCourse({
     required String accessToken,
     required CourseCreateRequest request,
@@ -36,13 +46,13 @@ class AdminCourseApi {
     final uri = Uri.parse('${ApiConfig.baseUrl}/api/admin/courses');
 
     try {
-      final response = await http.post(
+      final response = await _client.post(
         uri,
-        headers: _headers(accessToken),
+        headers: authenticatedHeaders(accessToken, json: true),
         body: jsonEncode(request.toJson()),
       );
 
-      final data = jsonDecode(response.body);
+      final data = decodeJsonBody(response.body);
 
       if (response.statusCode == 200) {
         return AdminCourseResult.success(
@@ -52,9 +62,14 @@ class AdminCourseApi {
 
       return AdminCourseResult.failure(
         failure: _failureFromStatusCode(response.statusCode),
-        message: _detailFromJson(data),
+        message: apiDetail(data),
       );
-    } catch (_) {
+    } catch (error) {
+      if (isInvalidApiData(error)) {
+        return const AdminCourseResult.failure(
+          failure: AdminCourseFailure.invalidData,
+        );
+      }
       return const AdminCourseResult.failure(
         failure: AdminCourseFailure.networkError,
       );
@@ -70,8 +85,11 @@ class AdminCourseApi {
     );
 
     try {
-      final response = await http.post(uri, headers: _headers(accessToken));
-      final data = jsonDecode(response.body);
+      final response = await _client.post(
+        uri,
+        headers: authenticatedHeaders(accessToken, json: true),
+      );
+      final data = decodeJsonBody(response.body);
 
       if (response.statusCode == 200) {
         return AdminCourseResult.success(
@@ -81,20 +99,18 @@ class AdminCourseApi {
 
       return AdminCourseResult.failure(
         failure: _failureFromStatusCode(response.statusCode),
-        message: _detailFromJson(data),
+        message: apiDetail(data),
       );
-    } catch (_) {
+    } catch (error) {
+      if (isInvalidApiData(error)) {
+        return const AdminCourseResult.failure(
+          failure: AdminCourseFailure.invalidData,
+        );
+      }
       return const AdminCourseResult.failure(
         failure: AdminCourseFailure.networkError,
       );
     }
-  }
-
-  Map<String, String> _headers(String accessToken) {
-    return {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer $accessToken',
-    };
   }
 
   AdminCourseFailure _failureFromStatusCode(int statusCode) {
@@ -106,13 +122,5 @@ class AdminCourseApi {
       409 => AdminCourseFailure.conflict,
       _ => AdminCourseFailure.serverError,
     };
-  }
-
-  String? _detailFromJson(dynamic data) {
-    if (data is Map<String, dynamic>) {
-      return data['detail']?.toString();
-    }
-
-    return null;
   }
 }

@@ -1,8 +1,8 @@
-import 'dart:convert';
-
 import 'package:http/http.dart' as http;
 
 import '../config/api_config.dart';
+import '_api_support.dart';
+import 'api_result.dart';
 import '../models/models.dart';
 
 enum SharedSessionPhotoFailure {
@@ -11,12 +11,17 @@ enum SharedSessionPhotoFailure {
   forbidden,
   notFound,
   serverError,
+  invalidData,
   networkError,
 }
 
-class SharedSessionPhotoListResult {
+class SharedSessionPhotoListResult
+    extends ApiResult<List<SessionPhoto>, SharedSessionPhotoFailure> {
   final List<SessionPhoto>? photos;
+
+  @override
   final SharedSessionPhotoFailure? failure;
+  @override
   final String? message;
 
   const SharedSessionPhotoListResult.success({required this.photos})
@@ -30,6 +35,11 @@ class SharedSessionPhotoListResult {
 }
 
 class SharedSessionPhotoApi {
+  final http.Client _client;
+
+  SharedSessionPhotoApi({http.Client? client})
+    : _client = client ?? http.Client();
+
   Future<SharedSessionPhotoListResult> fetchSessionPhotos({
     required String accessToken,
     required int sessionLogId,
@@ -59,9 +69,12 @@ class SharedSessionPhotoApi {
     required String accessToken,
   }) async {
     try {
-      final response = await http.get(uri, headers: _headers(accessToken));
+      final response = await _client.get(
+        uri,
+        headers: authenticatedHeaders(accessToken),
+      );
 
-      final data = jsonDecode(response.body);
+      final data = decodeJsonBody(response.body);
 
       if (response.statusCode == 200) {
         final photos = (data as List<dynamic>)
@@ -77,17 +90,18 @@ class SharedSessionPhotoApi {
 
       return SharedSessionPhotoListResult.failure(
         failure: _failureFromStatusCode(response.statusCode),
-        message: _detailFromJson(data),
+        message: apiDetail(data),
       );
-    } catch (_) {
+    } catch (error) {
+      if (isInvalidApiData(error)) {
+        return const SharedSessionPhotoListResult.failure(
+          failure: SharedSessionPhotoFailure.invalidData,
+        );
+      }
       return const SharedSessionPhotoListResult.failure(
         failure: SharedSessionPhotoFailure.networkError,
       );
     }
-  }
-
-  Map<String, String> _headers(String accessToken) {
-    return {'Authorization': 'Bearer $accessToken'};
   }
 
   Map<String, dynamic> _withAbsoluteUrl(Map<String, dynamic> json) {
@@ -95,7 +109,7 @@ class SharedSessionPhotoApi {
     final url = result['url'] as String;
 
     if (url.startsWith('/')) {
-      result['url'] = '${ApiConfig.baseUrl}$url';
+      result['url'] = absoluteApiUrl(url);
     }
 
     return result;
@@ -109,13 +123,5 @@ class SharedSessionPhotoApi {
       404 => SharedSessionPhotoFailure.notFound,
       _ => SharedSessionPhotoFailure.serverError,
     };
-  }
-
-  String? _detailFromJson(dynamic data) {
-    if (data is Map<String, dynamic>) {
-      return data['detail']?.toString();
-    }
-
-    return null;
   }
 }

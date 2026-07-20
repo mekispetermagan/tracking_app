@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import '../config/api_config.dart';
+import '_api_support.dart';
+import 'api_result.dart';
 
 enum AuthTokenPurpose { access, setup }
 
@@ -12,17 +14,20 @@ enum AuthFailure {
   badCredentials,
   temporarySecretExpired,
   serverError,
+  invalidData,
   networkError,
 }
 
-class AuthResult {
+class AuthResult extends ApiResult<AuthResult, AuthFailure> {
   final AuthTokenPurpose? tokenPurpose;
   final AuthMode? mode;
   final String? token;
   final String? firstName;
   final String? lastName;
   final String? preferredLanguage;
+  @override
   final AuthFailure? failure;
+  @override
   final String? message;
 
   const AuthResult.success({
@@ -45,6 +50,10 @@ class AuthResult {
 } // AuthResult
 
 class AuthApi {
+  final http.Client _client;
+
+  AuthApi({http.Client? client}) : _client = client ?? http.Client();
+
   Future<AuthResult> mentorLogin({required String phone, required String pin}) {
     return _postAuth(
       path: '/api/auth/mentor/login',
@@ -99,12 +108,12 @@ class AuthApi {
     final uri = Uri.parse('${ApiConfig.baseUrl}$path');
 
     try {
-      final response = await http.get(
+      final response = await _client.get(
         uri,
         headers: {'Authorization': 'Bearer $accessToken'},
       );
 
-      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      final data = decodeJsonBody(response.body) as Map<String, dynamic>;
 
       if (response.statusCode == 200) {
         return MeResult.success(
@@ -126,7 +135,10 @@ class AuthApi {
         failure: AuthFailure.serverError,
         message: data['detail']?.toString(),
       );
-    } catch (_) {
+    } catch (error) {
+      if (isInvalidApiData(error)) {
+        return const MeResult.failure(failure: AuthFailure.invalidData);
+      }
       return const MeResult.failure(failure: AuthFailure.networkError);
     }
   }
@@ -143,13 +155,13 @@ class AuthApi {
     };
 
     try {
-      final response = await http.post(
+      final response = await _client.post(
         uri,
         headers: headers,
         body: jsonEncode(body),
       );
 
-      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      final data = decodeJsonBody(response.body) as Map<String, dynamic>;
 
       if (response.statusCode == 200) {
         return AuthResult.success(
@@ -180,7 +192,10 @@ class AuthApi {
         failure: AuthFailure.serverError,
         message: data['detail']?.toString(),
       );
-    } catch (_) {
+    } catch (error) {
+      if (isInvalidApiData(error)) {
+        return const AuthResult.failure(failure: AuthFailure.invalidData);
+      }
       return const AuthResult.failure(failure: AuthFailure.networkError);
     }
   }
@@ -202,12 +217,14 @@ class AuthApi {
   }
 } // AuthApi
 
-class MeResult {
+class MeResult extends ApiResult<MeResult, AuthFailure> {
   final AuthMode? mode;
   final String? firstName;
   final String? lastName;
   final String? preferredLanguage;
+  @override
   final AuthFailure? failure;
+  @override
   final String? message;
 
   const MeResult.success({

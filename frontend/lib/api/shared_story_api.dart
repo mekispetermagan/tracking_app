@@ -1,15 +1,25 @@
-import 'dart:convert';
-
 import 'package:http/http.dart' as http;
 
 import '../config/api_config.dart';
+import '_api_support.dart';
+import 'api_result.dart';
 import '../models/models.dart';
 
-enum SharedStoryFailure { unauthorized, forbidden, serverError, networkError }
+enum SharedStoryFailure {
+  unauthorized,
+  forbidden,
+  serverError,
+  invalidData,
+  networkError,
+}
 
-class SharedStoryWinnerListResult {
+class SharedStoryWinnerListResult
+    extends ApiResult<List<StoryWinner>, SharedStoryFailure> {
   final List<StoryWinner>? winners;
+
+  @override
   final SharedStoryFailure? failure;
+  @override
   final String? message;
 
   const SharedStoryWinnerListResult.success({required this.winners})
@@ -23,14 +33,21 @@ class SharedStoryWinnerListResult {
 }
 
 class SharedStoryApi {
+  final http.Client _client;
+
+  SharedStoryApi({http.Client? client}) : _client = client ?? http.Client();
+
   Future<SharedStoryWinnerListResult> fetchWinnerArchive({
     required String accessToken,
   }) async {
     final uri = Uri.parse('${ApiConfig.baseUrl}/api/shared/story-winners');
 
     try {
-      final response = await http.get(uri, headers: _headers(accessToken));
-      final data = jsonDecode(response.body);
+      final response = await _client.get(
+        uri,
+        headers: authenticatedHeaders(accessToken, json: true),
+      );
+      final data = decodeJsonBody(response.body);
 
       if (response.statusCode == 200) {
         final winners = (data as List<dynamic>)
@@ -46,20 +63,18 @@ class SharedStoryApi {
 
       return SharedStoryWinnerListResult.failure(
         failure: _failureFromStatusCode(response.statusCode),
-        message: _detailFromJson(data),
+        message: apiDetail(data),
       );
-    } catch (_) {
+    } catch (error) {
+      if (isInvalidApiData(error)) {
+        return const SharedStoryWinnerListResult.failure(
+          failure: SharedStoryFailure.invalidData,
+        );
+      }
       return const SharedStoryWinnerListResult.failure(
         failure: SharedStoryFailure.networkError,
       );
     }
-  }
-
-  Map<String, String> _headers(String accessToken) {
-    return {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer $accessToken',
-    };
   }
 
   Map<String, dynamic> _winnerWithAbsolutePhotoUrl(Map<String, dynamic> json) {
@@ -76,7 +91,7 @@ class SharedStoryApi {
     final url = photo['url'] as String;
 
     if (url.startsWith('/')) {
-      photo['url'] = '${ApiConfig.baseUrl}$url';
+      photo['url'] = absoluteApiUrl(url);
     }
 
     story['photo'] = photo;
@@ -91,13 +106,5 @@ class SharedStoryApi {
       403 => SharedStoryFailure.forbidden,
       _ => SharedStoryFailure.serverError,
     };
-  }
-
-  String? _detailFromJson(dynamic data) {
-    if (data is Map<String, dynamic>) {
-      return data['detail']?.toString();
-    }
-
-    return null;
   }
 }

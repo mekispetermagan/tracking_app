@@ -1,8 +1,8 @@
-import 'dart:convert';
-
 import 'package:http/http.dart' as http;
 
 import '../config/api_config.dart';
+import '_api_support.dart';
+import 'api_result.dart';
 import '../models/models.dart';
 
 enum SharedStudentRecordFailure {
@@ -10,12 +10,17 @@ enum SharedStudentRecordFailure {
   forbidden,
   notFound,
   serverError,
+  invalidData,
   networkError,
 }
 
-class SharedStudentRecordResult {
+class SharedStudentRecordResult
+    extends ApiResult<StudentRecord, SharedStudentRecordFailure> {
   final StudentRecord? studentRecord;
+
+  @override
   final SharedStudentRecordFailure? failure;
+  @override
   final String? message;
 
   const SharedStudentRecordResult.success({required this.studentRecord})
@@ -27,6 +32,11 @@ class SharedStudentRecordResult {
 }
 
 class SharedStudentRecordApi {
+  final http.Client _client;
+
+  SharedStudentRecordApi({http.Client? client})
+    : _client = client ?? http.Client();
+
   Future<SharedStudentRecordResult> fetchStudentRecord({
     required String accessToken,
     required int studentId,
@@ -36,8 +46,11 @@ class SharedStudentRecordApi {
     );
 
     try {
-      final response = await http.get(uri, headers: _headers(accessToken));
-      final data = jsonDecode(response.body);
+      final response = await _client.get(
+        uri,
+        headers: authenticatedHeaders(accessToken, json: true),
+      );
+      final data = decodeJsonBody(response.body);
 
       if (response.statusCode == 200) {
         return SharedStudentRecordResult.success(
@@ -47,20 +60,18 @@ class SharedStudentRecordApi {
 
       return SharedStudentRecordResult.failure(
         failure: _failureFromStatusCode(response.statusCode),
-        message: _detailFromJson(data),
+        message: apiDetail(data),
       );
-    } catch (_) {
+    } catch (error) {
+      if (isInvalidApiData(error)) {
+        return const SharedStudentRecordResult.failure(
+          failure: SharedStudentRecordFailure.invalidData,
+        );
+      }
       return const SharedStudentRecordResult.failure(
         failure: SharedStudentRecordFailure.networkError,
       );
     }
-  }
-
-  Map<String, String> _headers(String accessToken) {
-    return {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer $accessToken',
-    };
   }
 
   SharedStudentRecordFailure _failureFromStatusCode(int statusCode) {
@@ -70,13 +81,5 @@ class SharedStudentRecordApi {
       404 => SharedStudentRecordFailure.notFound,
       _ => SharedStudentRecordFailure.serverError,
     };
-  }
-
-  String? _detailFromJson(dynamic data) {
-    if (data is Map<String, dynamic>) {
-      return data['detail']?.toString();
-    }
-
-    return null;
   }
 }

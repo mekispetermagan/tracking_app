@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import '../config/api_config.dart';
+import '_api_support.dart';
+import 'api_result.dart';
 import '../models/models.dart';
 
 enum MentorStoryFailure {
@@ -12,12 +14,17 @@ enum MentorStoryFailure {
   notFound,
   conflict,
   serverError,
+  invalidData,
   networkError,
 }
 
-class MentorStoryListResult {
+class MentorStoryListResult
+    extends ApiResult<List<MentorStory>, MentorStoryFailure> {
   final List<MentorStory>? stories;
+
+  @override
   final MentorStoryFailure? failure;
+  @override
   final String? message;
 
   const MentorStoryListResult.success({required this.stories})
@@ -28,9 +35,12 @@ class MentorStoryListResult {
     : stories = null;
 }
 
-class MentorStoryResult {
+class MentorStoryResult extends ApiResult<MentorStory, MentorStoryFailure> {
   final MentorStory? story;
+
+  @override
   final MentorStoryFailure? failure;
+  @override
   final String? message;
 
   const MentorStoryResult.success({required this.story})
@@ -42,6 +52,10 @@ class MentorStoryResult {
 }
 
 class MentorStoryApi {
+  final http.Client _client;
+
+  MentorStoryApi({http.Client? client}) : _client = client ?? http.Client();
+
   Future<MentorStoryListResult> fetchStories({
     required String accessToken,
     DateTime? month,
@@ -49,12 +63,15 @@ class MentorStoryApi {
     var uri = Uri.parse('${ApiConfig.baseUrl}/api/mentor/stories');
 
     if (month != null) {
-      uri = uri.replace(queryParameters: {'month': _dateToJson(month)});
+      uri = uri.replace(queryParameters: {'month': apiDate(month)});
     }
 
     try {
-      final response = await http.get(uri, headers: _headers(accessToken));
-      final data = jsonDecode(response.body);
+      final response = await _client.get(
+        uri,
+        headers: authenticatedHeaders(accessToken, json: true),
+      );
+      final data = decodeJsonBody(response.body);
 
       if (response.statusCode == 200) {
         final stories = (data as List<dynamic>)
@@ -70,9 +87,14 @@ class MentorStoryApi {
 
       return MentorStoryListResult.failure(
         failure: _failureFromStatusCode(response.statusCode),
-        message: _detailFromJson(data),
+        message: apiDetail(data),
       );
-    } catch (_) {
+    } catch (error) {
+      if (isInvalidApiData(error)) {
+        return const MentorStoryListResult.failure(
+          failure: MentorStoryFailure.invalidData,
+        );
+      }
       return const MentorStoryListResult.failure(
         failure: MentorStoryFailure.networkError,
       );
@@ -96,11 +118,11 @@ class MentorStoryApi {
         await http.MultipartFile.fromPath('photo', request.photoPath),
       );
 
-      final streamedResponse = await multipartRequest.send();
+      final streamedResponse = await _client.send(multipartRequest);
 
       final response = await http.Response.fromStream(streamedResponse);
 
-      final data = jsonDecode(response.body);
+      final data = decodeJsonBody(response.body);
 
       if (response.statusCode == 201) {
         return MentorStoryResult.success(
@@ -112,9 +134,14 @@ class MentorStoryApi {
 
       return MentorStoryResult.failure(
         failure: _failureFromStatusCode(response.statusCode),
-        message: _detailFromJson(data),
+        message: apiDetail(data),
       );
-    } catch (_) {
+    } catch (error) {
+      if (isInvalidApiData(error)) {
+        return const MentorStoryResult.failure(
+          failure: MentorStoryFailure.invalidData,
+        );
+      }
       return const MentorStoryResult.failure(
         failure: MentorStoryFailure.networkError,
       );
@@ -132,12 +159,12 @@ class MentorStoryApi {
     );
 
     try {
-      final response = await http.put(
+      final response = await _client.put(
         uri,
-        headers: _headers(accessToken),
+        headers: authenticatedHeaders(accessToken, json: true),
         body: jsonEncode(request.toJson()),
       );
-      final data = jsonDecode(response.body);
+      final data = decodeJsonBody(response.body);
 
       if (response.statusCode == 200) {
         return MentorStoryResult.success(
@@ -149,20 +176,18 @@ class MentorStoryApi {
 
       return MentorStoryResult.failure(
         failure: _failureFromStatusCode(response.statusCode),
-        message: _detailFromJson(data),
+        message: apiDetail(data),
       );
-    } catch (_) {
+    } catch (error) {
+      if (isInvalidApiData(error)) {
+        return const MentorStoryResult.failure(
+          failure: MentorStoryFailure.invalidData,
+        );
+      }
       return const MentorStoryResult.failure(
         failure: MentorStoryFailure.networkError,
       );
     }
-  }
-
-  Map<String, String> _headers(String accessToken) {
-    return {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer $accessToken',
-    };
   }
 
   Map<String, dynamic> _withAbsolutePhotoUrl(Map<String, dynamic> json) {
@@ -175,7 +200,7 @@ class MentorStoryApi {
     final url = photo['url'] as String;
 
     if (url.startsWith('/')) {
-      photo['url'] = '${ApiConfig.baseUrl}$url';
+      photo['url'] = absoluteApiUrl(url);
     }
 
     result['photo'] = photo;
@@ -193,20 +218,4 @@ class MentorStoryApi {
       _ => MentorStoryFailure.serverError,
     };
   }
-
-  String? _detailFromJson(dynamic data) {
-    if (data is Map<String, dynamic>) {
-      return data['detail']?.toString();
-    }
-
-    return null;
-  }
-}
-
-String _dateToJson(DateTime date) {
-  final year = date.year.toString().padLeft(4, '0');
-  final month = date.month.toString().padLeft(2, '0');
-  final day = date.day.toString().padLeft(2, '0');
-
-  return '$year-$month-$day';
 }

@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import '../config/api_config.dart';
+import '_api_support.dart';
+import 'api_result.dart';
 import '../models/models.dart';
 
 enum AdminStoryFailure {
@@ -12,12 +14,17 @@ enum AdminStoryFailure {
   notFound,
   conflict,
   serverError,
+  invalidData,
   networkError,
 }
 
-class AdminStoryListResult {
+class AdminStoryListResult
+    extends ApiResult<List<AdminStory>, AdminStoryFailure> {
   final List<AdminStory>? stories;
+
+  @override
   final AdminStoryFailure? failure;
+  @override
   final String? message;
 
   const AdminStoryListResult.success({required this.stories})
@@ -28,9 +35,12 @@ class AdminStoryListResult {
     : stories = null;
 }
 
-class AdminStoryResult {
+class AdminStoryResult extends ApiResult<AdminStory, AdminStoryFailure> {
   final AdminStory? story;
+
+  @override
   final AdminStoryFailure? failure;
+  @override
   final String? message;
 
   const AdminStoryResult.success({required this.story})
@@ -41,9 +51,12 @@ class AdminStoryResult {
     : story = null;
 }
 
-class AdminStoryWinnerResult {
+class AdminStoryWinnerResult extends ApiResult<StoryWinner, AdminStoryFailure> {
   final StoryWinner? winner;
+
+  @override
   final AdminStoryFailure? failure;
+  @override
   final String? message;
 
   const AdminStoryWinnerResult.success({required this.winner})
@@ -55,6 +68,10 @@ class AdminStoryWinnerResult {
 }
 
 class AdminStoryApi {
+  final http.Client _client;
+
+  AdminStoryApi({http.Client? client}) : _client = client ?? http.Client();
+
   Future<AdminStoryListResult> fetchStories({
     required String accessToken,
     DateTime? month,
@@ -65,7 +82,7 @@ class AdminStoryApi {
     };
 
     if (month != null) {
-      queryParameters['month'] = _dateToJson(month);
+      queryParameters['month'] = apiDate(month);
     }
 
     final uri = Uri.parse(
@@ -73,8 +90,11 @@ class AdminStoryApi {
     ).replace(queryParameters: queryParameters);
 
     try {
-      final response = await http.get(uri, headers: _headers(accessToken));
-      final data = jsonDecode(response.body);
+      final response = await _client.get(
+        uri,
+        headers: authenticatedHeaders(accessToken, json: true),
+      );
+      final data = decodeJsonBody(response.body);
 
       if (response.statusCode == 200) {
         final stories = (data as List<dynamic>)
@@ -90,9 +110,14 @@ class AdminStoryApi {
 
       return AdminStoryListResult.failure(
         failure: _failureFromStatusCode(response.statusCode),
-        message: _detailFromJson(data),
+        message: apiDetail(data),
       );
-    } catch (_) {
+    } catch (error) {
+      if (isInvalidApiData(error)) {
+        return const AdminStoryListResult.failure(
+          failure: AdminStoryFailure.invalidData,
+        );
+      }
       return const AdminStoryListResult.failure(
         failure: AdminStoryFailure.networkError,
       );
@@ -108,9 +133,9 @@ class AdminStoryApi {
 
     return _sendStoryRequest(
       accessToken: accessToken,
-      request: () => http.put(
+      request: () => _client.put(
         uri,
-        headers: _headers(accessToken),
+        headers: authenticatedHeaders(accessToken, json: true),
         body: jsonEncode(request.toJson()),
       ),
     );
@@ -127,7 +152,10 @@ class AdminStoryApi {
 
     return _sendStoryRequest(
       accessToken: accessToken,
-      request: () => http.post(uri, headers: _headers(accessToken)),
+      request: () => _client.post(
+        uri,
+        headers: authenticatedHeaders(accessToken, json: true),
+      ),
     );
   }
 
@@ -142,7 +170,10 @@ class AdminStoryApi {
 
     return _sendStoryRequest(
       accessToken: accessToken,
-      request: () => http.post(uri, headers: _headers(accessToken)),
+      request: () => _client.post(
+        uri,
+        headers: authenticatedHeaders(accessToken, json: true),
+      ),
     );
   }
 
@@ -153,16 +184,16 @@ class AdminStoryApi {
   }) async {
     final uri = Uri.parse(
       '${ApiConfig.baseUrl}/api/admin/story-winners/'
-      '${_dateToJson(month)}',
+      '${apiDate(month)}',
     );
 
     try {
-      final response = await http.put(
+      final response = await _client.put(
         uri,
-        headers: _headers(accessToken),
+        headers: authenticatedHeaders(accessToken, json: true),
         body: jsonEncode(request.toJson()),
       );
-      final data = jsonDecode(response.body);
+      final data = decodeJsonBody(response.body);
 
       if (response.statusCode == 200) {
         return AdminStoryWinnerResult.success(
@@ -174,9 +205,14 @@ class AdminStoryApi {
 
       return AdminStoryWinnerResult.failure(
         failure: _failureFromStatusCode(response.statusCode),
-        message: _detailFromJson(data),
+        message: apiDetail(data),
       );
-    } catch (_) {
+    } catch (error) {
+      if (isInvalidApiData(error)) {
+        return const AdminStoryWinnerResult.failure(
+          failure: AdminStoryFailure.invalidData,
+        );
+      }
       return const AdminStoryWinnerResult.failure(
         failure: AdminStoryFailure.networkError,
       );
@@ -189,7 +225,7 @@ class AdminStoryApi {
   }) async {
     try {
       final response = await request();
-      final data = jsonDecode(response.body);
+      final data = decodeJsonBody(response.body);
 
       if (response.statusCode == 200) {
         return AdminStoryResult.success(
@@ -201,20 +237,18 @@ class AdminStoryApi {
 
       return AdminStoryResult.failure(
         failure: _failureFromStatusCode(response.statusCode),
-        message: _detailFromJson(data),
+        message: apiDetail(data),
       );
-    } catch (_) {
+    } catch (error) {
+      if (isInvalidApiData(error)) {
+        return const AdminStoryResult.failure(
+          failure: AdminStoryFailure.invalidData,
+        );
+      }
       return const AdminStoryResult.failure(
         failure: AdminStoryFailure.networkError,
       );
     }
-  }
-
-  Map<String, String> _headers(String accessToken) {
-    return {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer $accessToken',
-    };
   }
 
   Map<String, dynamic> _withAbsolutePhotoUrl(Map<String, dynamic> json) {
@@ -227,7 +261,7 @@ class AdminStoryApi {
     final url = photo['url'] as String;
 
     if (url.startsWith('/')) {
-      photo['url'] = '${ApiConfig.baseUrl}$url';
+      photo['url'] = absoluteApiUrl(url);
     }
 
     result['photo'] = photo;
@@ -255,20 +289,4 @@ class AdminStoryApi {
       _ => AdminStoryFailure.serverError,
     };
   }
-
-  String? _detailFromJson(dynamic data) {
-    if (data is Map<String, dynamic>) {
-      return data['detail']?.toString();
-    }
-
-    return null;
-  }
-}
-
-String _dateToJson(DateTime date) {
-  final year = date.year.toString().padLeft(4, '0');
-  final month = date.month.toString().padLeft(2, '0');
-  final day = date.day.toString().padLeft(2, '0');
-
-  return '$year-$month-$day';
 }

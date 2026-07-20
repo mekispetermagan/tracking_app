@@ -70,6 +70,7 @@ class StudentRecordController extends FeatureController {
       SharedStudentRecordFailure.unauthorized => 'Login expired.',
       SharedStudentRecordFailure.forbidden => 'Student record access denied.',
       SharedStudentRecordFailure.notFound => 'Student not found.',
+      SharedStudentRecordFailure.invalidData => 'Invalid server data.',
       SharedStudentRecordFailure.serverError => 'Server error.',
       SharedStudentRecordFailure.networkError => 'Cannot connect to server.',
       null => 'Unknown error.',

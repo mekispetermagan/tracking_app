@@ -1,4 +1,5 @@
-import 'dart:convert';
+import '_api_support.dart';
+import 'api_result.dart';
 
 import 'package:http/http.dart' as http;
 
@@ -6,8 +7,12 @@ import '../models/models.dart';
 
 enum CurriculumFailure { serverError, networkError, invalidData }
 
-class CurriculumCatalogResult {
+class CurriculumCatalogResult
+    extends ApiResult<CurriculumCatalog, CurriculumFailure> {
+  @override
+  String? get message => null;
   final CurriculumCatalog? catalog;
+  @override
   final CurriculumFailure? failure;
 
   const CurriculumCatalogResult.success({required this.catalog})
@@ -18,12 +23,16 @@ class CurriculumCatalogResult {
 }
 
 class CurriculumApi {
+  final http.Client _client;
+
+  CurriculumApi({http.Client? client}) : _client = client ?? http.Client();
+
   static const String _catalogUrl =
       'https://curriculum.afterschool-geekery.org/data/curriculum.json';
 
   Future<CurriculumCatalogResult> fetchCatalog() async {
     try {
-      final response = await http.get(Uri.parse(_catalogUrl));
+      final response = await _client.get(Uri.parse(_catalogUrl));
 
       if (response.statusCode != 200) {
         return const CurriculumCatalogResult.failure(
@@ -31,7 +40,7 @@ class CurriculumApi {
         );
       }
 
-      final data = jsonDecode(response.body);
+      final data = decodeJsonBody(response.body);
 
       if (data is! Map<String, dynamic>) {
         return const CurriculumCatalogResult.failure(
@@ -46,7 +55,12 @@ class CurriculumApi {
       return const CurriculumCatalogResult.failure(
         failure: CurriculumFailure.invalidData,
       );
-    } catch (_) {
+    } catch (error) {
+      if (isInvalidApiData(error)) {
+        return const CurriculumCatalogResult.failure(
+          failure: CurriculumFailure.invalidData,
+        );
+      }
       return const CurriculumCatalogResult.failure(
         failure: CurriculumFailure.networkError,
       );

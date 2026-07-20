@@ -65,6 +65,7 @@ class StoryWinnerArchiveController extends FeatureController {
     return switch (failure) {
       SharedStoryFailure.unauthorized => 'Login expired.',
       SharedStoryFailure.forbidden => 'Story archive access denied.',
+      SharedStoryFailure.invalidData => 'Invalid server data.',
       SharedStoryFailure.serverError => 'Server error.',
       SharedStoryFailure.networkError => 'Cannot connect to server.',
       null => 'Unknown error.',

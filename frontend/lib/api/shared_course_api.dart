@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import '../config/api_config.dart';
+import '_api_support.dart';
+import 'api_result.dart';
 import '../models/models.dart';
 
 enum SharedCourseFailure {
@@ -12,12 +14,17 @@ enum SharedCourseFailure {
   notFound,
   conflict,
   serverError,
+  invalidData,
   networkError,
 }
 
-class SharedCourseListResult {
+class SharedCourseListResult
+    extends ApiResult<List<Course>, SharedCourseFailure> {
   final List<Course>? courses;
+
+  @override
   final SharedCourseFailure? failure;
+  @override
   final String? message;
 
   const SharedCourseListResult.success({required this.courses})
@@ -28,9 +35,12 @@ class SharedCourseListResult {
     : courses = null;
 }
 
-class SharedCourseResult {
+class SharedCourseResult extends ApiResult<Course, SharedCourseFailure> {
   final Course? course;
+
+  @override
   final SharedCourseFailure? failure;
+  @override
   final String? message;
 
   const SharedCourseResult.success({required this.course})
@@ -42,6 +52,10 @@ class SharedCourseResult {
 }
 
 class SharedCourseApi {
+  final http.Client _client;
+
+  SharedCourseApi({http.Client? client}) : _client = client ?? http.Client();
+
   Future<SharedCourseListResult> fetchCourses({
     required String accessToken,
     bool activeOnly = true,
@@ -51,8 +65,11 @@ class SharedCourseApi {
     ).replace(queryParameters: {'active_only': activeOnly.toString()});
 
     try {
-      final response = await http.get(uri, headers: _headers(accessToken));
-      final data = jsonDecode(response.body);
+      final response = await _client.get(
+        uri,
+        headers: authenticatedHeaders(accessToken, json: true),
+      );
+      final data = decodeJsonBody(response.body);
 
       if (response.statusCode == 200) {
         final courses = (data as List<dynamic>)
@@ -64,9 +81,14 @@ class SharedCourseApi {
 
       return SharedCourseListResult.failure(
         failure: _failureFromStatusCode(response.statusCode),
-        message: _detailFromJson(data),
+        message: apiDetail(data),
       );
-    } catch (_) {
+    } catch (error) {
+      if (isInvalidApiData(error)) {
+        return const SharedCourseListResult.failure(
+          failure: SharedCourseFailure.invalidData,
+        );
+      }
       return const SharedCourseListResult.failure(
         failure: SharedCourseFailure.networkError,
       );
@@ -80,8 +102,11 @@ class SharedCourseApi {
     final uri = Uri.parse('${ApiConfig.baseUrl}/api/shared/courses/$courseId');
 
     try {
-      final response = await http.get(uri, headers: _headers(accessToken));
-      final data = jsonDecode(response.body);
+      final response = await _client.get(
+        uri,
+        headers: authenticatedHeaders(accessToken, json: true),
+      );
+      final data = decodeJsonBody(response.body);
 
       if (response.statusCode == 200) {
         return SharedCourseResult.success(
@@ -91,9 +116,14 @@ class SharedCourseApi {
 
       return SharedCourseResult.failure(
         failure: _failureFromStatusCode(response.statusCode),
-        message: _detailFromJson(data),
+        message: apiDetail(data),
       );
-    } catch (_) {
+    } catch (error) {
+      if (isInvalidApiData(error)) {
+        return const SharedCourseResult.failure(
+          failure: SharedCourseFailure.invalidData,
+        );
+      }
       return const SharedCourseResult.failure(
         failure: SharedCourseFailure.networkError,
       );
@@ -108,13 +138,13 @@ class SharedCourseApi {
     final uri = Uri.parse('${ApiConfig.baseUrl}/api/shared/courses/$courseId');
 
     try {
-      final response = await http.put(
+      final response = await _client.put(
         uri,
-        headers: _headers(accessToken),
+        headers: authenticatedHeaders(accessToken, json: true),
         body: jsonEncode(request.toJson()),
       );
 
-      final data = jsonDecode(response.body);
+      final data = decodeJsonBody(response.body);
 
       if (response.statusCode == 200) {
         return SharedCourseResult.success(
@@ -124,20 +154,18 @@ class SharedCourseApi {
 
       return SharedCourseResult.failure(
         failure: _failureFromStatusCode(response.statusCode),
-        message: _detailFromJson(data),
+        message: apiDetail(data),
       );
-    } catch (_) {
+    } catch (error) {
+      if (isInvalidApiData(error)) {
+        return const SharedCourseResult.failure(
+          failure: SharedCourseFailure.invalidData,
+        );
+      }
       return const SharedCourseResult.failure(
         failure: SharedCourseFailure.networkError,
       );
     }
-  }
-
-  Map<String, String> _headers(String accessToken) {
-    return {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer $accessToken',
-    };
   }
 
   SharedCourseFailure _failureFromStatusCode(int statusCode) {
@@ -149,13 +177,5 @@ class SharedCourseApi {
       409 => SharedCourseFailure.conflict,
       _ => SharedCourseFailure.serverError,
     };
-  }
-
-  String? _detailFromJson(dynamic data) {
-    if (data is Map<String, dynamic>) {
-      return data['detail']?.toString();
-    }
-
-    return null;
   }
 }

@@ -1,8 +1,8 @@
-import 'dart:convert';
-
 import 'package:http/http.dart' as http;
 
 import '../config/api_config.dart';
+import '_api_support.dart';
+import 'api_result.dart';
 import '../models/models.dart';
 
 enum MentorSessionPhotoFailure {
@@ -12,12 +12,17 @@ enum MentorSessionPhotoFailure {
   notFound,
   conflict,
   serverError,
+  invalidData,
   networkError,
 }
 
-class MentorSessionPhotoResult {
+class MentorSessionPhotoResult
+    extends ApiResult<List<SessionPhoto>, MentorSessionPhotoFailure> {
   final List<SessionPhoto>? photos;
+
+  @override
   final MentorSessionPhotoFailure? failure;
+  @override
   final String? message;
 
   const MentorSessionPhotoResult.success({required this.photos})
@@ -29,6 +34,11 @@ class MentorSessionPhotoResult {
 }
 
 class MentorSessionPhotoApi {
+  final http.Client _client;
+
+  MentorSessionPhotoApi({http.Client? client})
+    : _client = client ?? http.Client();
+
   Future<MentorSessionPhotoResult> submitSessionPhotos({
     required String accessToken,
     required int sessionLogId,
@@ -55,10 +65,10 @@ class MentorSessionPhotoApi {
         request.files.add(await http.MultipartFile.fromPath('files', path));
       }
 
-      final streamedResponse = await request.send();
+      final streamedResponse = await _client.send(request);
       final response = await http.Response.fromStream(streamedResponse);
 
-      final data = jsonDecode(response.body);
+      final data = decodeJsonBody(response.body);
 
       if (response.statusCode == 201) {
         final photos = (data as List<dynamic>)
@@ -74,9 +84,14 @@ class MentorSessionPhotoApi {
 
       return MentorSessionPhotoResult.failure(
         failure: _failureFromStatusCode(response.statusCode),
-        message: _detailFromJson(data),
+        message: apiDetail(data),
       );
-    } catch (_) {
+    } catch (error) {
+      if (isInvalidApiData(error)) {
+        return const MentorSessionPhotoResult.failure(
+          failure: MentorSessionPhotoFailure.invalidData,
+        );
+      }
       return const MentorSessionPhotoResult.failure(
         failure: MentorSessionPhotoFailure.networkError,
       );
@@ -88,7 +103,7 @@ class MentorSessionPhotoApi {
     final url = result['url'] as String;
 
     if (url.startsWith('/')) {
-      result['url'] = '${ApiConfig.baseUrl}$url';
+      result['url'] = absoluteApiUrl(url);
     }
 
     return result;
@@ -103,13 +118,5 @@ class MentorSessionPhotoApi {
       409 => MentorSessionPhotoFailure.conflict,
       _ => MentorSessionPhotoFailure.serverError,
     };
-  }
-
-  String? _detailFromJson(dynamic data) {
-    if (data is Map<String, dynamic>) {
-      return data['detail']?.toString();
-    }
-
-    return null;
   }
 }

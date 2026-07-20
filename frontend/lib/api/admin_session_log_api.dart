@@ -1,8 +1,8 @@
-import 'dart:convert';
-
 import 'package:http/http.dart' as http;
 
 import '../config/api_config.dart';
+import '_api_support.dart';
+import 'api_result.dart';
 import '../models/models.dart';
 
 enum AdminSessionLogFailure {
@@ -10,12 +10,17 @@ enum AdminSessionLogFailure {
   unauthorized,
   forbidden,
   serverError,
+  invalidData,
   networkError,
 }
 
-class AdminSessionLogListResult {
+class AdminSessionLogListResult
+    extends ApiResult<List<SessionLog>, AdminSessionLogFailure> {
   final List<SessionLog>? sessionLogs;
+
+  @override
   final AdminSessionLogFailure? failure;
+  @override
   final String? message;
 
   const AdminSessionLogListResult.success({required this.sessionLogs})
@@ -27,14 +32,21 @@ class AdminSessionLogListResult {
 }
 
 class AdminSessionLogApi {
+  final http.Client _client;
+
+  AdminSessionLogApi({http.Client? client}) : _client = client ?? http.Client();
+
   Future<AdminSessionLogListResult> fetchSessionLogs({
     required String accessToken,
   }) async {
     final uri = Uri.parse('${ApiConfig.baseUrl}/api/admin/session-logs');
 
     try {
-      final response = await http.get(uri, headers: _headers(accessToken));
-      final data = jsonDecode(response.body);
+      final response = await _client.get(
+        uri,
+        headers: authenticatedHeaders(accessToken, json: true),
+      );
+      final data = decodeJsonBody(response.body);
 
       if (response.statusCode == 200) {
         final sessionLogs = (data as List<dynamic>)
@@ -46,20 +58,18 @@ class AdminSessionLogApi {
 
       return AdminSessionLogListResult.failure(
         failure: _failureFromStatusCode(response.statusCode),
-        message: _detailFromJson(data),
+        message: apiDetail(data),
       );
-    } catch (_) {
+    } catch (error) {
+      if (isInvalidApiData(error)) {
+        return const AdminSessionLogListResult.failure(
+          failure: AdminSessionLogFailure.invalidData,
+        );
+      }
       return const AdminSessionLogListResult.failure(
         failure: AdminSessionLogFailure.networkError,
       );
     }
-  }
-
-  Map<String, String> _headers(String accessToken) {
-    return {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer $accessToken',
-    };
   }
 
   AdminSessionLogFailure _failureFromStatusCode(int statusCode) {
@@ -69,13 +79,5 @@ class AdminSessionLogApi {
       403 => AdminSessionLogFailure.forbidden,
       _ => AdminSessionLogFailure.serverError,
     };
-  }
-
-  String? _detailFromJson(dynamic data) {
-    if (data is Map<String, dynamic>) {
-      return data['detail']?.toString();
-    }
-
-    return null;
   }
 }

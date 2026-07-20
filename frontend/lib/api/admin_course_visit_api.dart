@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import '../config/api_config.dart';
+import '_api_support.dart';
+import 'api_result.dart';
 import '../models/models.dart';
 
 enum AdminCourseVisitFailure {
@@ -12,12 +14,17 @@ enum AdminCourseVisitFailure {
   notFound,
   conflict,
   serverError,
+  invalidData,
   networkError,
 }
 
-class AdminCourseVisitListResult {
+class AdminCourseVisitListResult
+    extends ApiResult<List<CourseVisitReport>, AdminCourseVisitFailure> {
   final List<CourseVisitReport>? reports;
+
+  @override
   final AdminCourseVisitFailure? failure;
+  @override
   final String? message;
 
   const AdminCourseVisitListResult.success({required this.reports})
@@ -30,9 +37,13 @@ class AdminCourseVisitListResult {
   }) : reports = null;
 }
 
-class AdminCourseVisitResult {
+class AdminCourseVisitResult
+    extends ApiResult<CourseVisitReport, AdminCourseVisitFailure> {
   final CourseVisitReport? report;
+
+  @override
   final AdminCourseVisitFailure? failure;
+  @override
   final String? message;
 
   const AdminCourseVisitResult.success({required this.report})
@@ -44,6 +55,11 @@ class AdminCourseVisitResult {
 }
 
 class AdminCourseVisitApi {
+  final http.Client _client;
+
+  AdminCourseVisitApi({http.Client? client})
+    : _client = client ?? http.Client();
+
   Future<AdminCourseVisitListResult> fetchReports({
     required String accessToken,
   }) async {
@@ -53,8 +69,11 @@ class AdminCourseVisitApi {
     );
 
     try {
-      final response = await http.get(uri, headers: _headers(accessToken));
-      final data = jsonDecode(response.body);
+      final response = await _client.get(
+        uri,
+        headers: authenticatedHeaders(accessToken, json: true),
+      );
+      final data = decodeJsonBody(response.body);
 
       if (response.statusCode == 200) {
         final reports = (data as List<dynamic>)
@@ -69,9 +88,14 @@ class AdminCourseVisitApi {
 
       return AdminCourseVisitListResult.failure(
         failure: _failureFromStatusCode(response.statusCode),
-        message: _detailFromJson(data),
+        message: apiDetail(data),
       );
-    } catch (_) {
+    } catch (error) {
+      if (isInvalidApiData(error)) {
+        return const AdminCourseVisitListResult.failure(
+          failure: AdminCourseVisitFailure.invalidData,
+        );
+      }
       return const AdminCourseVisitListResult.failure(
         failure: AdminCourseVisitFailure.networkError,
       );
@@ -88,12 +112,12 @@ class AdminCourseVisitApi {
     );
 
     try {
-      final response = await http.post(
+      final response = await _client.post(
         uri,
-        headers: _headers(accessToken),
+        headers: authenticatedHeaders(accessToken, json: true),
         body: jsonEncode(request.toJson()),
       );
-      final data = jsonDecode(response.body);
+      final data = decodeJsonBody(response.body);
 
       if (response.statusCode == 201) {
         return AdminCourseVisitResult.success(
@@ -103,20 +127,18 @@ class AdminCourseVisitApi {
 
       return AdminCourseVisitResult.failure(
         failure: _failureFromStatusCode(response.statusCode),
-        message: _detailFromJson(data),
+        message: apiDetail(data),
       );
-    } catch (_) {
+    } catch (error) {
+      if (isInvalidApiData(error)) {
+        return const AdminCourseVisitResult.failure(
+          failure: AdminCourseVisitFailure.invalidData,
+        );
+      }
       return const AdminCourseVisitResult.failure(
         failure: AdminCourseVisitFailure.networkError,
       );
     }
-  }
-
-  Map<String, String> _headers(String accessToken) {
-    return {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer $accessToken',
-    };
   }
 
   AdminCourseVisitFailure _failureFromStatusCode(int statusCode) {
@@ -128,13 +150,5 @@ class AdminCourseVisitApi {
       409 => AdminCourseVisitFailure.conflict,
       _ => AdminCourseVisitFailure.serverError,
     };
-  }
-
-  String? _detailFromJson(dynamic data) {
-    if (data is Map<String, dynamic>) {
-      return data['detail']?.toString();
-    }
-
-    return null;
   }
 }

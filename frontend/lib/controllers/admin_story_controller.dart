@@ -341,6 +341,7 @@ class AdminStoryController extends FeatureController {
       AdminStoryFailure.forbidden => 'Story access denied.',
       AdminStoryFailure.notFound => 'Story not found.',
       AdminStoryFailure.conflict => 'Story conflict.',
+      AdminStoryFailure.invalidData => 'Invalid server data.',
       AdminStoryFailure.serverError => 'Server error.',
       AdminStoryFailure.networkError => 'Cannot connect to server.',
       null => 'Unknown error.',

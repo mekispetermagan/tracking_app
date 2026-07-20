@@ -131,6 +131,7 @@ class MentorProfileController extends FeatureController {
       MentorProfileFailure.unauthorized => 'Login expired.',
       MentorProfileFailure.forbidden => 'Mentor access required.',
       MentorProfileFailure.conflict => 'Phone number already exists.',
+      MentorProfileFailure.invalidData => 'Invalid server data.',
       MentorProfileFailure.serverError => 'Server error.',
       MentorProfileFailure.networkError => 'Cannot connect to server.',
       null => 'Unknown error.',

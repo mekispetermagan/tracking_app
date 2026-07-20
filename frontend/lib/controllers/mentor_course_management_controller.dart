@@ -233,6 +233,7 @@ class MentorCourseManagementController extends FeatureController {
       SharedCourseFailure.forbidden => 'Course access denied.',
       SharedCourseFailure.notFound => 'Course not found.',
       SharedCourseFailure.conflict => 'Course conflict.',
+      SharedCourseFailure.invalidData => 'Invalid server data.',
       SharedCourseFailure.serverError => 'Server error.',
       SharedCourseFailure.networkError => 'Cannot connect to server.',
       null => 'Unknown error.',
