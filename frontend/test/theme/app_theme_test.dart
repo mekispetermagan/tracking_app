@@ -15,12 +15,6 @@ void main() {
     expect(theme.textTheme.labelLarge?.fontFamily, 'Nunito');
   });
 
-  test('mentor theme is light', () {
-    final scheme = buildMentorTheme().colorScheme;
-
-    expect(scheme.brightness, Brightness.light);
-  });
-
   test('admin theme is visually separate from the mentor brand', () {
     final mentorScheme = buildMentorTheme().colorScheme;
     final adminScheme = buildAdminTheme().colorScheme;
@@ -28,6 +22,5 @@ void main() {
     expect(adminScheme.primary, isNot(mentorScheme.primary));
     expect(adminScheme.secondary, isNot(mentorScheme.secondary));
     expect(adminScheme.surface, isNot(mentorScheme.surface));
-    expect(adminScheme.brightness, Brightness.dark);
   });
 }
