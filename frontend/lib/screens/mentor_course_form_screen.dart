@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../widgets/app_bar.dart';
+
 import '../models/models.dart';
 import '../widgets/buttons.dart';
 
@@ -75,9 +77,9 @@ class _MentorCourseFormScreenState extends State<MentorCourseFormScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: AppTopBar(
         title: const Text('Edit course'),
-        leading: BackButton(onPressed: widget.onCancel),
+        onBack: widget.onCancel,
       ),
       body: SafeArea(
         child: ListView(

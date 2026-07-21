@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-const mentorSeedColor = Color.fromRGBO(0, 255, 223, 1);
+const mentorSeedColor = Colors.orangeAccent;
 const adminSeedColor = Color.fromRGBO(69, 90, 100, 1);
 
 ColorScheme buildMentorColorScheme() {

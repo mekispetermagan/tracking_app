@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../widgets/app_bar.dart';
+
 import '../widgets/buttons.dart';
 
 class AdminSetupPasswordScreen extends StatelessWidget {
@@ -40,9 +42,9 @@ class AdminSetupPasswordScreen extends StatelessWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: AppTopBar(
         title: const Text('Set new password'),
-        leading: BackButton(onPressed: onCancel),
+        onBack: onCancel,
       ),
       body: SafeArea(
         child: ListView(

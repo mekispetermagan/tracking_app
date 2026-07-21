@@ -1,6 +1,8 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+
+import '../widgets/app_bar.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../models/models.dart';
@@ -74,11 +76,10 @@ class _MentorStoryFormScreenState extends State<MentorStoryFormScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: AppTopBar(
         title: const Text('Submit story'),
-        leading: BackButton(
-          onPressed: widget.isSubmitting ? null : widget.onCancel,
-        ),
+        showBack: true,
+        onBack: widget.isSubmitting ? null : widget.onCancel,
       ),
       body: SafeArea(
         child: Form(

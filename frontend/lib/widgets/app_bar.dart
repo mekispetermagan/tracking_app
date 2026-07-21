@@ -6,6 +6,7 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
   final Widget title;
   final VoidCallback? onHome;
   final VoidCallback? onBack;
+  final bool showBack;
   final VoidCallback? onLogout;
   final List<Widget> actions;
 
@@ -13,11 +14,12 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
     required this.title,
     this.onHome,
     this.onBack,
+    this.showBack = false,
     this.onLogout,
     this.actions = const [],
     super.key,
   }) : assert(
-         onHome == null || onBack == null,
+         onHome == null || (!showBack && onBack == null),
          'An app bar cannot show both Home and Back as its leading action.',
        );
 
@@ -27,14 +29,24 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      title: title,
+      automaticallyImplyLeading: false,
+      title: Row(
+        children: [
+          Image.asset(
+            'assets/images/ag_uganda_logo_no_text_small.png',
+            height: 28,
+          ),
+          const SizedBox(width: 12),
+          Expanded(child: title),
+        ],
+      ),
       leading: onHome != null
           ? AppBarIconButton(
               onPressed: onHome!,
               icon: Icons.home,
               tooltip: 'Home',
             )
-          : onBack != null
+          : showBack || onBack != null
           ? BackButton(onPressed: onBack)
           : null,
       actions: [

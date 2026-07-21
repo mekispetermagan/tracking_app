@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../widgets/app_bar.dart';
+
 import '../controllers/controllers.dart';
 import '../models/models.dart';
 import '../widgets/mentor_session_log_form_sections.dart';
@@ -105,9 +107,9 @@ class _MentorSessionLogFormScreenState
     }
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: AppTopBar(
         title: const Text('Log a session'),
-        leading: BackButton(onPressed: widget.onCancel),
+        onBack: widget.onCancel,
       ),
       body: SafeArea(
         child: Form(

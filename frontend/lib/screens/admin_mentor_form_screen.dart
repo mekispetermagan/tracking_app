@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../widgets/app_bar.dart';
+
 import '../models/models.dart';
 import '../validation/credential_validation.dart' show isValidPhone, isValidPin;
 import '../widgets/buttons.dart';
@@ -88,9 +90,9 @@ class _AdminMentorFormScreenState extends State<AdminMentorFormScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: AppTopBar(
         title: Text(widget.isEdit ? 'Edit mentor' : 'Add mentor'),
-        leading: BackButton(onPressed: widget.onCancel),
+        onBack: widget.onCancel,
       ),
       body: SafeArea(
         child: Form(

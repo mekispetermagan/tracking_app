@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../widgets/app_bar.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
@@ -47,11 +49,9 @@ class CurriculumScreen extends StatelessWidget {
     final chapter = selectedChapter;
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: AppTopBar(
         title: Text(chapter?.englishTitle ?? 'Curriculum'),
-        leading: BackButton(
-          onPressed: chapter == null ? onBack : onCloseChapter,
-        ),
+        onBack: chapter == null ? onBack : onCloseChapter,
         actions: [
           if (chapter == null)
             IconButton(

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../widgets/app_bar.dart';
+
 import '../models/models.dart';
 import '../widgets/session_photo_gallery.dart';
 
@@ -40,10 +42,7 @@ class CoursePhotosScreen extends StatelessWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text('$courseName photos'),
-        leading: BackButton(onPressed: onBack),
-      ),
+      appBar: AppTopBar(title: Text('$courseName photos'), onBack: onBack),
       body: SafeArea(
         child: isLoading
             ? const Center(child: CircularProgressIndicator())

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../widgets/app_bar.dart';
 import 'package:flutter/services.dart';
 
 import '../widgets/buttons.dart';
@@ -47,10 +49,7 @@ class AdminLoginScreen extends StatelessWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Admin login'),
-        leading: BackButton(onPressed: onCancel),
-      ),
+      appBar: AppTopBar(title: const Text('Admin login'), onBack: onCancel),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(32),

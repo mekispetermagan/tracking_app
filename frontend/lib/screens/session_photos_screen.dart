@@ -1,6 +1,8 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+
+import '../widgets/app_bar.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../models/models.dart';
@@ -62,10 +64,7 @@ class SessionPhotosScreen extends StatelessWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(title),
-        leading: BackButton(onPressed: onBack),
-      ),
+      appBar: AppTopBar(title: Text(title), onBack: onBack),
       body: SafeArea(
         child: isLoading
             ? const Center(child: CircularProgressIndicator())

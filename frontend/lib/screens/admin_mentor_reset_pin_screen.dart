@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../widgets/app_bar.dart';
+
 import '../models/models.dart';
 import '../validation/credential_validation.dart' show isValidPin;
 import '../widgets/buttons.dart';
@@ -51,9 +53,9 @@ class _AdminMentorResetPinScreenState extends State<AdminMentorResetPinScreen> {
     final mentor = widget.mentor;
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: AppTopBar(
         title: const Text('Reset mentor PIN'),
-        leading: BackButton(onPressed: widget.onCancel),
+        onBack: widget.onCancel,
       ),
       body: SafeArea(
         child: Form(

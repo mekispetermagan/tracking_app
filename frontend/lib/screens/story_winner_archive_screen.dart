@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../widgets/app_bar.dart';
+
 import '../models/models.dart';
 import '../widgets/story_card.dart';
 
@@ -33,9 +35,9 @@ class StoryWinnerArchiveScreen extends StatelessWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: AppTopBar(
         title: const Text('Stories of the month'),
-        leading: BackButton(onPressed: onBack),
+        onBack: onBack,
       ),
       body: SafeArea(child: _buildBody(context)),
     );

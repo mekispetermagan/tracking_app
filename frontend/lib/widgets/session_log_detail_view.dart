@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'app_bar.dart';
+
 import '../models/models.dart';
 import 'session_log_viewer.dart';
 import 'buttons.dart';
@@ -34,10 +36,7 @@ class SessionLogDetailView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Session log'),
-        leading: BackButton(onPressed: onBack),
-      ),
+      appBar: AppTopBar(title: const Text('Session log'), onBack: onBack),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(24),

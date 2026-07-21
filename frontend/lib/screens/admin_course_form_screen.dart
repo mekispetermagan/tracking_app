@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../widgets/app_bar.dart';
+
 import '../models/models.dart';
 import '../widgets/buttons.dart';
 
@@ -90,9 +92,9 @@ class _AdminCourseFormScreenState extends State<AdminCourseFormScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: AppTopBar(
         title: Text(widget.isEdit ? 'Edit course' : 'Add course'),
-        leading: BackButton(onPressed: widget.onCancel),
+        onBack: widget.onCancel,
       ),
       body: SafeArea(
         child: Form(

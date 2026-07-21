@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../widgets/app_bar.dart';
 import 'package:http/http.dart' as http;
 
 import '../api/api.dart';
@@ -576,9 +578,9 @@ class _AdminAreaState extends State<AdminArea> {
 
     if (story == null) {
       return Scaffold(
-        appBar: AppBar(
+        appBar: AppTopBar(
           title: const Text('Edit story'),
-          leading: BackButton(onPressed: _areaController.closeStoryEdit),
+          onBack: _areaController.closeStoryEdit,
         ),
         body: const Center(child: Text('Story not found.')),
       );

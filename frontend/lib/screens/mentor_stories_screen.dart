@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../widgets/app_bar.dart';
+
 import '../models/models.dart';
 import '../widgets/month_selector.dart';
 import '../widgets/story_card.dart';
@@ -54,9 +56,9 @@ class MentorStoriesScreen extends StatelessWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: AppTopBar(
         title: const Text('Stories'),
-        leading: BackButton(onPressed: onBack),
+        onBack: onBack,
         actions: [
           IconButton(
             onPressed: onViewWinners,

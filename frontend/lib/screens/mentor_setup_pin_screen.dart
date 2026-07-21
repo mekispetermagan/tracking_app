@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../widgets/app_bar.dart';
 import 'package:pinput/pinput.dart';
 
 import '../widgets/buttons.dart';
@@ -52,10 +54,7 @@ class MentorSetupPinScreen extends StatelessWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Set new PIN'),
-        leading: BackButton(onPressed: onCancel),
-      ),
+      appBar: AppTopBar(title: const Text('Set new PIN'), onBack: onCancel),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(32),

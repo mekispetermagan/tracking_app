@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'app_bar.dart';
+
 import 'buttons.dart';
 
 class AssignmentManagementView<TSubject, TItem, TFilter>
@@ -102,10 +104,7 @@ class _AssignmentManagementViewState<TSubject, TItem, TFilter>
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-        leading: BackButton(onPressed: widget.onCancel),
-      ),
+      appBar: AppTopBar(title: Text(widget.title), onBack: widget.onCancel),
       body: SafeArea(
         child: Column(
           children: [

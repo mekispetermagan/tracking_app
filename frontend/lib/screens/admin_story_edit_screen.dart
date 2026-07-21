@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../widgets/app_bar.dart';
+
 import '../models/models.dart';
 import '../widgets/buttons.dart';
 
@@ -64,11 +66,10 @@ class _AdminStoryEditScreenState extends State<AdminStoryEditScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: AppTopBar(
         title: const Text('Edit story'),
-        leading: BackButton(
-          onPressed: widget.isSaving ? null : widget.onCancel,
-        ),
+        showBack: true,
+        onBack: widget.isSaving ? null : widget.onCancel,
       ),
       body: SafeArea(
         child: Form(

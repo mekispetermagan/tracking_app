@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../widgets/app_bar.dart';
+
 import '../models/models.dart';
 import '../widgets/student_record_viewer.dart';
 
@@ -33,10 +35,7 @@ class StudentRecordScreen extends StatelessWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Student record'),
-        leading: BackButton(onPressed: onBack),
-      ),
+      appBar: AppTopBar(title: const Text('Student record'), onBack: onBack),
       body: SafeArea(child: _buildBody()),
     );
   }
