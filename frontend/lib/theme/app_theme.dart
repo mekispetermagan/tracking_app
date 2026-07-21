@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-const startSeedColor = Colors.green;
-const mentorSeedColor = Colors.orange;
+const mentorSeedColor = Colors.green;
 const adminSeedColor = Colors.teal;
+const startSeedColor = mentorSeedColor;
 
 ColorScheme buildStartColorScheme() {
   return ColorScheme.fromSeed(
