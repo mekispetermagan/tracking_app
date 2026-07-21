@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../help/help_texts.dart';
 import '../widgets/app_bar.dart';
 import 'package:flutter/services.dart';
 import 'package:pinput/pinput.dart';
@@ -52,7 +53,11 @@ class MentorLoginScreen extends StatelessWidget {
     }
 
     return Scaffold(
-      appBar: AppTopBar(title: const Text('Mentor login'), onBack: onCancel),
+      appBar: AppTopBar(
+        title: const Text('Mentor login'),
+        onBack: onCancel,
+        helpText: HelpTexts.mentorLogin,
+      ),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(32),

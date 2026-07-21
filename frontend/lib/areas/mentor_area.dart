@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import '../api/api.dart';
 
 import '../controllers/controllers.dart';
+import '../help/help.dart';
 import '../screens/screens.dart';
 import '../theme/app_theme.dart';
 
@@ -157,6 +158,45 @@ class _MentorAreaState extends State<MentorArea> {
     );
   }
 
+  String get _helpText {
+    return switch (_areaController.screen) {
+      MentorScreen.menu => HelpTexts.mentorMenu,
+      MentorScreen.myProfile =>
+        _showChangePin ? HelpTexts.mentorChangePin : HelpTexts.mentorProfile,
+      MentorScreen.manageCourses =>
+        _courseController.view == MentorCourseManagementView.form
+            ? HelpTexts.mentorCourseForm
+            : HelpTexts.mentorCourses,
+      MentorScreen.manageStudents =>
+        _studentController.view == MentorStudentManagementView.form
+            ? HelpTexts.mentorStudentForm
+            : HelpTexts.mentorStudents,
+      MentorScreen.submitSessionLog => HelpTexts.mentorSessionLog,
+      MentorScreen.viewSessionLogs => switch (_viewSessionLogsController.view) {
+        SessionLogAreaView.list => HelpTexts.mentorSessionLogs,
+        SessionLogAreaView.detail => HelpTexts.mentorSessionLogDetail,
+        SessionLogAreaView.studentRecord => HelpTexts.mentorStudentRecord,
+        SessionLogAreaView.photos => HelpTexts.mentorSessionPhotos,
+      },
+      MentorScreen.viewPhotos =>
+        _coursePhotoView == CoursePhotoAreaView.courseGallery
+            ? HelpTexts.mentorCoursePhotos
+            : HelpTexts.mentorPhotoCourses,
+      MentorScreen.trackStudents =>
+        _trackStudentsController.view == TrackStudentsView.record
+            ? HelpTexts.mentorStudentRecord
+            : HelpTexts.mentorTrackStudents,
+      MentorScreen.submitInvoice => HelpTexts.mentorInvoice,
+      MentorScreen.stories => HelpTexts.mentorStories,
+      MentorScreen.submitStory => HelpTexts.mentorStoryForm,
+      MentorScreen.storyWinnerArchive => HelpTexts.mentorStoryArchive,
+      MentorScreen.curriculum =>
+        _curriculumController.selectedChapter == null
+            ? HelpTexts.mentorCurriculum
+            : HelpTexts.mentorCurriculumChapter,
+    };
+  }
+
   Widget _buildArea() {
     return PopScope(
       canPop: _areaController.screen == MentorScreen.menu,
@@ -234,41 +274,44 @@ class _MentorAreaState extends State<MentorArea> {
 
         _goHome();
       },
-      child: switch (_areaController.screen) {
-        MentorScreen.menu => MentorMenuScreen(
-          items: _areaController.menuItems,
-          onSelect: _selectScreen,
-          onLogout: _logout,
-        ),
+      child: HelpScope(
+        text: _helpText,
+        child: switch (_areaController.screen) {
+          MentorScreen.menu => MentorMenuScreen(
+            items: _areaController.menuItems,
+            onSelect: _selectScreen,
+            onLogout: _logout,
+          ),
 
-        MentorScreen.myProfile => _buildProfile(),
+          MentorScreen.myProfile => _buildProfile(),
 
-        MentorScreen.manageCourses => _buildCourseManagement(),
+          MentorScreen.manageCourses => _buildCourseManagement(),
 
-        MentorScreen.manageStudents => _buildStudentManagement(),
+          MentorScreen.manageStudents => _buildStudentManagement(),
 
-        MentorScreen.submitSessionLog => _buildSessionLogForm(),
+          MentorScreen.submitSessionLog => _buildSessionLogForm(),
 
-        MentorScreen.viewSessionLogs => _buildViewSessionLogsArea(),
+          MentorScreen.viewSessionLogs => _buildViewSessionLogsArea(),
 
-        MentorScreen.viewPhotos => _buildPhotoArea(),
+          MentorScreen.viewPhotos => _buildPhotoArea(),
 
-        MentorScreen.trackStudents => _buildTrackStudentsArea(),
+          MentorScreen.trackStudents => _buildTrackStudentsArea(),
 
-        MentorScreen.submitInvoice => ComingSoonScreen(
-          title: 'Submit invoice',
-          onHome: _goHome,
-          onLogout: _logout,
-        ),
+          MentorScreen.submitInvoice => ComingSoonScreen(
+            title: 'Submit invoice',
+            onHome: _goHome,
+            onLogout: _logout,
+          ),
 
-        MentorScreen.stories => _buildStoriesArea(),
+          MentorScreen.stories => _buildStoriesArea(),
 
-        MentorScreen.submitStory => _buildStoryForm(),
+          MentorScreen.submitStory => _buildStoryForm(),
 
-        MentorScreen.storyWinnerArchive => _buildStoryWinnerArchive(),
+          MentorScreen.storyWinnerArchive => _buildStoryWinnerArchive(),
 
-        MentorScreen.curriculum => _buildCurriculumArea(),
-      },
+          MentorScreen.curriculum => _buildCurriculumArea(),
+        },
+      ),
     );
   }
 

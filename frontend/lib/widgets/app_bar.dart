@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../help/help_scope.dart';
 import 'buttons.dart';
 
 class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
@@ -8,6 +9,7 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback? onBack;
   final bool showBack;
   final VoidCallback? onLogout;
+  final String? helpText;
   final List<Widget> actions;
 
   const AppTopBar({
@@ -16,6 +18,7 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
     this.onBack,
     this.showBack = false,
     this.onLogout,
+    this.helpText,
     this.actions = const [],
     super.key,
   }) : assert(
@@ -28,6 +31,8 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
+    final effectiveHelpText = helpText ?? HelpScope.maybeTextOf(context);
+
     return AppBar(
       automaticallyImplyLeading: false,
       title: Row(
@@ -51,6 +56,12 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
           : null,
       actions: [
         ...actions,
+        if (effectiveHelpText != null)
+          AppBarIconButton(
+            onPressed: () => _showHelp(context, effectiveHelpText),
+            icon: Icons.help_outline,
+            tooltip: 'Help',
+          ),
         if (onLogout != null)
           AppBarIconButton(
             onPressed: onLogout!,
@@ -58,6 +69,22 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
             tooltip: 'Log out',
           ),
       ],
+    );
+  }
+
+  Future<void> _showHelp(BuildContext context, String text) {
+    return showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Help'),
+        content: SingleChildScrollView(child: SelectableText(text)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
     );
   }
 }

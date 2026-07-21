@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:frontend/help/help_scope.dart';
 import 'package:frontend/widgets/app_bar.dart';
 
 void main() {
@@ -66,5 +67,53 @@ void main() {
       tester.widget<BackButton>(find.byType(BackButton)).onPressed,
       isNull,
     );
+  });
+  testWidgets('shows explicit help text in a dismissible modal', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          appBar: AppTopBar(
+            title: Text('Feature'),
+            helpText: 'Feature guidance.',
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.byTooltip('Help'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(AlertDialog), findsOneWidget);
+    expect(find.text('Feature guidance.'), findsOneWidget);
+    await tester.tap(find.text('Close'));
+    await tester.pumpAndSettle();
+    expect(find.byType(AlertDialog), findsNothing);
+  });
+
+  testWidgets('reads help from the nearest scope and omits it without one', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: HelpScope(
+          text: 'Scoped guidance.',
+          child: Scaffold(appBar: AppTopBar(title: Text('Scoped'))),
+        ),
+      ),
+    );
+
+    await tester.tap(find.byTooltip('Help'));
+    await tester.pumpAndSettle();
+    expect(find.text('Scoped guidance.'), findsOneWidget);
+
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(appBar: AppTopBar(title: Text('No help'))),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byTooltip('Help'), findsNothing);
   });
 }
