@@ -22,6 +22,15 @@ void main() {
     expect(mentorBrightness, isNot(adminBrightness));
   });
 
+  test('start theme has its own independently configurable seed', () {
+    final startScheme = buildStartColorScheme();
+    final mentorScheme = buildMentorColorScheme();
+    final adminScheme = buildAdminColorScheme();
+
+    expect(startScheme.primary, isNot(mentorScheme.primary));
+    expect(startScheme.primary, isNot(adminScheme.primary));
+  });
+
   test('admin theme is visually separate from the mentor brand', () {
     final mentorScheme = buildMentorTheme().colorScheme;
     final adminScheme = buildAdminTheme().colorScheme;

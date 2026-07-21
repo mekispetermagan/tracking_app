@@ -1,7 +1,15 @@
 import 'package:flutter/material.dart';
 
-const mentorSeedColor = Colors.orangeAccent;
-const adminSeedColor = Color.fromRGBO(69, 90, 100, 1);
+const startSeedColor = Colors.green;
+const mentorSeedColor = Colors.orange;
+const adminSeedColor = Colors.teal;
+
+ColorScheme buildStartColorScheme() {
+  return ColorScheme.fromSeed(
+    seedColor: startSeedColor,
+    brightness: Brightness.dark,
+  );
+}
 
 ColorScheme buildMentorColorScheme() {
   return ColorScheme.fromSeed(
@@ -16,6 +24,8 @@ ColorScheme buildAdminColorScheme() {
     brightness: Brightness.light,
   );
 }
+
+ThemeData buildStartTheme() => buildAppTheme(buildStartColorScheme());
 
 ThemeData buildMentorTheme() => buildAppTheme(buildMentorColorScheme());
 

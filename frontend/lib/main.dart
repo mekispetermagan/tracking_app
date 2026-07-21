@@ -24,14 +24,9 @@ class ProgressTrackingApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = ColorScheme.fromSeed(
-      seedColor: const Color(0xFF3F7CAC),
-      brightness: Brightness.dark,
-    );
-
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: buildAppTheme(scheme),
+      theme: buildStartTheme(),
       home: const AppRoot(),
     );
   }
