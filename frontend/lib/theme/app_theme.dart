@@ -1,20 +1,19 @@
 import 'package:flutter/material.dart';
 
-const mentorGreen = Color(0xFF40C000);
+const mentorSeedColor = Color.fromRGBO(0, 255, 223, 1);
+const adminSeedColor = Color.fromRGBO(69, 90, 100, 1);
 
 ColorScheme buildMentorColorScheme() {
   return ColorScheme.fromSeed(
-    seedColor: Colors.green,
-    brightness: Brightness.light,
+    seedColor: mentorSeedColor,
+    brightness: Brightness.dark,
   );
 }
 
 ColorScheme buildAdminColorScheme() {
-  const adminSlate = Color(0xFF455A64);
-
   return ColorScheme.fromSeed(
-    seedColor: adminSlate,
-    brightness: Brightness.dark,
+    seedColor: adminSeedColor,
+    brightness: Brightness.light,
   );
 }
 
