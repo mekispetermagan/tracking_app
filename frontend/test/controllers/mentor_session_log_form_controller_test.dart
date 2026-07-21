@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frontend/controllers/mentor_session_log_form_controller.dart';
-import 'package:frontend/models/models.dart';
+import 'package:agu_frontend/controllers/mentor_session_log_form_controller.dart';
+import 'package:agu_frontend/models/models.dart';
 
 void main() {
   group('MentorSessionLogFormController', () {

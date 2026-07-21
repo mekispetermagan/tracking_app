@@ -1,8 +1,8 @@
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frontend/api/api.dart';
-import 'package:frontend/controllers/controllers.dart';
+import 'package:agu_frontend/api/api.dart';
+import 'package:agu_frontend/controllers/controllers.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 

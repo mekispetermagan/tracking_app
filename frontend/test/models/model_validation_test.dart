@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frontend/models/models.dart';
+import 'package:agu_frontend/models/models.dart';
 
 void main() {
   test('unknown session enum values throw FormatException', () {

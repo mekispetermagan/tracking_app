@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frontend/help/help_scope.dart';
-import 'package:frontend/widgets/app_bar.dart';
+import 'package:agu_frontend/help/help_scope.dart';
+import 'package:agu_frontend/widgets/app_bar.dart';
 
 void main() {
   testWidgets('uses branded title and icon buttons for Home and Logout roles', (

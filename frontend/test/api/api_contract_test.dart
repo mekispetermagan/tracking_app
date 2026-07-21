@@ -2,9 +2,9 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frontend/api/api.dart';
-import 'package:frontend/config/api_config.dart';
-import 'package:frontend/models/models.dart';
+import 'package:agu_frontend/api/api.dart';
+import 'package:agu_frontend/config/api_config.dart';
+import 'package:agu_frontend/models/models.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 

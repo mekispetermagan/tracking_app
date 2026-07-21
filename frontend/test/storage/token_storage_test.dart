@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frontend/storage/storage.dart';
+import 'package:agu_frontend/storage/storage.dart';
 
 void main() {
   const secureStorage = FlutterSecureStorage();

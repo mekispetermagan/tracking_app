@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frontend/controllers/controllers.dart';
+import 'package:agu_frontend/controllers/controllers.dart';
 import 'package:image_picker/image_picker.dart';
 
 void main() {

@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frontend/controllers/admin_area_controller.dart';
-import 'package:frontend/controllers/mentor_area_controller.dart';
+import 'package:agu_frontend/controllers/admin_area_controller.dart';
+import 'package:agu_frontend/controllers/mentor_area_controller.dart';
 
 void main() {
   group('MentorAreaController', () {

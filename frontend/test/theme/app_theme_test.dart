@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frontend/theme/app_theme.dart';
+import 'package:agu_frontend/theme/app_theme.dart';
 
 void main() {
   test('uses Montserrat for major headings and Nunito elsewhere', () {

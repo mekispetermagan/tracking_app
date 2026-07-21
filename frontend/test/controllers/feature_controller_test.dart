@@ -2,11 +2,11 @@ import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:frontend/api/api.dart';
-import 'package:frontend/controllers/area_views.dart';
-import 'package:frontend/controllers/session_log_browser_controller.dart';
-import 'package:frontend/controllers/student_record_controller.dart';
-import 'package:frontend/models/models.dart';
+import 'package:agu_frontend/api/api.dart';
+import 'package:agu_frontend/controllers/area_views.dart';
+import 'package:agu_frontend/controllers/session_log_browser_controller.dart';
+import 'package:agu_frontend/controllers/student_record_controller.dart';
+import 'package:agu_frontend/models/models.dart';
 
 void main() {
   test(

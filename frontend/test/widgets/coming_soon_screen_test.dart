@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frontend/screens/screens.dart';
+import 'package:agu_frontend/screens/screens.dart';
 
 void main() {
   testWidgets('labels unfinished features as coming soon', (tester) async {

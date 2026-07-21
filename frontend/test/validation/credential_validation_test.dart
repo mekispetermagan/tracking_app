@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frontend/validation/credential_validation.dart';
+import 'package:agu_frontend/validation/credential_validation.dart';
 
 void main() {
   test('phone validation requires ten digits starting with zero', () {

@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frontend/help/help_texts.dart';
+import 'package:agu_frontend/help/help_texts.dart';
 
 void main() {
   test('every mentor view has concise built-in guidance', () {

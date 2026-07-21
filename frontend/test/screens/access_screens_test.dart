@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frontend/screens/admin_login_screen.dart';
-import 'package:frontend/screens/mentor_login_screen.dart';
-import 'package:frontend/screens/start_screen.dart';
+import 'package:agu_frontend/screens/admin_login_screen.dart';
+import 'package:agu_frontend/screens/mentor_login_screen.dart';
+import 'package:agu_frontend/screens/start_screen.dart';
 
 Widget _app(Widget child) => MaterialApp(home: child);
 

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frontend/widgets/assignment_management_view.dart';
-import 'package:frontend/widgets/buttons.dart';
-import 'package:frontend/widgets/month_selector.dart';
+import 'package:agu_frontend/widgets/assignment_management_view.dart';
+import 'package:agu_frontend/widgets/buttons.dart';
+import 'package:agu_frontend/widgets/month_selector.dart';
 
 enum _Status { active, all, inactive }
 
