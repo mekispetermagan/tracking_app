@@ -58,16 +58,16 @@ class CourseCreateRequest {
   });
 
   Map<String, dynamic> toJson() {
-    return {
-      'name': name,
-      'description': description,
-      'country_id': countryId,
-      'day_of_week': dayOfWeek,
-      'start_time': startTime,
-      'active': active,
-      'mentor_ids': mentorIds,
-      'student_ids': studentIds,
-    };
+    return _courseRequestJson(
+      name: name,
+      description: description,
+      countryId: countryId,
+      dayOfWeek: dayOfWeek,
+      startTime: startTime,
+      active: active,
+      mentorIds: mentorIds,
+      studentIds: studentIds,
+    );
   }
 }
 
@@ -100,21 +100,43 @@ class CourseUpdateRequest {
       dayOfWeek: course.dayOfWeek,
       startTime: course.startTime,
       active: course.active,
-      mentorIds: course.mentorIds,
-      studentIds: course.studentIds,
+      mentorIds: List<int>.of(course.mentorIds),
+      studentIds: List<int>.of(course.studentIds),
     );
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'name': name,
-      'description': description,
-      'country_id': countryId,
-      'day_of_week': dayOfWeek,
-      'start_time': startTime,
-      'active': active,
-      'mentor_ids': mentorIds,
-      'student_ids': studentIds,
-    };
+    return _courseRequestJson(
+      name: name,
+      description: description,
+      countryId: countryId,
+      dayOfWeek: dayOfWeek,
+      startTime: startTime,
+      active: active,
+      mentorIds: mentorIds,
+      studentIds: studentIds,
+    );
   }
+}
+
+Map<String, dynamic> _courseRequestJson({
+  required String name,
+  required String description,
+  required int countryId,
+  required int dayOfWeek,
+  required String startTime,
+  required bool active,
+  required List<int> mentorIds,
+  required List<int> studentIds,
+}) {
+  return {
+    'name': name,
+    'description': description,
+    'country_id': countryId,
+    'day_of_week': dayOfWeek,
+    'start_time': startTime,
+    'active': active,
+    'mentor_ids': mentorIds,
+    'student_ids': studentIds,
+  };
 }

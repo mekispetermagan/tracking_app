@@ -1,3 +1,5 @@
+import '_model_utils.dart';
+
 enum ProjectType {
   scratch('scratch', 'Scratch'),
   robotics('robotics', 'Robotics'),
@@ -11,7 +13,12 @@ enum ProjectType {
   final String label;
 
   static ProjectType fromApiValue(String value) {
-    return ProjectType.values.firstWhere((type) => type.apiValue == value);
+    return enumFromApiValue(
+      ProjectType.values,
+      value,
+      (item) => item.apiValue,
+      typeName: 'ProjectType',
+    );
   }
 }
 
@@ -26,8 +33,11 @@ enum CompletionStatus {
   final String label;
 
   static CompletionStatus fromApiValue(String value) {
-    return CompletionStatus.values.firstWhere(
-      (status) => status.apiValue == value,
+    return enumFromApiValue(
+      CompletionStatus.values,
+      value,
+      (item) => item.apiValue,
+      typeName: 'CompletionStatus',
     );
   }
 }
@@ -129,7 +139,7 @@ class SessionLogCreateRequest {
   Map<String, dynamic> toJson() {
     return {
       'course_id': courseId,
-      'date': _dateToJson(date),
+      'date': modelDate(date),
       'project_title': projectTitle,
       'project_type': projectType.apiValue,
       'other_project_type': otherProjectType,
@@ -143,12 +153,4 @@ class SessionLogCreateRequest {
       'student_ids': studentIds,
     };
   }
-}
-
-String _dateToJson(DateTime date) {
-  final year = date.year.toString().padLeft(4, '0');
-  final month = date.month.toString().padLeft(2, '0');
-  final day = date.day.toString().padLeft(2, '0');
-
-  return '$year-$month-$day';
 }

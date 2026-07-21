@@ -1,3 +1,4 @@
+import '_model_utils.dart';
 import 'session_log_models.dart';
 
 class StudentRecord {
@@ -19,7 +20,7 @@ class StudentRecord {
     required this.skillGames,
   });
 
-  String get fullName => '$firstName $lastName';
+  String get fullName => personName(firstName, lastName);
 
   factory StudentRecord.fromJson(Map<String, dynamic> json) {
     return StudentRecord(

@@ -1,3 +1,5 @@
+import '_model_utils.dart';
+
 class Student {
   final int id;
   final String firstName;
@@ -32,7 +34,7 @@ class Student {
     );
   }
 
-  String get fullName => '$firstName $lastName';
+  String get fullName => personName(firstName, lastName);
 }
 
 class StudentCreateRequest {
@@ -55,15 +57,15 @@ class StudentCreateRequest {
   });
 
   Map<String, dynamic> toJson() {
-    return {
-      'first_name': firstName,
-      'last_name': lastName,
-      'origin_country_id': originCountryId,
-      'birth_year': birthYear,
-      'gender': gender,
-      'active': active,
-      'course_ids': courseIds,
-    };
+    return _studentRequestJson(
+      firstName: firstName,
+      lastName: lastName,
+      originCountryId: originCountryId,
+      birthYear: birthYear,
+      gender: gender,
+      active: active,
+      courseIds: courseIds,
+    );
   }
 }
 
@@ -94,20 +96,20 @@ class StudentUpdateRequest {
       birthYear: student.birthYear,
       gender: student.gender,
       active: student.active,
-      courseIds: student.courseIds,
+      courseIds: List<int>.of(student.courseIds),
     );
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'first_name': firstName,
-      'last_name': lastName,
-      'origin_country_id': originCountryId,
-      'birth_year': birthYear,
-      'gender': gender,
-      'active': active,
-      'course_ids': courseIds,
-    };
+    return _studentRequestJson(
+      firstName: firstName,
+      lastName: lastName,
+      originCountryId: originCountryId,
+      birthYear: birthYear,
+      gender: gender,
+      active: active,
+      courseIds: courseIds,
+    );
   }
 }
 
@@ -129,14 +131,14 @@ class MentorStudentCreateRequest {
   });
 
   Map<String, dynamic> toJson() {
-    return {
-      'first_name': firstName,
-      'last_name': lastName,
-      'origin_country_id': originCountryId,
-      'birth_year': birthYear,
-      'gender': gender,
-      'course_ids': courseIds,
-    };
+    return _studentRequestJson(
+      firstName: firstName,
+      lastName: lastName,
+      originCountryId: originCountryId,
+      birthYear: birthYear,
+      gender: gender,
+      courseIds: courseIds,
+    );
   }
 }
 
@@ -164,18 +166,38 @@ class MentorStudentUpdateRequest {
       originCountryId: student.originCountryId,
       birthYear: student.birthYear,
       gender: student.gender,
-      courseIds: student.courseIds,
+      courseIds: List<int>.of(student.courseIds),
     );
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'first_name': firstName,
-      'last_name': lastName,
-      'origin_country_id': originCountryId,
-      'birth_year': birthYear,
-      'gender': gender,
-      'course_ids': courseIds,
-    };
+    return _studentRequestJson(
+      firstName: firstName,
+      lastName: lastName,
+      originCountryId: originCountryId,
+      birthYear: birthYear,
+      gender: gender,
+      courseIds: courseIds,
+    );
   }
+}
+
+Map<String, dynamic> _studentRequestJson({
+  required String firstName,
+  required String lastName,
+  required int? originCountryId,
+  required int? birthYear,
+  required String? gender,
+  required List<int> courseIds,
+  bool? active,
+}) {
+  return {
+    'first_name': firstName,
+    'last_name': lastName,
+    'origin_country_id': originCountryId,
+    'birth_year': birthYear,
+    'gender': gender,
+    'active': ?active,
+    'course_ids': courseIds,
+  };
 }

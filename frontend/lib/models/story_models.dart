@@ -1,3 +1,5 @@
+import '_model_utils.dart';
+
 class StoryPhoto {
   final int id;
   final String url;
@@ -52,24 +54,23 @@ class Story {
     required this.updatedAt,
   });
 
-  String get submitterName {
-    return '$submitterFirstName $submitterLastName';
-  }
+  String get submitterName => personName(submitterFirstName, submitterLastName);
 
   factory Story.fromJson(Map<String, dynamic> json) {
+    final story = _StoryData.fromJson(json);
     return Story(
-      id: json['id'] as int,
-      text: json['text'] as String,
-      courseId: json['course_id'] as int,
-      courseName: json['course_name'] as String,
-      submittedByMentorProfileId: json['submitted_by_mentor_profile_id'] as int,
-      submitterFirstName: json['submitter_first_name'] as String,
-      submitterLastName: json['submitter_last_name'] as String,
-      submissionMonth: DateTime.parse(json['submission_month'] as String),
-      photo: StoryPhoto.fromJson(json['photo'] as Map<String, dynamic>),
-      isWinner: json['is_winner'] as bool,
-      createdAt: DateTime.parse(json['created_at'] as String),
-      updatedAt: DateTime.parse(json['updated_at'] as String),
+      id: story.id,
+      text: story.text,
+      courseId: story.courseId,
+      courseName: story.courseName,
+      submittedByMentorProfileId: story.submittedByMentorProfileId,
+      submitterFirstName: story.submitterFirstName,
+      submitterLastName: story.submitterLastName,
+      submissionMonth: story.submissionMonth,
+      photo: story.photo,
+      isWinner: story.isWinner,
+      createdAt: story.createdAt,
+      updatedAt: story.updatedAt,
     );
   }
 }
@@ -96,7 +97,7 @@ class MentorStory extends Story {
   });
 
   factory MentorStory.fromJson(Map<String, dynamic> json) {
-    final story = Story.fromJson(json);
+    final story = _StoryData.fromJson(json);
 
     return MentorStory(
       id: story.id,
@@ -141,7 +142,7 @@ class AdminStory extends Story {
   });
 
   factory AdminStory.fromJson(Map<String, dynamic> json) {
-    final story = Story.fromJson(json);
+    final story = _StoryData.fromJson(json);
 
     return AdminStory(
       id: story.id,
@@ -226,5 +227,52 @@ class StoryWinnerRequest {
 
   Map<String, dynamic> toJson() {
     return {'story_id': storyId};
+  }
+}
+
+class _StoryData {
+  final int id;
+  final String text;
+  final int courseId;
+  final String courseName;
+  final int submittedByMentorProfileId;
+  final String submitterFirstName;
+  final String submitterLastName;
+  final DateTime submissionMonth;
+  final StoryPhoto photo;
+  final bool isWinner;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+
+  const _StoryData({
+    required this.id,
+    required this.text,
+    required this.courseId,
+    required this.courseName,
+    required this.submittedByMentorProfileId,
+    required this.submitterFirstName,
+    required this.submitterLastName,
+    required this.submissionMonth,
+    required this.photo,
+    required this.isWinner,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+
+  factory _StoryData.fromJson(Map<String, dynamic> json) {
+    return _StoryData(
+      id: json['id'] as int,
+      text: json['text'] as String,
+      courseId: json['course_id'] as int,
+      courseName: json['course_name'] as String,
+      submittedByMentorProfileId: json['submitted_by_mentor_profile_id'] as int,
+      submitterFirstName: json['submitter_first_name'] as String,
+      submitterLastName: json['submitter_last_name'] as String,
+      submissionMonth: DateTime.parse(json['submission_month'] as String),
+      photo: StoryPhoto.fromJson(json['photo'] as Map<String, dynamic>),
+      isWinner: json['is_winner'] as bool,
+      createdAt: DateTime.parse(json['created_at'] as String),
+      updatedAt: DateTime.parse(json['updated_at'] as String),
+    );
   }
 }

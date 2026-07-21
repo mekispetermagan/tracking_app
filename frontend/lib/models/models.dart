@@ -4,7 +4,7 @@ export 'student_models.dart';
 export 'session_log_models.dart';
 export 'shared_mentor_models.dart';
 export 'session_photo_models.dart';
-export "student_record_models.dart";
+export 'student_record_models.dart';
 export 'story_models.dart';
 export 'curriculum_models.dart';
 export 'course_visit_models.dart';

@@ -1,3 +1,5 @@
+import '_model_utils.dart';
+
 class Mentor {
   final int id;
   final int accountId;
@@ -35,7 +37,7 @@ class Mentor {
     );
   }
 
-  String get fullName => '$firstName $lastName';
+  String get fullName => personName(firstName, lastName);
 }
 
 class MentorCreateRequest {
@@ -60,16 +62,16 @@ class MentorCreateRequest {
   });
 
   Map<String, dynamic> toJson() {
-    return {
-      'first_name': firstName,
-      'last_name': lastName,
-      'phone': phone,
-      'country_id': countryId,
-      'preferred_language': preferredLanguage,
-      'temporary_pin': temporaryPin,
-      'active': active,
-      'course_ids': courseIds,
-    };
+    return _managedMentorRequestJson(
+      firstName: firstName,
+      lastName: lastName,
+      phone: phone,
+      countryId: countryId,
+      preferredLanguage: preferredLanguage,
+      temporaryPin: temporaryPin,
+      active: active,
+      courseIds: courseIds,
+    );
   }
 }
 
@@ -100,20 +102,20 @@ class MentorUpdateRequest {
       countryId: mentor.countryId,
       preferredLanguage: mentor.preferredLanguage,
       active: mentor.active,
-      courseIds: mentor.courseIds,
+      courseIds: List<int>.of(mentor.courseIds),
     );
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'first_name': firstName,
-      'last_name': lastName,
-      'phone': phone,
-      'country_id': countryId,
-      'preferred_language': preferredLanguage,
-      'active': active,
-      'course_ids': courseIds,
-    };
+    return _managedMentorRequestJson(
+      firstName: firstName,
+      lastName: lastName,
+      phone: phone,
+      countryId: countryId,
+      preferredLanguage: preferredLanguage,
+      active: active,
+      courseIds: courseIds,
+    );
   }
 }
 
@@ -137,7 +139,7 @@ class MentorSelfUpdateRequest {
   }
 
   Map<String, dynamic> toJson() {
-    return {'first_name': firstName, 'last_name': lastName, 'phone': phone};
+    return _mentorIdentityJson(firstName, lastName, phone);
   }
 }
 
@@ -165,4 +167,32 @@ class MentorChangePinRequest {
   Map<String, dynamic> toJson() {
     return {'current_pin': currentPin, 'new_pin': newPin};
   }
+}
+
+Map<String, dynamic> _mentorIdentityJson(
+  String firstName,
+  String lastName,
+  String phone,
+) {
+  return {'first_name': firstName, 'last_name': lastName, 'phone': phone};
+}
+
+Map<String, dynamic> _managedMentorRequestJson({
+  required String firstName,
+  required String lastName,
+  required String phone,
+  required int? countryId,
+  required String preferredLanguage,
+  required bool active,
+  required List<int> courseIds,
+  String? temporaryPin,
+}) {
+  return {
+    ..._mentorIdentityJson(firstName, lastName, phone),
+    'country_id': countryId,
+    'preferred_language': preferredLanguage,
+    'temporary_pin': ?temporaryPin,
+    'active': active,
+    'course_ids': courseIds,
+  };
 }

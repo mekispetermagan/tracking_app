@@ -1,3 +1,5 @@
+import '_model_utils.dart';
+
 enum CourseVisitSessionStatus {
   fullyHeld('fully_held', 'Fully held'),
   partlyHeld('partly_held', 'Partly held'),
@@ -9,8 +11,11 @@ enum CourseVisitSessionStatus {
   final String label;
 
   static CourseVisitSessionStatus fromApiValue(String value) {
-    return CourseVisitSessionStatus.values.firstWhere(
-      (status) => status.apiValue == value,
+    return enumFromApiValue(
+      CourseVisitSessionStatus.values,
+      value,
+      (item) => item.apiValue,
+      typeName: 'CourseVisitSessionStatus',
     );
   }
 }
@@ -26,8 +31,11 @@ enum CourseVisitAnswer {
   final String label;
 
   static CourseVisitAnswer fromApiValue(String value) {
-    return CourseVisitAnswer.values.firstWhere(
-      (answer) => answer.apiValue == value,
+    return enumFromApiValue(
+      CourseVisitAnswer.values,
+      value,
+      (item) => item.apiValue,
+      typeName: 'CourseVisitAnswer',
     );
   }
 }
@@ -44,8 +52,11 @@ enum CourseVisitLearnerEngagement {
   final String label;
 
   static CourseVisitLearnerEngagement fromApiValue(String value) {
-    return CourseVisitLearnerEngagement.values.firstWhere(
-      (engagement) => engagement.apiValue == value,
+    return enumFromApiValue(
+      CourseVisitLearnerEngagement.values,
+      value,
+      (item) => item.apiValue,
+      typeName: 'CourseVisitLearnerEngagement',
     );
   }
 }
@@ -61,8 +72,11 @@ enum CourseVisitEnvironmentStatus {
   final String label;
 
   static CourseVisitEnvironmentStatus fromApiValue(String value) {
-    return CourseVisitEnvironmentStatus.values.firstWhere(
-      (status) => status.apiValue == value,
+    return enumFromApiValue(
+      CourseVisitEnvironmentStatus.values,
+      value,
+      (item) => item.apiValue,
+      typeName: 'CourseVisitEnvironmentStatus',
     );
   }
 }
@@ -77,8 +91,11 @@ enum CourseVisitMentorRole {
   final String label;
 
   static CourseVisitMentorRole fromApiValue(String value) {
-    return CourseVisitMentorRole.values.firstWhere(
-      (role) => role.apiValue == value,
+    return enumFromApiValue(
+      CourseVisitMentorRole.values,
+      value,
+      (item) => item.apiValue,
+      typeName: 'CourseVisitMentorRole',
     );
   }
 }
@@ -94,8 +111,11 @@ enum CourseVisitStudentEnjoyment {
   final String label;
 
   static CourseVisitStudentEnjoyment fromApiValue(String value) {
-    return CourseVisitStudentEnjoyment.values.firstWhere(
-      (answer) => answer.apiValue == value,
+    return enumFromApiValue(
+      CourseVisitStudentEnjoyment.values,
+      value,
+      (item) => item.apiValue,
+      typeName: 'CourseVisitStudentEnjoyment',
     );
   }
 }
@@ -111,8 +131,11 @@ enum CourseVisitStudentLearning {
   final String label;
 
   static CourseVisitStudentLearning fromApiValue(String value) {
-    return CourseVisitStudentLearning.values.firstWhere(
-      (answer) => answer.apiValue == value,
+    return enumFromApiValue(
+      CourseVisitStudentLearning.values,
+      value,
+      (item) => item.apiValue,
+      typeName: 'CourseVisitStudentLearning',
     );
   }
 }
@@ -128,8 +151,11 @@ enum CourseVisitStudentSafety {
   final String label;
 
   static CourseVisitStudentSafety fromApiValue(String value) {
-    return CourseVisitStudentSafety.values.firstWhere(
-      (answer) => answer.apiValue == value,
+    return enumFromApiValue(
+      CourseVisitStudentSafety.values,
+      value,
+      (item) => item.apiValue,
+      typeName: 'CourseVisitStudentSafety',
     );
   }
 }
@@ -152,8 +178,11 @@ enum CourseVisitActionCategory {
   final String label;
 
   static CourseVisitActionCategory fromApiValue(String value) {
-    return CourseVisitActionCategory.values.firstWhere(
-      (category) => category.apiValue == value,
+    return enumFromApiValue(
+      CourseVisitActionCategory.values,
+      value,
+      (item) => item.apiValue,
+      typeName: 'CourseVisitActionCategory',
     );
   }
 }
@@ -174,9 +203,12 @@ class CourseVisitMentor {
 
     return CourseVisitMentor(
       mentorId: json['mentor_id'] as int,
-      role: roleValue == null
-          ? null
-          : CourseVisitMentorRole.fromApiValue(roleValue),
+      role: nullableEnumFromApiValue(
+        CourseVisitMentorRole.values,
+        roleValue,
+        (item) => item.apiValue,
+        typeName: 'CourseVisitMentorRole',
+      ),
       performanceRating: json['performance_rating'] as int?,
     );
   }
@@ -215,15 +247,24 @@ class CourseVisitStudent {
     return CourseVisitStudent(
       studentId: json['student_id'] as int,
       interviewed: json['interviewed'] as bool,
-      enjoyment: enjoymentValue == null
-          ? null
-          : CourseVisitStudentEnjoyment.fromApiValue(enjoymentValue),
-      learning: learningValue == null
-          ? null
-          : CourseVisitStudentLearning.fromApiValue(learningValue),
-      feelsSafe: feelsSafeValue == null
-          ? null
-          : CourseVisitStudentSafety.fromApiValue(feelsSafeValue),
+      enjoyment: nullableEnumFromApiValue(
+        CourseVisitStudentEnjoyment.values,
+        enjoymentValue,
+        (item) => item.apiValue,
+        typeName: 'CourseVisitStudentEnjoyment',
+      ),
+      learning: nullableEnumFromApiValue(
+        CourseVisitStudentLearning.values,
+        learningValue,
+        (item) => item.apiValue,
+        typeName: 'CourseVisitStudentLearning',
+      ),
+      feelsSafe: nullableEnumFromApiValue(
+        CourseVisitStudentSafety.values,
+        feelsSafeValue,
+        (item) => item.apiValue,
+        typeName: 'CourseVisitStudentSafety',
+      ),
       note: json['note'] as String?,
     );
   }
@@ -258,7 +299,7 @@ class CourseVisitActionCreateRequest {
       'category': category.apiValue,
       'description': description,
       'responsible_person': responsiblePerson,
-      'target_date': targetDate == null ? null : _dateToJson(targetDate!),
+      'target_date': targetDate == null ? null : modelDate(targetDate!),
     };
   }
 }
@@ -370,18 +411,30 @@ class CourseVisitReport {
       teachingTookPlace: CourseVisitAnswer.fromApiValue(
         json['teaching_took_place'] as String,
       ),
-      sessionFollowedPlan: sessionFollowedPlanValue == null
-          ? null
-          : CourseVisitAnswer.fromApiValue(sessionFollowedPlanValue),
-      learnerEngagement: learnerEngagementValue == null
-          ? null
-          : CourseVisitLearnerEngagement.fromApiValue(learnerEngagementValue),
-      equipmentAdequate: equipmentAdequateValue == null
-          ? null
-          : CourseVisitAnswer.fromApiValue(equipmentAdequateValue),
-      environmentStatus: environmentStatusValue == null
-          ? null
-          : CourseVisitEnvironmentStatus.fromApiValue(environmentStatusValue),
+      sessionFollowedPlan: nullableEnumFromApiValue(
+        CourseVisitAnswer.values,
+        sessionFollowedPlanValue,
+        (item) => item.apiValue,
+        typeName: 'CourseVisitAnswer',
+      ),
+      learnerEngagement: nullableEnumFromApiValue(
+        CourseVisitLearnerEngagement.values,
+        learnerEngagementValue,
+        (item) => item.apiValue,
+        typeName: 'CourseVisitLearnerEngagement',
+      ),
+      equipmentAdequate: nullableEnumFromApiValue(
+        CourseVisitAnswer.values,
+        equipmentAdequateValue,
+        (item) => item.apiValue,
+        typeName: 'CourseVisitAnswer',
+      ),
+      environmentStatus: nullableEnumFromApiValue(
+        CourseVisitEnvironmentStatus.values,
+        environmentStatusValue,
+        (item) => item.apiValue,
+        typeName: 'CourseVisitEnvironmentStatus',
+      ),
       whatHappened: json['what_happened'] as String,
       mainStrength: json['main_strength'] as String?,
       mainProblem: json['main_problem'] as String?,
@@ -454,7 +507,7 @@ class CourseVisitReportCreateRequest {
   Map<String, dynamic> toJson() {
     return {
       'course_id': courseId,
-      'date': _dateToJson(date),
+      'date': modelDate(date),
       'session_status': sessionStatus.apiValue,
       'teaching_took_place': teachingTookPlace.apiValue,
       'session_followed_plan': sessionFollowedPlan?.apiValue,
@@ -473,12 +526,4 @@ class CourseVisitReportCreateRequest {
       'actions': actions.map((action) => action.toJson()).toList(),
     };
   }
-}
-
-String _dateToJson(DateTime date) {
-  final year = date.year.toString().padLeft(4, '0');
-  final month = date.month.toString().padLeft(2, '0');
-  final day = date.day.toString().padLeft(2, '0');
-
-  return '$year-$month-$day';
 }

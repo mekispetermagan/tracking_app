@@ -1,3 +1,5 @@
+import '_model_utils.dart';
+
 class SharedMentor {
   final int id;
   final String firstName;
@@ -13,7 +15,7 @@ class SharedMentor {
     required this.assignedToCourse,
   });
 
-  String get fullName => '$firstName $lastName';
+  String get fullName => personName(firstName, lastName);
 
   bool get availableForSession => active && assignedToCourse;
 
