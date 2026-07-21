@@ -1,4 +1,5 @@
 export 'auth_api.dart';
+export 'api_http_client.dart';
 export 'api_result.dart';
 export 'admin_course_visit_api.dart';
 export 'course_api.dart';

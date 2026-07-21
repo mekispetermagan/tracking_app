@@ -45,4 +45,4 @@ export 'student_record_screen.dart';
 export 'story_winner_archive_screen.dart';
 export 'curriculum_screen.dart';
 
-export 'placeholder_task_screen.dart';
+export 'coming_soon_screen.dart';

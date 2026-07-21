@@ -209,6 +209,7 @@ class MentorStoryController extends FeatureController {
         _selectedPhoto = photo;
       }
     } catch (_) {
+      if (!requestIsCurrent(request)) return;
       _selectedPhoto = null;
       _message = 'Could not select photo.';
     }

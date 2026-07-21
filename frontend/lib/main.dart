@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'api/api.dart';
 import 'areas/areas.dart';
 import 'controllers/controllers.dart';
 import 'screens/screens.dart';
@@ -42,7 +45,8 @@ class AppRoot extends StatefulWidget {
 }
 
 class _AppRootState extends State<AppRoot> {
-  final _sessionController = SessionController();
+  late final ApiHttpClient _apiClient;
+  late final SessionController _sessionController;
   final _mentorLoginController = MentorLoginController();
   final _adminLoginController = AdminLoginController();
   final _mentorSetupPinController = MentorSetupPinController();
@@ -51,6 +55,17 @@ class _AppRootState extends State<AppRoot> {
   @override
   void initState() {
     super.initState();
+    _apiClient = ApiHttpClient(
+      onUnauthorized: () {
+        if (_sessionController.isAuthenticated &&
+            _sessionController.accessToken != null) {
+          unawaited(_sessionController.handleUnauthorized());
+        }
+      },
+    );
+    _sessionController = SessionController(
+      authApi: AuthApi(client: _apiClient),
+    );
     _sessionController.restoreSession();
     _mentorLoginController.loadLastPhone();
     _adminLoginController.loadLastPhone();
@@ -63,6 +78,7 @@ class _AppRootState extends State<AppRoot> {
     _adminLoginController.dispose();
     _mentorSetupPinController.dispose();
     _adminSetupPasswordController.dispose();
+    _apiClient.close();
     super.dispose();
   }
 
@@ -149,11 +165,13 @@ class _AppRootState extends State<AppRoot> {
       ),
 
       SessionStatus.adminArea => AdminArea(
+        apiClient: _apiClient,
         accessToken: _sessionController.accessToken!,
         onLogout: _logout,
       ),
 
       SessionStatus.mentorArea => MentorArea(
+        apiClient: _apiClient,
         accessToken: _sessionController.accessToken!,
         onLogout: _logout,
       ),

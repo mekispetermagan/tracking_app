@@ -198,6 +198,7 @@ class SessionPhotoController extends FeatureController {
       _isSelecting = false;
       notifyListeners();
     } catch (_) {
+      if (!requestIsCurrent(request)) return;
       _selectedPhotos = [];
       _message = 'Could not select photos.';
       _isSelecting = false;

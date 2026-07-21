@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+
+import '../api/api.dart';
 
 import '../controllers/controllers.dart';
 import '../models/models.dart';
@@ -7,11 +10,13 @@ import '../theme/app_theme.dart';
 
 class AdminArea extends StatefulWidget {
   const AdminArea({
+    required this.apiClient,
     required this.accessToken,
     required this.onLogout,
     super.key,
   });
 
+  final http.Client apiClient;
   final String accessToken;
   final Future<void> Function() onLogout;
 
@@ -21,17 +26,66 @@ class AdminArea extends StatefulWidget {
 
 class _AdminAreaState extends State<AdminArea> {
   final _areaController = AdminAreaController();
-  final _mentorManagementController = AdminMentorManagementController();
-  final _courseManagementController = AdminCourseManagementController();
-  final _studentManagementController = AdminStudentManagementController();
-  final _viewSessionLogsController = AdminViewSessionLogsController();
-  final _photoController = SessionPhotoController();
-  final _trackStudentsController = TrackStudentsController();
-  final _storyController = AdminStoryController();
-  final _storyWinnerArchiveController = StoryWinnerArchiveController();
-  final _courseVisitController = AdminCourseVisitController();
+  late final AdminMentorManagementController _mentorManagementController;
+  late final AdminCourseManagementController _courseManagementController;
+  late final AdminStudentManagementController _studentManagementController;
+  late final AdminViewSessionLogsController _viewSessionLogsController;
+  late final SessionPhotoController _photoController;
+  late final TrackStudentsController _trackStudentsController;
+  late final AdminStoryController _storyController;
+  late final StoryWinnerArchiveController _storyWinnerArchiveController;
+  late final AdminCourseVisitController _courseVisitController;
 
   CoursePhotoAreaView _coursePhotoView = CoursePhotoAreaView.courseSelection;
+
+  @override
+  @override
+  void initState() {
+    super.initState();
+    final client = widget.apiClient;
+    _mentorManagementController = AdminMentorManagementController(
+      api: AdminMentorApi(client: client),
+    );
+    _courseManagementController = AdminCourseManagementController(
+      sharedCourseApi: SharedCourseApi(client: client),
+      adminCourseApi: AdminCourseApi(client: client),
+      adminMentorApi: AdminMentorApi(client: client),
+    );
+    _studentManagementController = AdminStudentManagementController(
+      studentApi: SharedStudentApi(client: client),
+      courseApi: SharedCourseApi(client: client),
+    );
+    _viewSessionLogsController = AdminViewSessionLogsController(
+      sessionLogApi: AdminSessionLogApi(client: client),
+      courseApi: SharedCourseApi(client: client),
+      studentApi: SharedStudentApi(client: client),
+      mentorApi: AdminMentorApi(client: client),
+      studentRecordController: StudentRecordController(
+        studentRecordApi: SharedStudentRecordApi(client: client),
+      ),
+    );
+    _photoController = SessionPhotoController(
+      sharedPhotoApi: SharedSessionPhotoApi(client: client),
+      mentorPhotoApi: MentorSessionPhotoApi(client: client),
+      courseApi: SharedCourseApi(client: client),
+    );
+    _trackStudentsController = TrackStudentsController(
+      studentApi: SharedStudentApi(client: client),
+      studentRecordApi: SharedStudentRecordApi(client: client),
+    );
+    _storyController = AdminStoryController(
+      storyApi: AdminStoryApi(client: client),
+    );
+    _storyWinnerArchiveController = StoryWinnerArchiveController(
+      storyApi: SharedStoryApi(client: client),
+    );
+    _courseVisitController = AdminCourseVisitController(
+      courseVisitApi: AdminCourseVisitApi(client: client),
+      courseApi: SharedCourseApi(client: client),
+      studentApi: SharedStudentApi(client: client),
+      mentorApi: AdminMentorApi(client: client),
+    );
+  }
 
   AdminStory? get _selectedStory {
     final storyId = _areaController.selectedStoryId;
@@ -195,7 +249,7 @@ class _AdminAreaState extends State<AdminArea> {
 
         AdminScreen.courseVisitForm => _buildCourseVisitFormArea(),
 
-        AdminScreen.reportsData => PlaceholderTaskScreen(
+        AdminScreen.reportsData => ComingSoonScreen(
           title: 'Reports & data',
           onHome: _returnToMenu,
           onLogout: widget.onLogout,

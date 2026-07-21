@@ -16,9 +16,9 @@ enum SessionStatus {
 
 class SessionController extends FeatureController {
   final AuthApi _authApi;
-  final TokenStorage _tokenStorage;
+  final SessionStorage _tokenStorage;
 
-  SessionController({AuthApi? authApi, TokenStorage? tokenStorage})
+  SessionController({AuthApi? authApi, SessionStorage? tokenStorage})
     : _authApi = authApi ?? AuthApi(),
       _tokenStorage = tokenStorage ?? const TokenStorage();
 
@@ -64,7 +64,13 @@ class SessionController extends FeatureController {
     final operation = beginRequest();
     _setStatus(SessionStatus.restoring);
 
-    final storedSession = await _tokenStorage.readAccessSession();
+    StoredSession? storedSession;
+    try {
+      storedSession = await _tokenStorage.readAccessSession();
+    } catch (_) {
+      if (requestIsCurrent(operation)) _setStatus(SessionStatus.start);
+      return;
+    }
     if (!requestIsCurrent(operation)) return;
 
     if (storedSession == null) {
@@ -83,7 +89,11 @@ class SessionController extends FeatureController {
     if (!requestIsCurrent(operation)) return;
 
     if (result.failure != null) {
-      await _tokenStorage.clear();
+      try {
+        await _tokenStorage.clear();
+      } catch (_) {
+        // Invalid stored credentials are still discarded in memory.
+      }
       if (!requestIsCurrent(operation)) return;
       _accessToken = null;
       _setupToken = null;
@@ -157,7 +167,7 @@ class SessionController extends FeatureController {
     _accessToken = result.token;
     _setupToken = null;
 
-    await _tokenStorage.saveAccessSession(
+    await _saveAccessSession(
       accessToken: result.token!,
       role: StoredAuthRole.mentor,
     );
@@ -203,7 +213,7 @@ class SessionController extends FeatureController {
     _accessToken = result.token;
     _setupToken = null;
 
-    await _tokenStorage.saveAccessSession(
+    await _saveAccessSession(
       accessToken: result.token!,
       role: StoredAuthRole.admin,
     );
@@ -254,7 +264,7 @@ class SessionController extends FeatureController {
     _setupToken = null;
     _mentorSetupMessage = null;
 
-    await _tokenStorage.saveAccessSession(
+    await _saveAccessSession(
       accessToken: result.token!,
       role: StoredAuthRole.mentor,
     );
@@ -305,7 +315,7 @@ class SessionController extends FeatureController {
     _setupToken = null;
     _adminSetupMessage = null;
 
-    await _tokenStorage.saveAccessSession(
+    await _saveAccessSession(
       accessToken: result.token!,
       role: StoredAuthRole.admin,
     );
@@ -359,10 +369,27 @@ class SessionController extends FeatureController {
     _adminSetupMessage = null;
     _adminSetupIsSubmitting = false;
 
-    await _tokenStorage.clear();
-    if (!requestIsCurrent(operation)) return;
+    try {
+      await _tokenStorage.clear();
+    } catch (_) {
+      // Logout must complete even if secure storage is unavailable.
+    }
 
-    _setStatus(SessionStatus.start);
+    if (requestIsCurrent(operation)) _setStatus(SessionStatus.start);
+  }
+
+  Future<void> _saveAccessSession({
+    required String accessToken,
+    required StoredAuthRole role,
+  }) async {
+    try {
+      await _tokenStorage.saveAccessSession(
+        accessToken: accessToken,
+        role: role,
+      );
+    } catch (_) {
+      // Keep the valid in-memory session; it simply cannot be restored later.
+    }
   }
 
   Future<void> handleUnauthorized() async {

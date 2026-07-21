@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+
+import '../api/api.dart';
 
 import '../controllers/controllers.dart';
 import '../screens/screens.dart';
@@ -6,11 +9,13 @@ import '../theme/app_theme.dart';
 
 class MentorArea extends StatefulWidget {
   const MentorArea({
+    required this.apiClient,
     required this.accessToken,
     required this.onLogout,
     super.key,
   });
 
+  final http.Client apiClient;
   final String accessToken;
   final Future<void> Function() onLogout;
 
@@ -20,18 +25,68 @@ class MentorArea extends StatefulWidget {
 
 class _MentorAreaState extends State<MentorArea> {
   final _areaController = MentorAreaController();
-  final _courseController = MentorCourseManagementController();
-  final _studentController = MentorStudentManagementController();
-  final _profileController = MentorProfileController();
-  final _sessionLogController = MentorSessionLogController();
-  final _viewSessionLogsController = MentorViewSessionLogsController();
-  final _photoController = SessionPhotoController();
-  final _trackStudentsController = TrackStudentsController();
-  final _storyController = MentorStoryController();
-  final _storyWinnerArchiveController = StoryWinnerArchiveController();
-  final _curriculumController = CurriculumController();
+  late final MentorCourseManagementController _courseController;
+  late final MentorStudentManagementController _studentController;
+  late final MentorProfileController _profileController;
+  late final MentorSessionLogController _sessionLogController;
+  late final MentorViewSessionLogsController _viewSessionLogsController;
+  late final SessionPhotoController _photoController;
+  late final TrackStudentsController _trackStudentsController;
+  late final MentorStoryController _storyController;
+  late final StoryWinnerArchiveController _storyWinnerArchiveController;
+  late final CurriculumController _curriculumController;
 
   CoursePhotoAreaView _coursePhotoView = CoursePhotoAreaView.courseSelection;
+
+  @override
+  void initState() {
+    super.initState();
+    final client = widget.apiClient;
+    _courseController = MentorCourseManagementController(
+      sharedCourseApi: SharedCourseApi(client: client),
+    );
+    _studentController = MentorStudentManagementController(
+      studentApi: SharedStudentApi(client: client),
+      courseApi: SharedCourseApi(client: client),
+    );
+    _profileController = MentorProfileController(
+      api: MentorProfileApi(client: client),
+    );
+    _sessionLogController = MentorSessionLogController(
+      sessionLogApi: MentorSessionLogApi(client: client),
+      courseApi: SharedCourseApi(client: client),
+      studentApi: SharedStudentApi(client: client),
+      mentorApi: SharedCourseMentorsApi(client: client),
+    );
+    _viewSessionLogsController = MentorViewSessionLogsController(
+      sessionLogApi: MentorSessionLogApi(client: client),
+      courseApi: SharedCourseApi(client: client),
+      studentApi: SharedStudentApi(client: client),
+      mentorApi: SharedCourseMentorsApi(client: client),
+      studentRecordController: StudentRecordController(
+        studentRecordApi: SharedStudentRecordApi(client: client),
+      ),
+    );
+    _photoController = SessionPhotoController(
+      sharedPhotoApi: SharedSessionPhotoApi(client: client),
+      mentorPhotoApi: MentorSessionPhotoApi(client: client),
+      courseApi: SharedCourseApi(client: client),
+    );
+    _trackStudentsController = TrackStudentsController(
+      studentApi: SharedStudentApi(client: client),
+      studentRecordApi: SharedStudentRecordApi(client: client),
+    );
+    _storyController = MentorStoryController(
+      storyApi: MentorStoryApi(client: client),
+      courseApi: SharedCourseApi(client: client),
+    );
+    _storyWinnerArchiveController = StoryWinnerArchiveController(
+      storyApi: SharedStoryApi(client: client),
+    );
+    _curriculumController = CurriculumController(
+      curriculumApi: CurriculumApi(client: client),
+    );
+  }
 
   bool _showChangePin = false;
 
@@ -200,7 +255,7 @@ class _MentorAreaState extends State<MentorArea> {
 
         MentorScreen.trackStudents => _buildTrackStudentsArea(),
 
-        MentorScreen.submitInvoice => PlaceholderTaskScreen(
+        MentorScreen.submitInvoice => ComingSoonScreen(
           title: 'Submit invoice',
           onHome: _goHome,
           onLogout: _logout,
