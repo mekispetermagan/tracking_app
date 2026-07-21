@@ -42,7 +42,9 @@ abstract class RememberedPhoneController extends FeatureController {
 
   Future<void> clearPhone() async {
     final request = beginRequest();
-    final changed = _phone.isNotEmpty || clearCredential();
+    final phoneChanged = _phone.isNotEmpty;
+    final credentialChanged = clearCredential();
+    final changed = phoneChanged || credentialChanged;
     _phone = '';
     _phoneFieldVersion++;
 

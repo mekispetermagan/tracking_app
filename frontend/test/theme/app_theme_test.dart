@@ -15,6 +15,13 @@ void main() {
     expect(theme.textTheme.labelLarge?.fontFamily, 'Nunito');
   });
 
+  test('mentor and admin themes use different brightness', () {
+    final mentorBrightness = buildMentorTheme().brightness;
+    final adminBrightness = buildAdminTheme().brightness;
+
+    expect(mentorBrightness, isNot(adminBrightness));
+  });
+
   test('admin theme is visually separate from the mentor brand', () {
     final mentorScheme = buildMentorTheme().colorScheme;
     final adminScheme = buildAdminTheme().colorScheme;
