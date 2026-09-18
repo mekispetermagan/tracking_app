@@ -1,8 +1,13 @@
 # Afterschool Geekery Uganda Project Manager
 
-Development continued temporarily in [tracking_app-post-submission](https://github.com/mekispetermagan/tracking_app-post-submission). That repository's commit history has now been incorporated here, and this repository is again the main home of the project.
-
 A project management and progress tracking app built for Afterschool Geekery Uganda, a coding and robotics program for children with little access to digital education.
+
+Closed testing guides:
+
+- [English guide (PDF)](AGU_Closed_Test_Guide.pdf)
+- [Magyar útmutató (PDF)](AGU_Zart_Tesztelesi_Utmutato.pdf)
+
+Development continued temporarily in [tracking_app-post-submission](https://github.com/mekispetermagan/tracking_app-post-submission). That repository's commit history has now been incorporated here, and this repository is again the main home of the project.
 
 The app was developed in the communities where it will be used, by the person who runs the project. It is designed around the daily work of local mentors and administrators, while allowing the program manager to coordinate the project remotely.
 
