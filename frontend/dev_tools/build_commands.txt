@@ -1,5 +1,1 @@
-dev build:
-flutter run -d linux
-
-server build:
-flutter build apk --dart-define=API_BASE_URL=https://tracking.mekis.dev
+Build instructions have moved to ../../BUILDING.md.

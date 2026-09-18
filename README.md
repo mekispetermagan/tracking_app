@@ -1,5 +1,7 @@
 # Afterschool Geekery Uganda Project Manager
 
+Development continued temporarily in [tracking_app-post-submission](https://github.com/mekispetermagan/tracking_app-post-submission). That repository's commit history has now been incorporated here, and this repository is again the main home of the project.
+
 A project management and progress tracking app built for Afterschool Geekery Uganda, a coding and robotics program for children with little access to digital education.
 
 The app was developed in the communities where it will be used, by the person who runs the project. It is designed around the daily work of local mentors and administrators, while allowing the program manager to coordinate the project remotely.
@@ -144,21 +146,11 @@ The health endpoint is `http://127.0.0.1:8000/api/health`, and interactive API d
 
 ### Frontend
 
-Install Flutter dependencies and run the app:
+See [BUILDING.md](BUILDING.md) for the authoritative frontend instructions,
+including Linux development, ARM64 test APKs, Google Play bundles, production
+web builds, Android signing, and cleanup.
 
-```bash
-cd frontend
-flutter pub get
-flutter run
-```
-
-The frontend uses `http://127.0.0.1:8000` by default. Override the API address at build or run time when necessary:
-
-```bash
-flutter run --dart-define=API_BASE_URL=http://127.0.0.1:8000
-```
-
-Use `http://10.0.2.2:8000` for the standard Android emulator. A physical Android device must use an address on the development computer that the device can reach, such as its local-network IP address. The backend may also need to listen on the network interface:
+A physical Android device must use an address on the development computer that the device can reach, such as its local-network IP address. The backend may also need to listen on the network interface:
 
 ```bash
 uvicorn main:app --reload --host 0.0.0.0
